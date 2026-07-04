@@ -9,12 +9,13 @@
 
     // Etat courant
     var state = {
-        prefix:    '',
-        search:    '',
-        statut:    '',
-        paged:     1,
-        postId:    0,
-        debounce:  null,
+        prefix:      '',
+        search:      '',
+        statut:      '',
+        postStatus:  $('#sia-post-status-filter').val() || 'publish',
+        paged:       1,
+        postId:      0,
+        debounce:    null,
     };
 
     /* =========================================================
@@ -80,12 +81,13 @@
         $('#sia-pagination').hide();
 
         $.post(ajaxUrl, {
-            action:  'schilo_indexation_get_articles',
-            nonce:   nonce,
-            prefix:  state.prefix,
-            search:  state.search,
-            statut:  state.statut,
-            paged:   state.paged,
+            action:      'schilo_indexation_get_articles',
+            nonce:       nonce,
+            prefix:      state.prefix,
+            search:      state.search,
+            statut:      state.statut,
+            post_status: state.postStatus,
+            paged:       state.paged,
         }, function (res) {
             if (!res.success) {
                 $('#sia-tbody').html('<tr><td colspan="7" style="color:#dc2626;padding:20px;">Erreur : ' + (res.data.message || '') + '</td></tr>');
@@ -234,6 +236,16 @@
         // Synchronise la carte stat correspondante (Tous / Non indexes), sinon aucune active
         $('.sia-stat-filter').removeClass('sia-stat-active');
         $('.sia-stat-filter[data-statut="' + statut + '"]').addClass('sia-stat-active');
+        loadArticles();
+    });
+
+    /* =========================================================
+       FILTRE STATUT DE PUBLICATION (publie / brouillon / attente relecture)
+    ========================================================= */
+
+    $('#sia-post-status-filter').on('change', function () {
+        state.postStatus = $(this).val();
+        state.paged = 1;
         loadArticles();
     });
 

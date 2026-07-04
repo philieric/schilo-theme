@@ -4,11 +4,26 @@ if (!defined('ABSPATH')) exit;
 global $wpdb;
 $table = $wpdb->prefix . 'schilo_indexation';
 
+// --- Filtre statut de publication WordPress (par defaut : publie uniquement) ---
+$post_status_labels = [
+    'publish' => 'Publies',
+    'draft'   => 'Brouillons',
+    'pending' => 'En attente de relecture',
+    ''        => 'Tous les statuts',
+];
+$current_post_status = isset($_GET['post_status']) && array_key_exists($_GET['post_status'], $post_status_labels)
+    ? sanitize_key($_GET['post_status'])
+    : 'publish';
+$allowed_wp_statuses = ['publish', 'draft', 'pending'];
+$status_where_sql = in_array($current_post_status, $allowed_wp_statuses, true)
+    ? $wpdb->prepare("post_status = %s", $current_post_status)
+    : "post_status IN ('" . implode("','", $allowed_wp_statuses) . "')";
+
 // --- Prefixes disponibles ---
 $prefix_rows = $wpdb->get_results(
     "SELECT LEFT(post_title,3) as pfx, COUNT(*) as n
      FROM {$wpdb->posts}
-     WHERE post_type='post' AND post_status IN ('publish','draft')
+     WHERE post_type='post' AND {$status_where_sql}
        AND post_title REGEXP '^[A-Z]{3}'
      GROUP BY pfx
      ORDER BY pfx ASC",
@@ -19,12 +34,20 @@ foreach ($prefix_rows as $r) {
     $prefixes[$r['pfx']] = (int) $r['n'];
 }
 
-// --- Compteurs par statut indexation ---
+// --- Compteurs par statut indexation (bornes au statut de publication courant) ---
 $stat_counts = [];
-$stat_rows = $wpdb->get_results("SELECT statut_indexation, COUNT(*) as n FROM {$table} GROUP BY statut_indexation", ARRAY_A);
+$stat_rows = $wpdb->get_results(
+    "SELECT i.statut_indexation, COUNT(*) as n
+     FROM {$table} i INNER JOIN {$wpdb->posts} p ON p.ID = i.post_id
+     WHERE p.post_type='post' AND {$status_where_sql}
+     GROUP BY i.statut_indexation",
+    ARRAY_A
+);
 foreach ($stat_rows as $r) $stat_counts[$r['statut_indexation']] = (int)$r['n'];
-$total_posts   = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='post' AND post_status IN ('publish','draft')");
-$total_indexed = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
+$total_posts   = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='post' AND {$status_where_sql}");
+$total_indexed = (int) $wpdb->get_var(
+    "SELECT COUNT(*) FROM {$table} i INNER JOIN {$wpdb->posts} p ON p.ID = i.post_id WHERE p.post_type='post' AND {$status_where_sql}"
+);
 $total_valides = $stat_counts['valide'] ?? 0;
 $total_attente = $stat_counts['en_attente'] ?? 0;
 $non_indexes   = $total_posts - $total_indexed;
@@ -82,6 +105,11 @@ $default_prov = get_option('schilo_indexation_default_provider', 'claude');
     <!-- Toolbar compact -->
     <div class="sia-toolbar" id="sia-toolbar">
         <input type="search" id="sia-search" placeholder="Rechercher un article..." value="">
+        <select id="sia-post-status-filter" title="Filtrer selon le statut de publication">
+            <?php foreach ($post_status_labels as $val => $label) : ?>
+            <option value="<?php echo esc_attr($val); ?>" <?php selected($current_post_status, $val); ?>><?php echo esc_html($label); ?></option>
+            <?php endforeach; ?>
+        </select>
         <select id="sia-indexed-filter" title="Filtrer selon l'etat d'indexation">
             <option value="">Tous les articles</option>
             <option value="non_indexe">Masquer les articles deja indexes</option>
