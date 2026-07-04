@@ -9,12 +9,13 @@
 
     // Etat courant
     var state = {
-        prefix:    '',
-        search:    '',
-        statut:    '',
-        paged:     1,
-        postId:    0,
-        debounce:  null,
+        prefix:      '',
+        search:      '',
+        statut:      '',
+        postStatus:  $('#sia-post-status-filter').val() || 'publish',
+        paged:       1,
+        postId:      0,
+        debounce:    null,
     };
 
     /* =========================================================
@@ -80,12 +81,13 @@
         $('#sia-pagination').hide();
 
         $.post(ajaxUrl, {
-            action:  'schilo_indexation_get_articles',
-            nonce:   nonce,
-            prefix:  state.prefix,
-            search:  state.search,
-            statut:  state.statut,
-            paged:   state.paged,
+            action:      'schilo_indexation_get_articles',
+            nonce:       nonce,
+            prefix:      state.prefix,
+            search:      state.search,
+            statut:      state.statut,
+            post_status: state.postStatus,
+            paged:       state.paged,
         }, function (res) {
             if (!res.success) {
                 $('#sia-tbody').html('<tr><td colspan="7" style="color:#dc2626;padding:20px;">Erreur : ' + (res.data.message || '') + '</td></tr>');
@@ -238,6 +240,16 @@
     });
 
     /* =========================================================
+       FILTRE STATUT DE PUBLICATION (publie / brouillon / attente relecture)
+    ========================================================= */
+
+    $('#sia-post-status-filter').on('change', function () {
+        state.postStatus = $(this).val();
+        state.paged = 1;
+        loadArticles();
+    });
+
+    /* =========================================================
        RECHERCHE
     ========================================================= */
 
@@ -332,6 +344,15 @@
             }
             if (res.data.fallback_msg) {
                 notice(res.data.fallback_msg, 'success');
+            }
+            if (res.data.auto_mode) {
+                if (res.data.auto_saved) {
+                    noticePersist('Article indexe et valide automatiquement (mode automatique).', 'success');
+                    loadArticles();
+                } else {
+                    noticePersist('Mode automatique actif, mais l\'enregistrement a echoue.');
+                }
+                return;
             }
             openIaModal(res.data.fields, postId);
         }).fail(function (xhr, status, err) {
@@ -705,9 +726,10 @@
         }, function (res) {
             hideSpinner();
             if (res.success) {
-                var ok  = (res.data.ok  || []).length;
-                var err = (res.data.error || []).length;
-                notice(ok + ' article(s) indexes avec succes' + (err ? ', ' + err + ' erreur(s)' : '') + '. Statut : en attente de validation.', 'success');
+                var ok       = (res.data.ok  || []).length;
+                var err      = (res.data.error || []).length;
+                var statutTxt = res.data.auto_mode ? 'valides automatiquement' : 'en attente de validation';
+                notice(ok + ' article(s) indexes avec succes' + (err ? ', ' + err + ' erreur(s)' : '') + '. Statut : ' + statutTxt + '.', 'success');
                 loadArticles();
             } else {
                 notice('Erreur batch : ' + (res.data.message || ''), 'error');

@@ -120,11 +120,20 @@ class IndexationPage
             wp_send_json_error(['message' => $result->get_error_message()]);
         }
 
+        // Mode automatique : enregistrer directement en "valide", sans passer par la modale de relecture.
+        $auto_mode  = get_option('schilo_indexation_validation_mode', 'manuel') === 'auto';
+        $auto_saved = false;
+        if ($auto_mode) {
+            $auto_saved = $this->service->saveValidated($post_id, $result, get_current_user_id(), 'valide');
+        }
+
         wp_send_json_success([
             'fields'        => $result,
             'post_id'       => $post_id,
             'provider_used' => $used,
             'fallback_msg'  => $fallback_msg,
+            'auto_mode'     => $auto_mode,
+            'auto_saved'    => $auto_saved,
         ]);
     }
 
@@ -146,8 +155,10 @@ class IndexationPage
             wp_send_json_error(['message' => 'Aucun article selectionne.']);
         }
 
-        $results = ['ok' => [], 'error' => []];
-        $user_id = get_current_user_id();
+        $results   = ['ok' => [], 'error' => []];
+        $user_id   = get_current_user_id();
+        $auto_mode = get_option('schilo_indexation_validation_mode', 'manuel') === 'auto';
+        $statut    = $auto_mode ? 'valide' : 'en_attente';
 
         foreach ($post_ids as $post_id) {
             if (!$post_id) continue;
@@ -157,9 +168,10 @@ class IndexationPage
                 continue;
             }
 
-            // Pre-remplit les champs proposes par l'IA, statut "en_attente" :
-            // reste soumis a la validation humaine avant de passer a "valide".
-            $saved = $this->service->saveValidated($post_id, $r, $user_id, 'en_attente');
+            // Pre-remplit les champs proposes par l'IA. Statut selon le mode choisi
+            // dans la configuration : "en_attente" (validation humaine requise) ou
+            // "valide" directement si le mode automatique est active.
+            $saved = $this->service->saveValidated($post_id, $r, $user_id, $statut);
             if ($saved) {
                 $results['ok'][] = $post_id;
             } else {
@@ -167,6 +179,7 @@ class IndexationPage
             }
         }
 
+        $results['auto_mode'] = $auto_mode;
         wp_send_json_success($results);
     }
 
@@ -443,16 +456,25 @@ class IndexationPage
         }
 
         global $wpdb;
-        $table    = $wpdb->prefix . 'schilo_indexation';
-        $prefix   = sanitize_text_field($_POST['prefix'] ?? '');
-        $search   = sanitize_text_field($_POST['search'] ?? '');
-        $statut   = sanitize_key($_POST['statut'] ?? '');
-        $paged    = max(1, absint($_POST['paged'] ?? 1));
-        $per_page = 40;
-        $offset   = ($paged - 1) * $per_page;
+        $table       = $wpdb->prefix . 'schilo_indexation';
+        $prefix      = sanitize_text_field($_POST['prefix'] ?? '');
+        $search      = sanitize_text_field($_POST['search'] ?? '');
+        $statut      = sanitize_key($_POST['statut'] ?? '');
+        $post_status = sanitize_key($_POST['post_status'] ?? 'publish');
+        $paged       = max(1, absint($_POST['paged'] ?? 1));
+        $per_page    = 40;
+        $offset      = ($paged - 1) * $per_page;
 
-        $where  = ["p.post_type = 'post'", "p.post_status IN ('publish','draft')"];
+        $where  = ["p.post_type = 'post'"];
         $params = [];
+
+        $allowed_wp_statuses = ['publish', 'draft', 'pending'];
+        if (in_array($post_status, $allowed_wp_statuses, true)) {
+            $where[] = 'p.post_status = %s';
+            $params[] = $post_status;
+        } else {
+            $where[] = "p.post_status IN ('" . implode("','", $allowed_wp_statuses) . "')";
+        }
 
         if ($prefix !== '') {
             $where[]  = 'p.post_title LIKE %s';
@@ -493,11 +515,21 @@ class IndexationPage
             ? $wpdb->get_results($wpdb->prepare($data_sql, $params), ARRAY_A)
             : $wpdb->get_results($data_sql, ARRAY_A);
 
-        // Compteurs globaux pour mettre a jour les stats sans recharger la page
-        $total_posts   = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='post' AND post_status IN ('publish','draft')");
-        $total_indexed = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
-        $total_valides = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} WHERE statut_indexation='valide'");
-        $total_attente = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} WHERE statut_indexation='en_attente'");
+        // Compteurs globaux (respectent le filtre de statut WP courant) pour mettre a jour les stats sans recharger la page
+        $status_where_sql = in_array($post_status, $allowed_wp_statuses, true)
+            ? $wpdb->prepare("post_status = %s", $post_status)
+            : "post_status IN ('" . implode("','", $allowed_wp_statuses) . "')";
+
+        $total_posts   = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='post' AND {$status_where_sql}");
+        $total_indexed = (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$table} i INNER JOIN {$wpdb->posts} p ON p.ID = i.post_id WHERE p.post_type='post' AND {$status_where_sql}"
+        );
+        $total_valides = (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$table} i INNER JOIN {$wpdb->posts} p ON p.ID = i.post_id WHERE p.post_type='post' AND {$status_where_sql} AND i.statut_indexation='valide'"
+        );
+        $total_attente = (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$table} i INNER JOIN {$wpdb->posts} p ON p.ID = i.post_id WHERE p.post_type='post' AND {$status_where_sql} AND i.statut_indexation='en_attente'"
+        );
 
         wp_send_json_success([
             'rows'          => $rows ?: [],
