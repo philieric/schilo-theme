@@ -1,0 +1,415 @@
+/* ═══════════════════════════════════════════════════════════
+   Schilo — Page d'édition article — Layout custom
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+    --se-accent:  #2872d4;
+    --se-accent2: #1a5fb8;
+    --se-border:  #e2e8f0;
+    --se-bg:      #f8fafc;
+    --se-card:    #ffffff;
+    --se-text:    #1e293b;
+    --se-muted:   #64748b;
+    --se-r:       8px;
+}
+
+/* ── Neutraliser le layout WP ───────────────────────────────── */
+body.post-php.post-type-post #wpbody-content { padding-bottom: 48px; }
+body.post-php.post-type-post #poststuff      { padding-top: 0; }
+body.post-php.post-type-post #post-body,
+body.post-php.post-type-post #postbox-container-1,
+body.post-php.post-type-post #postbox-container-2,
+body.post-php.post-type-post #post-body-content { display: none !important; }
+
+/* ── Wrapper global ─────────────────────────────────────────── */
+#schilo-edit-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 100%;
+}
+
+/* ── Barre sticky ───────────────────────────────────────────── */
+#se-topbar {
+    position: sticky;
+    top: 32px;
+    z-index: 200;
+    background: #fff;
+    border: 1px solid var(--se-border);
+    border-radius: var(--se-r);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.07);
+    flex-wrap: wrap;
+}
+#se-topbar .se-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--se-text);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+#se-topbar .se-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+#se-topbar .se-status {
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 20px;
+    padding: 3px 10px;
+    border: 1px solid transparent;
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+#se-topbar .se-status[data-status="publish"] {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+#se-topbar .se-status[data-status="draft"] {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fde68a;
+}
+.se-btn-view {
+    background: transparent;
+    color: var(--se-accent);
+    border: 1px solid var(--se-border);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.se-btn-view:hover { border-color: var(--se-accent); color: var(--se-accent); }
+.se-btn-save {
+    background: var(--se-accent) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 6px 16px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    line-height: 1.5 !important;
+}
+.se-btn-save:hover { background: var(--se-accent2) !important; }
+
+/* ── Champ titre + slug ─────────────────────────────────────── */
+#se-title-zone { display: flex; flex-direction: column; gap: 0; }
+
+/* #titlediv natif WP — on réinitialise son style */
+#se-title-zone #titlediv {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+#se-title-zone #titlediv label,
+#se-title-zone #title-prompt-text { display: none !important; }
+
+/* Input titre */
+#se-title-zone #titlewrap {
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+}
+#se-title-zone #title,
+.se-title-input {
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    padding: 10px 14px !important;
+    height: auto !important;
+    border: 1px solid var(--se-border) !important;
+    border-radius: var(--se-r) !important;
+    background: var(--se-card) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04) !important;
+    color: var(--se-text) !important;
+    line-height: 1.4 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+}
+#se-title-zone #title:focus,
+.se-title-input:focus {
+    border-color: var(--se-accent) !important;
+    box-shadow: 0 0 0 3px rgba(40,114,212,.12) !important;
+    outline: none !important;
+}
+
+/* Zone slug/permalien — .inside de #titlediv */
+#se-title-zone #titlediv .inside {
+    padding: 6px 4px 0 !important;
+    margin: 0 !important;
+}
+#se-title-zone #edit-slug-box {
+    font-size: 12px !important;
+    color: var(--se-muted) !important;
+    padding: 5px 8px !important;
+    background: var(--se-bg) !important;
+    border: 1px solid var(--se-border) !important;
+    border-radius: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+    line-height: 1.5 !important;
+}
+#se-title-zone #edit-slug-box strong { font-weight: 600; color: var(--se-text); }
+#se-title-zone #edit-slug-box #sample-permalink { display: inline-flex; align-items: center; gap: 4px; }
+#se-title-zone #edit-slug-box #editable-post-name {
+    display: inline-block !important;
+    background: #fff !important;
+    border: 1px solid var(--se-border) !important;
+    border-radius: 4px !important;
+    padding: 1px 6px !important;
+    min-width: 80px !important;
+    outline: none !important;
+}
+#se-title-zone #edit-slug-box #editable-post-name:focus {
+    border-color: var(--se-accent) !important;
+    box-shadow: 0 0 0 2px rgba(40,114,212,.12) !important;
+}
+#se-title-zone #edit-slug-box .edit-slug,
+#se-title-zone #edit-slug-box #edit-slug {
+    font-size: 11px !important;
+    padding: 1px 8px !important;
+}
+#se-title-zone #view-post-btn { display: none !important; }
+
+/* ── Bande méta (Catégories | Étiquettes | Publier) ─────────── */
+#se-meta-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    align-items: stretch;
+}
+#se-meta-strip .postbox {
+    float: none !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+#se-meta-strip .postbox .inside {
+    flex: 1 !important;
+}
+
+/* ── Zone contenu : Builder + Éditeur ──────────────────────── */
+#se-content-zone {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+#se-builder { width: 100%; }
+#se-editor  { width: 100%; }
+
+/* ── Méta basses : grille 2 colonnes, hauteur égale par ligne ── */
+#se-bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: stretch;
+}
+#se-bottom-grid .postbox {
+    margin: 0 !important;
+    float: none !important;
+    width: auto !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+}
+#se-bottom-grid .postbox .inside {
+    flex: 1 !important;
+}
+
+/* ── Style général des metaboxes ────────────────────────────── */
+#schilo-edit-wrap .postbox {
+    background: var(--se-card) !important;
+    border: 1px solid var(--se-border) !important;
+    border-radius: var(--se-r) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05) !important;
+    overflow: hidden !important;
+}
+#schilo-edit-wrap .postbox .hndle {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: .05em !important;
+    text-transform: uppercase !important;
+    color: var(--se-muted) !important;
+    border-bottom: 1px solid var(--se-border) !important;
+    padding: 9px 14px !important;
+    background: var(--se-bg) !important;
+    margin: 0 !important;
+}
+#schilo-edit-wrap .postbox .hndle span { color: inherit !important; }
+#schilo-edit-wrap .postbox .inside { padding: 14px !important; margin: 0 !important; }
+#schilo-edit-wrap .postbox .hndle .handle-order-higher,
+#schilo-edit-wrap .postbox .hndle .handle-order-lower { display: none !important; }
+
+/* ── Publier ────────────────────────────────────────────────── */
+#schilo-edit-wrap #submitdiv .misc-pub-section {
+    padding: 7px 0 !important;
+    border-bottom: 1px solid var(--se-border) !important;
+    font-size: 13px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+#schilo-edit-wrap #submitdiv .misc-pub-section:last-child { border-bottom: none !important; }
+#schilo-edit-wrap #major-publishing-actions {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 14px !important;
+    background: var(--se-bg) !important;
+    border-top: 1px solid var(--se-border) !important;
+    margin: 0 !important;
+}
+#schilo-edit-wrap #publish {
+    background: var(--se-accent) !important;
+    border-color: var(--se-accent) !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    padding: 5px 16px !important;
+    border-radius: 5px !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+}
+#schilo-edit-wrap #publish:hover {
+    background: var(--se-accent2) !important;
+    border-color: var(--se-accent2) !important;
+}
+
+/* ── Catégories compact ─────────────────────────────────────── */
+#schilo-edit-wrap #categorydiv .inside { padding: 8px 14px !important; }
+#schilo-edit-wrap #categorydiv ul.categorychecklist {
+    max-height: 180px !important;
+    overflow-y: auto !important;
+}
+
+/* ── Bouton toggle éditeur ──────────────────────────────────── */
+#se-editor-toggle {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background: var(--se-bg) !important;
+    border: 1px solid var(--se-border) !important;
+    border-radius: 6px !important;
+    padding: 5px 14px !important;
+    font-size: 12px !important;
+    color: var(--se-muted) !important;
+    cursor: pointer !important;
+    margin-bottom: 8px !important;
+}
+#se-editor-toggle:hover { border-color: var(--se-accent) !important; color: var(--se-accent) !important; }
+
+/* ── Éditeur TinyMCE ────────────────────────────────────────── */
+#se-editor #wp-content-wrap {
+    border: 1px solid var(--se-border) !important;
+    border-radius: var(--se-r) !important;
+    overflow: hidden !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,.05) !important;
+}
+#se-editor #wp-content-editor-tools {
+    background: var(--se-bg) !important;
+    border-bottom: 1px solid var(--se-border) !important;
+    padding: 4px 6px !important;
+}
+#se-editor #wp-content-editor-container { border: none !important; }
+#se-editor #content_ifr { min-height: 400px !important; }
+
+/* ── Zone secondaire (rétroliens, champs perso, commentaires) ── */
+#se-secondary-zone {
+    border-top: 1px dashed var(--se-border);
+    padding-top: 10px;
+}
+#se-secondary-toggle {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: var(--se-muted) !important;
+    font-size: 11px !important;
+    cursor: pointer !important;
+    padding: 4px 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0 !important;
+    width: 100% !important;
+    text-align: left !important;
+}
+#se-secondary-toggle:hover { color: var(--se-text) !important; }
+#se-secondary-label { margin-left: 4px; opacity: .7; font-style: italic; }
+#se-secondary-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 12px;
+}
+#se-secondary-inner .postbox {
+    margin: 0 !important;
+    float: none !important;
+    width: auto !important;
+}
+
+
+/* ── Indicateur "modifications non sauvegardées" ────────────── */
+#se-dirty-dot {
+    display: none;
+    width: 7px;
+    height: 7px;
+    background: #f59e0b;
+    border-radius: 50%;
+    margin-left: 7px;
+    vertical-align: middle;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(245,158,11,.2);
+}
+
+/* ── Masquer éléments inutiles ──────────────────────────────── */
+body.post-php.post-type-post .editor-expand-wrap { display: none !important; }
+body.post-php.post-type-post #contextual-help-link-wrap { display: none !important; }
+body.post-php.post-type-post #titlediv label,
+body.post-php.post-type-post #title-prompt-text { display: none !important; }
+
+/* -- Boutons H1-H6 / P TinyMCE : meme poids visuel que B et I -- */
+.mce-schilo-format-btn .mce-txt {
+    font-weight: 700 !important;
+    display: inline-block !important;
+    line-height: 20px !important;
+    vertical-align: top !important;
+}
+.mce-schilo-format-btn.mce-active {
+    background: var(--se-accent) !important;
+    border-color: var(--se-accent) !important;
+}
+.mce-schilo-format-btn.mce-active .mce-txt {
+    color: #fff !important;
+}

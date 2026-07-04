@@ -1,0 +1,34 @@
+/* Modern Category Grid styles */
+.mcg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.mcg-card{border:1px solid #ddd;border-radius:16px;overflow:hidden;background:#c9ced5}
+.mcg-thumb img{width:100%;height:180px;object-fit:cover}
+.mcg-body{padding:14px}
+.mcg-title{margin:0 0 8px;font-size:1.1rem}
+.mcg-excerpt{font-size:1.4rem;opacity:.85}
+.mcg-btn{display:inline-block;margin-top:10px;padding:8px 12px;border:1px solid #ccc;border-radius:12px;text-decoration:none;background: #2c3f63;color:#ffffff ;}
+.mcg-container-description {
+    padding: 10px 0;
+    width: 70%;
+    margin: 0 auto;
+    color: #fff;
+    text-align: center;
+}
+
+.mcg-container-archive {
+    /*background: #c9ced5;*/
+    
+    padding: 2% 0;
+    width: 70%;
+    margin: 0 auto;
+}
+.mgc-container {
+    width: 100%;
+    margin: 0 auto;
+}
+.mgc-container-post {
+    padding: 0 20px;
+}
+.mcg-loadmore{
+    margin-top: 15px;
+    border-radius: 15px;
+}

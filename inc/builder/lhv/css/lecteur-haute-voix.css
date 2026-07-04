@@ -1,0 +1,236 @@
+/* ── Lecteur à haute voix — styles popup et contrôles ─────────────────── */
+
+.lhv-controls {
+    margin-bottom: 10px;
+}
+
+.lhv-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    font-family: "Segoe UI", sans-serif;
+}
+
+.lhv-btn-listen,
+.lhv-btn-read {
+    background-color: #0073aa;
+    color: #fff;
+}
+
+/* Barre de progression lecture audio */
+.lhv-progress-wrap {
+    height: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+    margin: 8px 0;
+    overflow: hidden;
+}
+
+.lhv-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #0073aa;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.lhv-btn-stop {
+    background-color: #666;
+    color: #fff;
+}
+
+.lhv-btn-copy {
+    background-color: #555;
+    color: #fff;
+}
+
+.lhv-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lhv-popup {
+    position: relative;
+    padding: 20px;
+    border-radius: 12px;
+    min-width: 300px;
+    min-height: 200px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: auto;
+    resize: both;
+    line-height: 1.6;
+    font-family: "Segoe UI", sans-serif;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.lhv-popup.theme-dark {
+    background-color: #1e1e1e;
+    color: #fff;
+}
+
+.lhv-popup.theme-light {
+    background-color: #fff;
+    color: #000;
+}
+
+.lhv-drag-handle {
+    cursor: move;
+    height: 30px;
+    margin-bottom: 10px;
+}
+
+.lhv-close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    background: transparent;
+    color: inherit;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.lhv-theme-toggle {
+    position: absolute;
+    top: 5px;
+    left: 10px;
+    font-size: 13px;
+    border: 1px solid #555;
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-family: "Segoe UI", sans-serif;
+    color: #fff;
+    background: #333;
+}
+
+.lhv-voice-select {
+    margin: 60px 0 10px 0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-family: "Segoe UI", sans-serif;
+}
+
+.lhv-popup.theme-dark .lhv-voice-select,
+.lhv-popup.theme-dark .lhv-voice-select option {
+    background-color: #333;
+    color: #fff;
+}
+
+.lhv-buttons-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.lhv-left-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.lhv-popup-content {
+    font-family: "Segoe UI", sans-serif;
+}
+
+.lhv-popup-word {
+    white-space: pre-wrap;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 1.1em;
+}
+
+.lhv-word-active {
+    background-color: yellow;
+    color: black !important;
+    border-radius: 3px;
+    padding: 1px 3px;
+}
+
+.lhv-popup.theme-dark .lhv-word-active {
+    background-color: yellow;
+    color: black !important;
+}
+
+/* ── Zone lecteur intégrée dans le thème Schilo ───────────────────────── */
+
+.schilo-lhv-zone {
+    margin: 2rem 0 0;
+    padding: 1.5rem 2rem;
+    background: #f0f4f9;
+    border-top: 3px solid #3a5a8c;
+    border-radius: 0 0 8px 8px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.schilo-lhv-zone::before {
+    content: "🔊";
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.schilo-lhv-zone .lhv-controls {
+    margin-bottom: 0;
+}
+
+.schilo-lhv-zone .lhv-btn-listen {
+    background: #3a5a8c;
+    color: #fff;
+    border: none;
+    font-size: 0.95rem;
+    padding: 0.6rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: background 0.2s;
+}
+
+.schilo-lhv-zone .lhv-btn-listen:hover {
+    background: #2c4570;
+}
+
+.schilo-lhv-zone .lvh-txtlecture {
+    display: none;
+}
+
+/* ── LHV dans la sidebar ───────────────────────────────────────────────── */
+
+.schilo-sidebar-lhv .lhv-controls {
+    margin-bottom: 0;
+}
+
+.schilo-sidebar-lhv .lhv-btn-listen {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: #3a5a8c;
+    color: #fff;
+    border: none;
+    font-size: 0.9rem;
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.schilo-sidebar-lhv .lhv-btn-listen:hover {
+    background: #2c4570;
+}
+
+.schilo-sidebar-lhv .lvh-txtlecture {
+    display: none;
+}

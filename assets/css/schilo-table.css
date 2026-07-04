@@ -1,0 +1,128 @@
+/* ══════════════════════════════════════════════════════════════
+   schilo-table.css — Tableaux responsives mode carte mobile
+   ══════════════════════════════════════════════════════════════ */
+
+.sct-wrap {
+    width: 100%;
+    margin: 1.5rem 0;
+}
+
+/* ── Tableau desktop ────────────────────────────────────────── */
+.sct {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9rem;
+    line-height: 1.55;
+    color: var(--schilo-text, #1e293b);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px var(--schilo-border, #e2e8f0);
+}
+
+/* Légende */
+.sct caption {
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--schilo-accent, #2872d4);
+    text-align: left;
+    margin-bottom: .6rem;
+    caption-side: top;
+}
+
+/* En-tête */
+.sct thead tr {
+    background: var(--schilo-accent, #2872d4);
+}
+.sct thead th {
+    padding: .7rem 1rem;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+    color: #fff;
+    text-align: left;
+    white-space: nowrap;
+    border-right: 1px solid rgba(255,255,255,.15);
+}
+.sct thead th:last-child { border-right: none; }
+
+/* Corps */
+.sct tbody tr {
+    border-bottom: 1px solid var(--schilo-border, #e2e8f0);
+    transition: background .12s;
+}
+.sct tbody tr:last-child { border-bottom: none; }
+.sct tbody tr:nth-child(even) { background: var(--schilo-bg-alt, #f8fafc); }
+.sct tbody tr:hover { background: #eff6ff; }
+
+.sct tbody td {
+    padding: .65rem 1rem;
+    vertical-align: middle;
+    border-right: 1px solid var(--schilo-border, #e2e8f0);
+    color: var(--schilo-text, #334155);
+}
+.sct tbody td:last-child { border-right: none; }
+
+/* Tableau sans en-tête : première ligne normale */
+.sct tbody tr:first-child td {
+    font-weight: 500;
+    color: var(--schilo-text, #1e293b);
+}
+
+/* ── Mode carte mobile ─────────────────────────────────────── */
+@media (max-width: 640px) {
+
+    .sct, .sct thead, .sct tbody, .sct tr, .sct th, .sct td {
+        display: block;
+    }
+
+    /* Masquer l'en-tête visuel (les labels viennent de data-label) */
+    .sct thead { display: none; }
+
+    .sct caption {
+        margin-bottom: 1rem;
+    }
+
+    .sct tbody tr {
+        margin-bottom: .75rem;
+        border: 1px solid var(--schilo-border, #e2e8f0);
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .sct tbody tr:nth-child(even) { background: #fff; }
+    .sct tbody tr:hover { background: #fff; }
+
+    .sct tbody td {
+        display: flex;
+        align-items: flex-start;
+        gap: .75rem;
+        padding: .6rem .9rem;
+        border-right: none;
+        border-bottom: 1px solid var(--schilo-border, #f1f5f9);
+        font-size: .88rem;
+    }
+    .sct tbody td:last-child { border-bottom: none; }
+
+    /* Label (en-tête de colonne) affiché avant la valeur */
+    .sct tbody td::before {
+        content: attr(data-label);
+        min-width: 110px;
+        max-width: 140px;
+        flex-shrink: 0;
+        font-size: .73rem;
+        font-weight: 700;
+        letter-spacing: .03em;
+        color: var(--schilo-accent, #2872d4);
+        padding-top: .05rem;
+        line-height: 1.4;
+    }
+
+    /* Si pas de data-label défini, cacher le pseudo-élément */
+    .sct tbody td[data-label=""]::before { display: none; }
+
+    /* Valeur de la cellule */
+    .sct tbody td > * { flex: 1; }
+}

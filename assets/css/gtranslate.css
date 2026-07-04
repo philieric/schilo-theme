@@ -1,0 +1,51 @@
+/* Masquer le widget natif GTranslate — remplacé par le sélecteur Schilo custom */
+.gt_switcher_wrapper,
+.gt_float_switcher,
+.gt_switcher-popup,
+.gt_black_overlay,
+.gt_white_content,
+.gt_languages,
+#google_translate_element,
+#google_translate_element2,
+.goog-te-banner-frame,
+.goog-te-gadget,
+.skiptranslate,
+iframe.skiptranslate,
+.gtranslate_wrapper {
+    display:   none       !important;
+    visibility: hidden    !important;
+    height:     0         !important;
+    width:      0         !important;
+    overflow:   hidden    !important;
+    position:   absolute  !important;
+    top:        -9999px   !important;
+    left:       -9999px   !important;
+}
+
+body { top: 0 !important; position: static !important; }
+
+/* Div caché contenant le widget GTranslate natif */
+#schilo-gt-hidden {
+    position:      absolute;
+    top:           -9999px;
+    left:          -9999px;
+    visibility:    hidden;
+    pointer-events: none;
+    width:         0;
+    height:        0;
+    overflow:      hidden;
+}
+
+/* Forcer le dropdown Schilo en liste verticale */
+#schilo-lang-dropdown {
+    display:        block   !important;
+    flex-direction: unset   !important;
+    flex-wrap:      unset   !important;
+}
+
+#schilo-lang-dropdown .schilo-lang__option {
+    display:        flex    !important;
+    flex-direction: row     !important;
+    width:          100%    !important;
+    float:          none    !important;
+}

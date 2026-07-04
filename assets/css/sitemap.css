@@ -1,0 +1,44 @@
+/* ── Remappage variables plugin sitemap-par-categorie → charte Schilo ── */
+:root {
+    --spc-accent:        #2872d4;
+    --spc-accent-dark:   #0e3f88;
+    --spc-accent-light:  #4d8fe0;
+    --spc-accent-pale:   #e2eefb;
+    --spc-accent-border: #80b0e8;
+    --spc-bg:            #ffffff;
+    --spc-bg-2:          #f4f6f9;
+    --spc-bg-3:          #eef0f4;
+    --spc-border:        #dde2ea;
+    --spc-border-light:  #eef0f4;
+    --spc-text:          #1a2230;
+    --spc-text-2:        #556070;
+    --spc-text-muted:    #8a96a8;
+    --spc-text-faint:    #b0bac8;
+    --spc-node-1:        linear-gradient(135deg, #2872d4, #0e3f88);
+    --spc-node-2:        linear-gradient(135deg, #4d8fe0, #2872d4);
+    --spc-node-3:        linear-gradient(135deg, #6aa5e8, #4d8fe0);
+    --spc-node-misc-bg:  #e2eefb;
+    --spc-node-misc-fg:  #0e3f88;
+    --spc-shadow:        rgba(40, 114, 212, .08);
+    --spc-shadow-hover:  rgba(40, 114, 212, .18);
+    --spc-highlight:     #fff3c4;
+    --spc-new-badge:     #e05a2b;
+    --spc-radius:        10px;
+    --spc-radius-sm:     6px;
+    --spc-transition:    150ms;
+}
+
+/* Désactiver la transition "all" de la carte pour que overflow:hidden
+   ne bloque pas la fermeture de l'accordéon */
+.schilo-sitemap-page .schilo-card {
+    -webkit-transition: none !important;
+    transition:         none !important;
+    overflow:           visible;
+}
+
+/* Visibilité des nœuds via la classe .open uniquement */
+.sitemap-categories .spc-node > .spc-node-body         { display: none  !important; }
+.sitemap-categories .spc-node.open > .spc-node-body    { display: block !important; }
+
+/* Masquer le bouton thème (clair/sombre) — hors charte */
+.spc-theme-toggle { display: none !important; }

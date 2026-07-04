@@ -1,0 +1,365 @@
+/* =====================================================
+   Schilo Builder — Indexation Admin
+   ===================================================== */
+
+:root {
+    --sia-accent:   #6d3fc0;
+    --sia-blue:     #2872d4;
+    --sia-green:    #059669;
+    --sia-orange:   #d97706;
+    --sia-red:      #dc2626;
+    --sia-grey:     #64748b;
+    --sia-border:   #e2e8f0;
+    --sia-bg:       #f8fafc;
+    --sia-card:     #ffffff;
+    --sia-text:     #1e293b;
+    --sia-r:        8px;
+}
+
+/* ---- Titre de page ---------------------------------- */
+.sia-page-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 23px;
+}
+
+/* ---- Stats rapides ---------------------------------- */
+.sia-stats-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.sia-stat-card {
+    background: var(--sia-card);
+    border: 2px solid var(--sia-border);
+    border-radius: var(--sia-r);
+    padding: 12px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 90px;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.sia-stat-card:hover {
+    border-color: var(--sia-accent);
+    box-shadow: 0 2px 8px rgba(109,63,192,.12);
+}
+.sia-stat-card.sia-stat-active {
+    border-color: var(--sia-accent);
+    background: #f5f0ff;
+    box-shadow: 0 2px 8px rgba(109,63,192,.15);
+}
+.sia-stat-num {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--sia-text);
+    line-height: 1;
+}
+.sia-stat-label {
+    font-size: 10px;
+    color: var(--sia-grey);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    white-space: nowrap;
+}
+.sia-stat-green .sia-stat-num { color: var(--sia-green); }
+.sia-stat-orange .sia-stat-num { color: var(--sia-orange); }
+
+/* ---- Onglets prefixes (style pills) ----------------- */
+.sia-prefix-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 14px;
+    padding: 10px 0 12px;
+    border-bottom: 1px solid var(--sia-border);
+}
+.sia-prefix-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 11px;
+    border-radius: 20px;
+    border: 1px solid var(--sia-border);
+    background: #f8fafc;
+    color: var(--sia-text);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none !important;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+    line-height: 1.5;
+}
+.sia-prefix-tab:hover {
+    border-color: var(--sia-accent);
+    color: var(--sia-accent);
+    background: #f5f0ff;
+}
+.sia-prefix-tab.current {
+    background: var(--sia-accent);
+    border-color: var(--sia-accent);
+    color: #fff !important;
+}
+.sia-prefix-tab.current:hover { color: #fff !important; }
+.sia-tab-count {
+    font-size: 11px;
+    font-weight: 400;
+    opacity: .75;
+}
+
+/* ---- Toolbar ---------------------------------------- */
+.sia-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.sia-toolbar #sia-search {
+    flex: 1 1 160px;
+    min-width: 120px;
+    max-width: 300px;
+}
+.sia-toolbar #sia-provider-select {
+    width: auto;
+    min-width: 100px;
+}
+.sia-toolbar-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+/* ---- Dashicons dans les boutons (annule float:left WP) -- */
+.sia-toolbar .button .dashicons,
+.sia-toolbar-actions .button .dashicons,
+#sia-btn-batch-ia .dashicons,
+#sia-btn-validate .dashicons {
+    float: none;
+    vertical-align: middle;
+    margin-top: -2px;
+    font-size: 15px;
+    height: 15px;
+    width: 15px;
+    line-height: 1;
+}
+
+/* ---- Badges ----------------------------------------- */
+.sia-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.sia-badge-green  { background: #dcfce7; color: #166534; }
+.sia-badge-orange { background: #fef3c7; color: #92400e; }
+.sia-badge-red    { background: #fee2e2; color: #991b1b; }
+.sia-badge-grey   { background: #f1f5f9; color: #475569; }
+
+/* ---- Table ------------------------------------------ */
+.sia-table { margin-bottom: 20px; table-layout: fixed; }
+.sia-table th,
+.sia-table td { vertical-align: middle !important; }
+
+/* Lignes alternees pour distinguer plus facilement les articles au titre proche */
+.sia-table tbody tr:nth-child(odd)  { background: #ffffff; }
+.sia-table tbody tr:nth-child(even) { background: #f8fafc; }
+.sia-table tbody tr:hover           { background: #eef2f7; }
+
+/* Colonne checkbox — alignement précis */
+.sia-table .check-column {
+    width: 36px !important;
+    padding: 8px 4px 8px 8px !important;
+    text-align: center;
+}
+.sia-table .check-column input[type="checkbox"] {
+    margin: 0;
+    vertical-align: middle;
+    float: none;
+}
+
+.sia-actions {
+    display: flex;
+    gap: 4px;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+.sia-table-secondary { opacity: .9; }
+
+.sia-empty { padding: 30px; text-align: center; color: var(--sia-grey); }
+
+/* ---- Modale ----------------------------------------- */
+.sia-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,.5);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.sia-modal {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    max-width: 700px;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.sia-modal-wide { max-width: 900px; }
+.sia-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--sia-border);
+    background: var(--sia-bg);
+    font-size: 15px;
+}
+.sia-modal-close, .sia-xml-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--sia-grey);
+    line-height: 1;
+    padding: 0 4px;
+}
+.sia-modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+.sia-modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--sia-border);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: var(--sia-bg);
+}
+.sia-modal-info {
+    background: #eff6ff;
+    border-left: 3px solid var(--sia-blue);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+/* Champs dans la modale IA */
+.sia-ia-field { margin-bottom: 12px; }
+.sia-ia-field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--sia-grey);
+    margin-bottom: 4px;
+}
+.sia-ia-field input[type=text],
+.sia-ia-field textarea,
+.sia-ia-field select { width: 100%; box-sizing: border-box; }
+.sia-ia-field textarea { height: 80px; resize: vertical; }
+
+/* ---- Formulaire validation -------------------------- */
+.sia-val-header {
+    background: var(--sia-card);
+    border: 1px solid var(--sia-border);
+    border-radius: var(--sia-r);
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+}
+.sia-val-bloc {
+    background: var(--sia-card);
+    border: 1px solid var(--sia-border);
+    border-radius: var(--sia-r);
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+.sia-val-bloc-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--sia-accent);
+    margin-bottom: 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--sia-border);
+    grid-column: 1 / -1;
+}
+.sia-val-field { display: flex; flex-direction: column; gap: 4px; }
+.sia-val-field label { font-size: 12px; font-weight: 600; color: var(--sia-text); }
+.sia-val-field-full { grid-column: 1 / -1; }
+.sia-field-hint { font-size: 11px; color: var(--sia-grey); }
+.sia-char-count { font-size: 11px; color: var(--sia-grey); text-align: right; }
+.sia-char-count .sia-count-num { font-weight: 700; }
+.sia-word-count { font-weight: 700; }
+.sia-val-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 0 40px;
+}
+
+.sia-raw-section { margin-bottom: 12px; }
+.sia-raw-toggle { cursor: pointer; font-size: 12px; color: var(--sia-grey); user-select: none; }
+.sia-raw-pre {
+    background: #1e293b;
+    color: #94a3b8;
+    font-size: 11px;
+    padding: 12px;
+    border-radius: 6px;
+    overflow: auto;
+    max-height: 200px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* ---- Spinner ---------------------------------------- */
+.sia-spinner-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,.7);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sia-spinner-box {
+    background: #fff;
+    border: 1px solid var(--sia-border);
+    border-radius: 10px;
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.15);
+    font-size: 14px;
+    font-weight: 600;
+}

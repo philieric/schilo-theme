@@ -1,0 +1,350 @@
+/* ══════════════════════════════════════════════════════════════
+   pdf.css — Fiche export PDF — Design moderne épuré
+   ══════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --c-ink:      #0f172a;
+  --c-body:     #334155;
+  --c-muted:    #64748b;
+  --c-faint:    #94a3b8;
+  --c-accent:   #1e40af;
+  --c-accent2:  #2563eb;
+  --c-tint:     #eff6ff;
+  --c-line:     #e2e8f0;
+  --c-bg:       #ffffff;
+  --c-surface:  #f8fafc;
+  --r:          5px;
+  --font:       'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+}
+
+html { font-size: 15px; background: #e5e7eb; }
+body {
+  font-family: var(--font);
+  color: var(--c-body);
+  background: #e5e7eb;
+  line-height: 1.65;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ── Barre d'outils (screen only) ─────────────────────────── */
+.pdf-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: #fff;
+  border-bottom: 1px solid var(--c-line);
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .55rem 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.pdf-toolbar__logo {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: .04em;
+  flex: 1;
+}
+.pdf-toolbar__logo::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: var(--c-accent);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.pdf-toolbar__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: var(--c-accent);
+  color: #fff;
+  font-size: .78rem;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--r);
+  padding: .45rem 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  letter-spacing: .01em;
+  transition: background .15s, box-shadow .15s;
+}
+.pdf-toolbar__btn:hover { background: #1d3faa; box-shadow: 0 2px 8px rgba(30,64,175,.3); }
+.pdf-toolbar__close {
+  font-size: .76rem;
+  color: var(--c-muted);
+  text-decoration: none;
+  padding: .4rem .7rem;
+  border: 1px solid var(--c-line);
+  border-radius: var(--r);
+  transition: color .15s, border-color .15s;
+}
+.pdf-toolbar__close:hover { color: var(--c-ink); border-color: var(--c-faint); }
+
+/* ── Page A4 ───────────────────────────────────────────────── */
+.pdf-page {
+  max-width: 860px;
+  margin: 1.5rem auto;
+  background: var(--c-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,.10);
+}
+
+/* ── Bandeau d'en-tête coloré ──────────────────────────────── */
+.pdf-header {
+  background: var(--c-accent);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.pdf-header__brand {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+}
+.pdf-header__logo-mark {
+  width: 28px;
+  height: 28px;
+  background: rgba(255,255,255,.22);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.pdf-header__site {
+  font-size: .95rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.pdf-header__tagline {
+  font-size: .72rem;
+  color: rgba(255,255,255,.65);
+  margin-top: .05rem;
+}
+.pdf-header__meta {
+  text-align: right;
+  font-size: .7rem;
+  color: rgba(255,255,255,.6);
+  line-height: 1.5;
+}
+
+/* ── Corps de la fiche ─────────────────────────────────────── */
+.pdf-body {
+  padding: 2rem 2.25rem 2.5rem;
+}
+
+/* ── Zone identité : ref + titre + résumé ──────────────────── */
+.pdf-identity {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--c-line);
+}
+
+.pdf-ref-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .75rem;
+  flex-wrap: wrap;
+}
+.pdf-ref__code {
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  background: var(--c-tint);
+  border: 1px solid #bfdbfe;
+  padding: .2rem .6rem;
+  border-radius: 3px;
+}
+.pdf-ref__cat {
+  font-size: .7rem;
+  color: var(--c-muted);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  padding: .2rem .55rem;
+  border-radius: 3px;
+}
+
+.pdf-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--c-ink);
+  line-height: 1.2;
+  letter-spacing: -.02em;
+  margin-bottom: .9rem;
+}
+
+.pdf-excerpt {
+  font-size: .9rem;
+  color: var(--c-body);
+  line-height: 1.7;
+  font-style: italic;
+  border-left: 3px solid var(--c-accent2);
+  padding-left: .9rem;
+  color: var(--c-muted);
+}
+
+/* ── Statistiques ──────────────────────────────────────────── */
+.pdf-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: 1.75rem;
+}
+.pdf-stats__item {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .74rem;
+  color: var(--c-muted);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  padding: .3rem .65rem;
+  border-radius: 20px;
+}
+.pdf-stats__item svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  color: var(--c-accent2);
+}
+
+/* ── Contenu de l'article ──────────────────────────────────── */
+.pdf-content {
+  font-size: .9rem;
+  color: var(--c-body);
+  line-height: 1.8;
+}
+
+/* Sections Schilo Builder */
+.pdf-content .schilo-section {
+  margin-bottom: 2rem;
+}
+.pdf-content .schilo-section-title {
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  margin-bottom: .75rem;
+  padding-bottom: .4rem;
+  border-bottom: 2px solid var(--c-tint);
+}
+.pdf-content h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--c-ink);
+  margin: 1.5rem 0 .55rem;
+}
+.pdf-content h3 {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--c-ink);
+  margin: 1.1rem 0 .45rem;
+}
+.pdf-content p { margin-bottom: .8rem; }
+.pdf-content ul,
+.pdf-content ol { padding-left: 1.4rem; margin-bottom: .8rem; }
+.pdf-content li { margin-bottom: .25rem; }
+.pdf-content strong { color: var(--c-ink); font-weight: 600; }
+.pdf-content em { color: var(--c-muted); }
+.pdf-content a { color: var(--c-accent2); text-decoration: none; }
+.pdf-content blockquote {
+  border-left: 3px solid var(--c-accent2);
+  padding: .5rem .85rem;
+  color: var(--c-muted);
+  font-style: italic;
+  background: var(--c-tint);
+  border-radius: 0 var(--r) var(--r) 0;
+  margin: 1rem 0;
+}
+
+/* Versets bibliques */
+.pdf-content .schilo-verse,
+.pdf-content .schilo-brc-block {
+  background: var(--c-tint);
+  border-left: 3px solid var(--c-accent);
+  padding: .6rem .85rem;
+  margin: .65rem 0;
+  border-radius: 0 var(--r) var(--r) 0;
+  font-size: .86rem;
+}
+.pdf-content .schilo-verse__ref {
+  font-weight: 700;
+  color: var(--c-accent);
+  font-size: .75rem;
+  display: block;
+  margin-bottom: .25rem;
+}
+
+/* Cacher les éléments interactifs */
+.pdf-content .schilo-verse__pills,
+.pdf-content .schilo-vpill,
+.pdf-content .schilo-verse-version,
+.pdf-content .schilo-anchor-nav,
+.pdf-content button { display: none !important; }
+
+/* Masquer les icônes Tabler */
+.ti { display: none !important; }
+
+/* ── Pied de fiche ─────────────────────────────────────────── */
+.pdf-footer {
+  margin-top: 2rem;
+  padding-top: .85rem;
+  border-top: 1px solid var(--c-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: .7rem;
+  color: var(--c-faint);
+}
+.pdf-footer__url {
+  word-break: break-all;
+  color: var(--c-muted);
+}
+
+/* ══ @media print ══════════════════════════════════════════════ */
+@media print {
+  .pdf-toolbar { display: none !important; }
+
+  html, body { background: #fff !important; }
+  .pdf-page {
+    max-width: none;
+    margin: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  body { font-size: 10.5pt; }
+  .pdf-title { font-size: 20pt; }
+  .pdf-excerpt { font-size: 9.5pt; }
+  .pdf-content { font-size: 9.5pt; }
+  .pdf-stats { gap: .35rem; }
+
+  .pdf-content .schilo-section { break-inside: avoid-page; }
+  .pdf-content .schilo-verse   { break-inside: avoid-page; }
+  .pdf-footer                  { break-inside: avoid-page; }
+
+  .pdf-content a[href^="http"]::after {
+    content: ' (' attr(href) ')';
+    font-size: 7.5pt;
+    color: #94a3b8;
+  }
+  .pdf-content a[href^="#"]::after { content: ''; }
+
+  @page { size: A4; margin: 15mm 20mm 18mm; }
+}

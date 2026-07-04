@@ -1,0 +1,914 @@
+/* ============================================================
+   PAGE D'ACCUEIL — FALLBACK AUTONOME DU THÈME
+   ============================================================ */
+
+:root {
+  --schilo-home-dark: #1e2a3a;
+  --schilo-home-dark-card: #27384d;
+  --schilo-home-dark-card-hover: #2d4159;
+  --schilo-home-footer-dark: #131c28;
+  --schilo-home-white: #ffffff;
+  --schilo-home-white-82: rgba(255,255,255,.82);
+  --schilo-home-white-70: rgba(255,255,255,.70);
+  --schilo-home-white-48: rgba(255,255,255,.48);
+  --schilo-home-white-34: rgba(255,255,255,.34);
+  --schilo-home-white-16: rgba(255,255,255,.16);
+  --schilo-home-white-10: rgba(255,255,255,.10);
+  --schilo-home-white-06: rgba(255,255,255,.06);
+  --schilo-home-blue-soft: #78b7ff;
+  --schilo-home-accent-18: rgba(40,114,212,.18);
+  --schilo-home-black-18: rgba(0,0,0,.18);
+  --schilo-home-muted-section: #e9edf3;
+  --schilo-home-card-border: #d9dee7;
+  --schilo-home-card-shadow: 0 14px 34px rgba(30,42,58,.08);
+  --schilo-home-category-shadow: 0 8px 22px rgba(30,42,58,.09);
+  --schilo-home-category-gradient: linear-gradient(135deg, #ffffff 0%, #f2f7fd 100%);
+  --schilo-home-luc-gradient: linear-gradient(135deg, #174b8f 0%, #2872d4 100%);
+  --schilo-home-mat-gradient: linear-gradient(135deg, #8f2c0d 0%, #e05a2b 100%);
+  --schilo-home-jean-gradient: linear-gradient(135deg, #4c227e 0%, #7c4db8 100%);
+  --schilo-home-gold: #a97a0a;
+  --schilo-home-gold-bg: #fff3d3;
+  --schilo-home-blue-bg: #e2eefb;
+  --schilo-home-green-bg: #e6f7ec;
+  --schilo-home-violet-bg: #ede4f8;
+  --schilo-home-orange-bg: #fdeee8;
+}
+
+.schilo-home-hero {
+  padding: 5rem 0 3.5rem;
+  background: var(--schilo-home-dark);
+  color: var(--schilo-home-white);
+}
+
+.schilo-home-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(360px, .9fr);
+  align-items: center;
+  gap: clamp(3rem, 7vw, 7rem);
+}
+
+.schilo-home-hero__content {
+  max-width: 680px;
+}
+
+.schilo-home-hero__eyebrow,
+.schilo-home-verse__eyebrow,
+.schilo-home-cta__eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.schilo-home-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: .42rem .8rem;
+  border: 1px solid var(--schilo-home-white-10);
+  border-radius: 99px;
+  background: var(--schilo-home-accent-18);
+  color: var(--schilo-home-blue-soft);
+}
+
+.schilo-home-hero__eyebrow i {
+  margin-right: .35rem;
+}
+
+.schilo-home-hero__title {
+  margin: 0;
+  color: var(--schilo-home-white);
+  font-family: var(--schilo-font-serif);
+  font-size: clamp(38px, 5vw, 68px);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -.025em;
+}
+
+.schilo-home-hero__title em {
+  color: var(--schilo-home-blue-soft);
+  font-weight: 500;
+}
+
+.schilo-home-hero__description {
+  max-width: 610px;
+  margin: 1.65rem 0 0;
+  color: var(--schilo-home-white-70);
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.schilo-home-hero__actions,
+.schilo-home-cta__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .8rem;
+}
+
+.schilo-home-hero__actions {
+  margin-top: 2rem;
+}
+
+.schilo-home-button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .72rem 1.15rem;
+  border: 1px solid transparent;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  transition: background var(--schilo-transition), border-color var(--schilo-transition), color var(--schilo-transition), transform var(--schilo-transition);
+}
+
+.schilo-home-button:hover {
+  transform: translateY(-1px);
+}
+
+.schilo-home-button--primary {
+  background: var(--schilo-accent);
+  color: var(--schilo-home-white);
+}
+
+.schilo-home-button--primary:hover {
+  background: var(--schilo-accent-dark);
+  color: var(--schilo-home-white);
+}
+
+.schilo-home-button--ghost {
+  border-color: var(--schilo-home-white-16);
+  background: var(--schilo-home-white-06);
+  color: var(--schilo-home-white-82);
+}
+
+.schilo-home-button--ghost:hover {
+  border-color: var(--schilo-home-white-34);
+  background: var(--schilo-home-white-10);
+  color: var(--schilo-home-white);
+}
+
+.schilo-home-button--light {
+  border-color: var(--schilo-home-white-16);
+  background: transparent;
+  color: var(--schilo-home-white-82);
+}
+
+.schilo-home-button--light:hover {
+  border-color: var(--schilo-home-white-34);
+  color: var(--schilo-home-white);
+}
+
+.schilo-home-featured {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .8rem;
+}
+
+.schilo-home-featured__card {
+  min-height: 145px;
+  display: flex;
+  flex-direction: column;
+  padding: 1.35rem;
+  border: 1px solid var(--schilo-home-white-06);
+  border-radius: var(--schilo-radius-lg);
+  background: var(--schilo-home-dark-card);
+  color: var(--schilo-home-white);
+  text-decoration: none;
+  transition: background var(--schilo-transition), border-color var(--schilo-transition), transform var(--schilo-transition);
+}
+
+.schilo-home-featured__card:hover {
+  border-color: var(--schilo-home-white-16);
+  background: var(--schilo-home-dark-card-hover);
+  color: var(--schilo-home-white);
+  transform: translateY(-2px);
+}
+
+.schilo-home-featured__card--main {
+  min-height: 205px;
+  grid-column: 1 / -1;
+}
+
+.schilo-home-featured__label {
+  margin-bottom: .75rem;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.schilo-home-featured__card--luc .schilo-home-featured__label {
+  color: var(--schilo-home-blue-soft);
+}
+
+.schilo-home-featured__card--mat .schilo-home-featured__label {
+  color: var(--schilo-mat-border);
+}
+
+.schilo-home-featured__card--jean .schilo-home-featured__label {
+  color: var(--schilo-jean-border);
+}
+
+.schilo-home-featured__card strong {
+  max-width: 320px;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.schilo-home-featured__meta {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--schilo-home-white-34);
+  font-size: 11px;
+}
+
+.schilo-home-stats {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  display: flex;
+  align-items: center;
+  gap: clamp(2rem, 5vw, 5rem);
+  border-top: 1px solid var(--schilo-home-white-06);
+}
+
+.schilo-home-stat {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+
+.schilo-home-stat strong {
+  color: var(--schilo-home-white);
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.schilo-home-stat span {
+  color: var(--schilo-home-white-34);
+  font-size: 10px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.schilo-home-verse {
+  margin-top: 3rem;
+  padding: 1.8rem 2rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.6rem;
+  border: 1px solid var(--schilo-home-white-06);
+  border-radius: var(--schilo-radius-xl);
+  background: var(--schilo-home-dark-card);
+}
+
+.schilo-home-verse__identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .45rem;
+  color: var(--schilo-home-white-34);
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.schilo-home-verse__badge {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--schilo-luc);
+  color: var(--schilo-home-white);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.schilo-home-verse__eyebrow {
+  color: var(--schilo-home-blue-soft);
+}
+
+.schilo-home-verse__reference {
+  margin-top: .5rem;
+  color: var(--schilo-home-white-48);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+.schilo-home-verse__copyright {
+  margin: .6rem 0 0;
+  font-size: 10px;
+  opacity: .45;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.schilo-home-verse__version {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  opacity: .6;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.schilo-home-verse blockquote {
+  margin: .55rem 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--schilo-home-white-82);
+  font-family: var(--schilo-font-serif);
+  font-size: clamp(16px, 2vw, 21px);
+  font-style: italic;
+  line-height: 1.55;
+}
+
+.schilo-home-section {
+  padding: 4.5rem 0;
+  background: var(--schilo-bg-card);
+}
+
+.schilo-home-section--muted {
+  background: var(--schilo-home-muted-section);
+}
+
+.schilo-home-section__heading {
+  margin-bottom: 1.8rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.schilo-home-section__heading h2,
+.schilo-home-cta h2 {
+  margin: 0;
+  color: var(--schilo-text-primary);
+  font-size: clamp(22px, 3vw, 31px);
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.schilo-home-section__heading p {
+  margin: .35rem 0 0;
+  color: var(--schilo-text-secondary);
+  font-size: 13px;
+}
+
+.schilo-home-section__heading > a {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--schilo-accent-dark);
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.schilo-home-paths {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.schilo-home-path {
+  overflow: hidden;
+  border: 1px solid var(--schilo-home-card-border);
+  border-radius: var(--schilo-radius-lg);
+  background: var(--schilo-bg-card);
+  box-shadow: var(--schilo-shadow-sm);
+  color: var(--schilo-text-primary);
+  text-decoration: none;
+  transition: box-shadow var(--schilo-transition), transform var(--schilo-transition);
+}
+
+.schilo-home-path:hover {
+  color: var(--schilo-text-primary);
+  box-shadow: var(--schilo-home-card-shadow);
+  transform: translateY(-3px);
+}
+
+.schilo-home-path__visual {
+  min-height: 150px;
+  position: relative;
+  padding: 1rem;
+  color: var(--schilo-home-white);
+}
+
+.schilo-home-path--luc .schilo-home-path__visual {
+  background: var(--schilo-home-luc-gradient);
+}
+
+.schilo-home-path--mat .schilo-home-path__visual {
+  background: var(--schilo-home-mat-gradient);
+}
+
+.schilo-home-path--jean .schilo-home-path__visual {
+  background: var(--schilo-home-jean-gradient);
+}
+
+.schilo-home-path__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.schilo-home-path__badge {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--schilo-home-white-16);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.schilo-home-path__count {
+  padding: .25rem .55rem;
+  border-radius: 99px;
+  background: var(--schilo-home-black-18);
+  font-size: 10px;
+}
+
+.schilo-home-path__icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  color: var(--schilo-home-white-16);
+  font-size: 44px;
+  transform: translate(-50%, -38%);
+}
+
+.schilo-home-path__body {
+  padding: 1.25rem;
+}
+
+.schilo-home-path__body h3,
+.schilo-home-theme h3 {
+  margin: 0;
+  color: var(--schilo-text-primary);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.schilo-home-path__body p,
+.schilo-home-theme p {
+  margin: .55rem 0 0;
+  color: var(--schilo-text-secondary);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.schilo-home-path__link,
+.schilo-home-theme__link {
+  margin-top: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--schilo-accent-dark);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.schilo-home-resources {
+  margin-top: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.schilo-home-resource {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .8rem 1rem;
+  border: 1px solid var(--schilo-home-card-border);
+  border-radius: var(--schilo-radius-md);
+  background: var(--schilo-bg-card);
+  color: var(--schilo-text-primary);
+  text-decoration: none;
+  transition: border-color var(--schilo-transition), transform var(--schilo-transition);
+}
+
+.schilo-home-resource:hover {
+  border-color: var(--schilo-border-mid);
+  color: var(--schilo-text-primary);
+  transform: translateY(-1px);
+}
+
+.schilo-home-resource__dot {
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.schilo-home-resource__dot--mat { background: var(--schilo-mat); }
+.schilo-home-resource__dot--marc { background: var(--schilo-marc); }
+.schilo-home-resource__dot--luc { background: var(--schilo-luc); }
+.schilo-home-resource__dot--jean { background: var(--schilo-jean); }
+
+.schilo-home-resource strong,
+.schilo-home-resource small {
+  display: block;
+}
+
+.schilo-home-resource strong {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.schilo-home-resource small {
+  margin-top: .15rem;
+  color: var(--schilo-text-muted);
+  font-size: 10px;
+}
+
+.schilo-home-themes {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .9rem;
+}
+
+.schilo-home-theme {
+  min-height: 215px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--schilo-border);
+  border-radius: var(--schilo-radius-lg);
+  background: var(--schilo-bg-card);
+  color: var(--schilo-text-primary);
+  text-decoration: none;
+  transition: border-color var(--schilo-transition), box-shadow var(--schilo-transition), transform var(--schilo-transition);
+}
+
+.schilo-home-theme:hover {
+  border-color: var(--schilo-border-mid);
+  color: var(--schilo-text-primary);
+  box-shadow: var(--schilo-shadow-md);
+  transform: translateY(-2px);
+}
+
+.schilo-home-theme__icon {
+  width: 38px;
+  height: 38px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--schilo-radius-md);
+  font-size: 18px;
+}
+
+.schilo-home-theme__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.schilo-home-theme__number {
+  color: var(--schilo-text-hint);
+  font-family: var(--schilo-font-serif);
+  font-size: 23px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.schilo-home-theme--gold .schilo-home-theme__icon { background: var(--schilo-home-gold-bg); color: var(--schilo-home-gold); }
+.schilo-home-theme--blue .schilo-home-theme__icon { background: var(--schilo-home-blue-bg); color: var(--schilo-luc-dark); }
+.schilo-home-theme--green .schilo-home-theme__icon { background: var(--schilo-home-green-bg); color: var(--schilo-marc-dark); }
+.schilo-home-theme--violet .schilo-home-theme__icon { background: var(--schilo-home-violet-bg); color: var(--schilo-jean-dark); }
+.schilo-home-theme--orange .schilo-home-theme__icon { background: var(--schilo-home-orange-bg); color: var(--schilo-mat-dark); }
+
+.schilo-home-theme__link {
+  margin-top: auto;
+}
+
+/* ── Bibliothèque Schilo — nouveau design compact ─────────────────── */
+
+.schilo-home-lib {
+  margin-top: 3rem;
+  padding: 2rem;
+  border: 1px solid var(--schilo-border);
+  border-radius: var(--schilo-radius-xl);
+  background: var(--schilo-bg-muted);
+}
+
+.schilo-home-lib__heading {
+  margin-bottom: 1.5rem;
+}
+
+.schilo-home-lib__heading > div > span {
+  display: block;
+  margin-bottom: .4rem;
+  color: var(--schilo-accent);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.schilo-home-lib__heading h3 {
+  margin: 0;
+  color: var(--schilo-text-primary);
+  font-family: var(--schilo-font-serif);
+  font-size: clamp(20px, 2.5vw, 26px);
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+/* Grille 3 colonnes */
+.schilo-home-lib__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .6rem;
+}
+
+/* Carte compacte (catégorie sans enfants) */
+.schilo-home-lib__card {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .7rem .85rem;
+  border: 1px solid var(--schilo-border);
+  border-radius: var(--schilo-radius-md);
+  background: var(--schilo-bg-card);
+  color: var(--schilo-text-primary);
+  text-decoration: none;
+  transition: border-color var(--schilo-transition), box-shadow var(--schilo-transition), transform var(--schilo-transition);
+}
+
+.schilo-home-lib__card:hover {
+  border-color: var(--schilo-border-mid);
+  box-shadow: 0 4px 14px rgba(30,42,58,.1);
+  color: var(--schilo-text-primary);
+  transform: translateY(-2px);
+}
+
+/* Icône colorée par variante */
+.schilo-home-lib__icon {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--schilo-radius-sm);
+  color: #fff;
+  font-size: 16px;
+}
+
+.schilo-home-lib__card--c1 .schilo-home-lib__icon,
+.schilo-home-lib__group--c1 .schilo-home-lib__icon { background: #1a56db; }
+.schilo-home-lib__card--c2 .schilo-home-lib__icon,
+.schilo-home-lib__group--c2 .schilo-home-lib__icon { background: #047857; }
+.schilo-home-lib__card--c3 .schilo-home-lib__icon,
+.schilo-home-lib__group--c3 .schilo-home-lib__icon { background: #b45309; }
+.schilo-home-lib__card--c4 .schilo-home-lib__icon,
+.schilo-home-lib__group--c4 .schilo-home-lib__icon { background: #6d28d9; }
+.schilo-home-lib__card--c5 .schilo-home-lib__icon,
+.schilo-home-lib__group--c5 .schilo-home-lib__icon { background: #0f766e; }
+.schilo-home-lib__card--c6 .schilo-home-lib__icon,
+.schilo-home-lib__group--c6 .schilo-home-lib__icon { background: #9d174d; }
+
+/* Nom de la catégorie */
+.schilo-home-lib__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Badge compteur */
+.schilo-home-lib__badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--schilo-bg-muted);
+  color: var(--schilo-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.schilo-home-lib__badge span {
+  font-weight: 400;
+  opacity: .75;
+}
+
+/* Flèche droite */
+.schilo-home-lib__arrow {
+  flex-shrink: 0;
+  color: var(--schilo-text-hint);
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity var(--schilo-transition), transform var(--schilo-transition);
+}
+
+.schilo-home-lib__card:hover .schilo-home-lib__arrow {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+/* Groupe avec sous-catégories (pleine largeur) */
+.schilo-home-lib__group {
+  grid-column: 1 / -1;
+  border: 1px solid var(--schilo-border-mid);
+  border-radius: var(--schilo-radius-lg);
+  background: var(--schilo-bg-page);
+  overflow: hidden;
+}
+
+.schilo-home-lib__group-row {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .4rem .4rem .4rem .5rem;
+}
+
+.schilo-home-lib__group-row .schilo-home-lib__card {
+  flex: 1;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  border-radius: var(--schilo-radius-sm);
+}
+
+.schilo-home-lib__group-row .schilo-home-lib__card:hover {
+  background: rgba(0,0,0,.04);
+  box-shadow: none;
+  transform: none;
+}
+
+/* Bouton toggle */
+.schilo-home-lib__toggle {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--schilo-border-mid);
+  border-radius: var(--schilo-radius-sm);
+  background: var(--schilo-bg-card);
+  color: var(--schilo-text-secondary);
+  cursor: pointer;
+  transition: background var(--schilo-transition), border-color var(--schilo-transition), color var(--schilo-transition);
+}
+
+.schilo-home-lib__toggle:hover,
+.schilo-home-lib__group.open .schilo-home-lib__toggle {
+  border-color: var(--schilo-accent);
+  background: var(--schilo-accent-pale);
+  color: var(--schilo-accent);
+}
+
+.schilo-home-lib__toggle i {
+  font-size: 15px;
+  transition: transform var(--schilo-transition);
+}
+
+.schilo-home-lib__group.open .schilo-home-lib__toggle i {
+  transform: rotate(180deg);
+}
+
+/* Sous-catégories */
+.schilo-home-lib__children[hidden] { display: none !important; }
+
+.schilo-home-lib__children {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--schilo-border);
+  animation: schilo-slide-down .2s ease;
+}
+
+@keyframes schilo-slide-down {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.schilo-home-lib__child {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .7rem 1rem;
+  border-right: 1px solid var(--schilo-border);
+  border-bottom: 1px solid var(--schilo-border);
+  color: var(--schilo-text-secondary);
+  text-decoration: none;
+  font-size: 13px;
+  transition: background var(--schilo-transition), color var(--schilo-transition);
+}
+
+.schilo-home-lib__child:last-child,
+.schilo-home-lib__child:nth-child(4n) { border-right: none; }
+
+.schilo-home-lib__child:hover {
+  background: var(--schilo-accent-pale);
+  color: var(--schilo-accent-dark);
+}
+
+.schilo-home-lib__child > i {
+  font-size: 15px;
+  flex-shrink: 0;
+  opacity: .6;
+}
+
+.schilo-home-lib__child-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schilo-home-lib__child small {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 99px;
+  background: var(--schilo-bg-muted);
+  color: var(--schilo-text-muted);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.schilo-home-cta {
+  margin-top: 4rem;
+  padding: 2rem 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  border-radius: var(--schilo-radius-xl);
+  background: var(--schilo-home-dark);
+}
+
+.schilo-home-cta__eyebrow {
+  display: block;
+  margin-bottom: .55rem;
+  color: var(--schilo-home-blue-soft);
+}
+
+.schilo-home-cta h2 {
+  max-width: 650px;
+  color: var(--schilo-home-white);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 1000px) {
+  .schilo-home-lib__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .schilo-home-lib__children {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .schilo-home-lib__child:nth-child(2n) { border-right: none; }
+}
+
+@media (max-width: 600px) {
+  .schilo-home-lib__grid {
+    grid-template-columns: 1fr;
+  }
+  .schilo-home-lib__children {
+    grid-template-columns: 1fr;
+  }
+  .schilo-home-lib__child { border-right: none; }
+  .schilo-home-cta {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+}
+
+/* Le fil thématique flottant gêne la lecture de l'accueil. */
+#stb-bar {
+  display: none;
+}

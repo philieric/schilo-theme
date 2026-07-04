@@ -1,0 +1,673 @@
+/*
+ * Schilo Theme — compat.css
+ * Compatibilité navigateurs : Chrome, Firefox, Safari, Edge, Opera,
+ * Samsung Internet, UC Browser, iOS Safari, Android WebView,
+ * et anciens navigateurs Linux (Epiphany, Falkon, etc.)
+ *
+ * Chargé EN PREMIER avant style.css et responsive.css
+ */
+
+/* ============================================================
+   1. NORMALIZE ÉTENDU
+   ============================================================ */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*, *::before, *::after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
+}
+
+/* Images */
+img, video, svg, canvas {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border: 0; /* IE9 */
+}
+
+/* Liens */
+a {
+  -webkit-text-decoration-skip: objects;
+  text-decoration-skip-ink: auto;
+  background-color: transparent; /* IE10 */
+}
+
+/* Boutons */
+button, input, optgroup, select, textarea {
+  font-family: inherit;
+  font-size: 100%;
+  line-height: 1.15;
+  margin: 0;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+button, [type="button"], [type="reset"], [type="submit"] {
+  -webkit-appearance: button;
+  cursor: pointer;
+}
+
+button::-moz-focus-inner,
+[type="button"]::-moz-focus-inner { border-style: none; padding: 0; }
+
+textarea { overflow: auto; resize: vertical; }
+
+select { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+
+/* Formulaires */
+[type="number"]::-webkit-inner-spin-button,
+[type="number"]::-webkit-outer-spin-button { height: auto; }
+
+[type="search"] { -webkit-appearance: textfield; outline-offset: -2px; }
+[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
+
+::-webkit-file-upload-button { -webkit-appearance: button; font: inherit; }
+
+/* ============================================================
+   2. FLEXBOX — PRÉFIXES COMPLETS
+   ============================================================ */
+
+body.login,
+.schilo-nav__inner,
+.schilo-nav__right,
+.schilo-nav__links,
+.schilo-nav__brand,
+.schilo-grid-main,
+.schilo-card__head,
+.schilo-card__head-left,
+.schilo-footer__bottom,
+.schilo-footer__legend,
+.schilo-footer__legend-item,
+.schilo-footer__brand,
+.schilo-footer__links,
+.schilo-btn,
+.schilo-btn-search,
+.schilo-btn-primary,
+.schilo-btn-contact,
+.schilo-btn-icon,
+.schilo-lang,
+.schilo-lang__btn,
+.schilo-lang__option,
+.schilo-contact-submit,
+.schilo-contact-privacy,
+.schilo-contact-row,
+.schilo-contact-info__item,
+.schilo-contact-info__icon,
+.schilo-contact-faq__q,
+.schilo-contact-success,
+.schilo-contact-success__icon,
+.schilo-contact-error,
+.schilo-contact-guide__conseil-inner,
+.schilo-contact-guide__questions-label,
+.schilo-hero__eyebrow,
+.schilo-verse__head,
+.schilo-verse__head-left,
+.schilo-verse__versions,
+.schilo-ev-badge,
+.schilo-sb-card,
+.schilo-sidebar,
+.schilo-progress-track,
+.schilo-pill,
+.schilo-footer__grid,
+.schilo-login-header__inner,
+.schilo-login-brand,
+.schilo-login-header__back,
+.schilo-login-footer__identity,
+.schilo-login-footer__top,
+.schilo-login-footer__bottom,
+.schilo-login-footer__links,
+.schilo-login-footer__legend,
+.schilo-login-footer__legend-item,
+.schilo-login-brand__mark,
+.schilo-login-footer__mark,
+.schilo-home-hero__eyebrow,
+.schilo-home-hero__actions,
+.schilo-home-button,
+.schilo-home-featured__card,
+.schilo-home-featured__meta,
+.schilo-home-stats,
+.schilo-home-stat,
+.schilo-home-verse__identity,
+.schilo-home-verse__badge,
+.schilo-home-section__heading,
+.schilo-home-section__heading > a,
+.schilo-home-path__top,
+.schilo-home-path__badge,
+.schilo-home-path__link,
+.schilo-home-resource,
+.schilo-home-theme,
+.schilo-home-theme__icon,
+.schilo-home-theme__top,
+.schilo-home-theme__link,
+.schilo-home-category-link,
+.schilo-home-category-link__icon,
+.schilo-home-category-link__arrow,
+.schilo-home-category-child,
+.schilo-home-category-child > i,
+.schilo-home-category-group,
+.schilo-home-cta,
+.schilo-home-cta__actions {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+/* flex-direction */
+body.login,
+.schilo-footer__links,
+.schilo-contact-info,
+.schilo-contact-faq,
+.schilo-contact-guide,
+.schilo-contact-guide__questions-list,
+.schilo-sidebar,
+.schilo-home-featured__card,
+.schilo-home-stat,
+.schilo-home-verse__identity,
+.schilo-home-theme,
+.schilo-home-category-group {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+/* flex-wrap */
+.schilo-nav__links,
+.schilo-hero-tags,
+.schilo-verse__versions,
+.schilo-contact-submit,
+.schilo-home-hero__actions,
+.schilo-home-cta__actions {
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
+.schilo-login-footer__legend {
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
+/* align-items center */
+.schilo-nav__inner,
+.schilo-nav__right,
+.schilo-nav__brand,
+.schilo-card__head,
+.schilo-card__head-left,
+.schilo-lang__btn,
+.schilo-btn,
+.schilo-btn-search,
+.schilo-btn-primary,
+.schilo-btn-contact,
+.schilo-btn-icon,
+.schilo-footer__bottom,
+.schilo-footer__legend-item,
+.schilo-contact-privacy,
+.schilo-contact-info__item,
+.schilo-ev-badge,
+.schilo-pill,
+.schilo-contact-success,
+.schilo-contact-guide__questions-label,
+.schilo-login-header__inner,
+.schilo-login-brand,
+.schilo-login-header__back,
+.schilo-login-footer__identity,
+.schilo-login-footer__top,
+.schilo-login-footer__bottom,
+.schilo-login-footer__links,
+.schilo-login-footer__legend,
+.schilo-login-footer__legend-item,
+.schilo-login-brand__mark,
+.schilo-login-footer__mark,
+.schilo-home-hero__eyebrow,
+.schilo-home-hero__actions,
+.schilo-home-button,
+.schilo-home-featured__meta,
+.schilo-home-stats,
+.schilo-home-verse__identity,
+.schilo-home-verse__badge,
+.schilo-home-section__heading,
+.schilo-home-section__heading > a,
+.schilo-home-path__top,
+.schilo-home-path__badge,
+.schilo-home-path__link,
+.schilo-home-resource,
+.schilo-home-theme__icon,
+.schilo-home-theme__top,
+.schilo-home-theme__link,
+.schilo-home-category-link,
+.schilo-home-category-link__icon,
+.schilo-home-category-link__arrow,
+.schilo-home-category-child,
+.schilo-home-category-child > i,
+.schilo-home-cta,
+.schilo-home-cta__actions {
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+/* justify-content space-between */
+.schilo-nav__inner,
+.schilo-card__head,
+.schilo-footer__bottom,
+.schilo-contact-submit,
+.schilo-login-header__inner,
+.schilo-login-footer__top,
+.schilo-login-footer__bottom,
+.schilo-home-section__heading,
+.schilo-home-path__top,
+.schilo-home-theme__top,
+.schilo-home-cta {
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+/* flex: 1 */
+.schilo-nav__links,
+.schilo-contact-info > div,
+.schilo-contact-faq__q + div {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+}
+
+/* flex-shrink: 0 */
+.schilo-nav__brand,
+.schilo-nav__right,
+.schilo-card__icon,
+.schilo-ev-badge,
+.schilo-lang__flag-img,
+.schilo-contact-info__icon {
+  -webkit-flex-shrink: 0;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   3. GRID — PRÉFIXES ET FALLBACK FLEXBOX
+   ============================================================ */
+
+.schilo-grid-main {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: 1fr 272px;
+  grid-template-columns: minmax(0, 1fr) 272px;
+  -webkit-column-gap: 1.5rem;
+  -moz-column-gap: 1.5rem;
+  column-gap: 1.5rem;
+}
+
+.schilo-footer__grid {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 3rem;
+}
+
+/* Grilles de l'accueil — fallback flex pour IE11. */
+.schilo-home-hero__grid,
+.schilo-home-featured,
+.schilo-home-verse,
+.schilo-home-paths,
+.schilo-home-resources,
+.schilo-home-themes,
+.schilo-home-category-list,
+.schilo-home-category-children {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
+.schilo-home-category-children[hidden] {
+  display: none !important;
+}
+
+.schilo-home-hero__content,
+.schilo-home-featured {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1 1 42%;
+  -ms-flex: 1 1 42%;
+  flex: 1 1 42%;
+}
+
+.schilo-home-path,
+.schilo-home-theme {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1 1 28%;
+  -ms-flex: 1 1 28%;
+  flex: 1 1 28%;
+}
+
+.schilo-home-resource {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1 1 22%;
+  -ms-flex: 1 1 22%;
+  flex: 1 1 22%;
+}
+
+.schilo-home-category-link {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1 1 22%;
+  -ms-flex: 1 1 22%;
+  flex: 1 1 22%;
+}
+
+/* ============================================================
+   4. TRANSITIONS & ANIMATIONS — PRÉFIXES
+   ============================================================ */
+
+.schilo-nav__links a,
+.schilo-btn,
+.schilo-btn-search,
+.schilo-btn-primary,
+.schilo-btn-contact,
+.schilo-lang__btn,
+.schilo-lang__dropdown,
+.schilo-lang__option,
+.schilo-lang__arrow,
+.schilo-contact-guide__q-btn,
+.schilo-card,
+.schilo-verse__head,
+.schilo-pill,
+.schilo-login-header__back,
+.schilo-login-footer__links a,
+.schilo-home-button,
+.schilo-home-featured__card,
+.schilo-home-path,
+.schilo-home-resource,
+.schilo-home-theme,
+.schilo-home-category-link,
+.schilo-home-category-child {
+  -webkit-transition: all 0.15s ease;
+  -moz-transition: all 0.15s ease;
+  -o-transition: all 0.15s ease;
+  transition: all 0.15s ease;
+}
+
+/* Transform */
+.schilo-home-path__icon {
+  -webkit-transform: translate(-50%, -38%);
+  -moz-transform: translate(-50%, -38%);
+  -ms-transform: translate(-50%, -38%);
+  -o-transform: translate(-50%, -38%);
+  transform: translate(-50%, -38%);
+}
+
+.schilo-home-button:hover,
+.schilo-home-featured__card:hover,
+.schilo-home-path:hover,
+.schilo-home-resource:hover,
+.schilo-home-theme:hover,
+.schilo-home-category-link:hover,
+.schilo-home-category-child:hover {
+  -webkit-transform: translateY(-2px);
+  -moz-transform: translateY(-2px);
+  -ms-transform: translateY(-2px);
+  -o-transform: translateY(-2px);
+  transform: translateY(-2px);
+}
+
+.schilo-lang__dropdown {
+  -webkit-transform: translateY(-4px);
+  -moz-transform: translateY(-4px);
+  -ms-transform: translateY(-4px);
+  -o-transform: translateY(-4px);
+  transform: translateY(-4px);
+}
+
+.schilo-lang__dropdown.is-open {
+  -webkit-transform: translateY(0);
+  -moz-transform: translateY(0);
+  -ms-transform: translateY(0);
+  -o-transform: translateY(0);
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .schilo-home-verse__identity {
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
+  }
+
+  .schilo-home-cta {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .schilo-home-hero__actions,
+  .schilo-home-cta__actions,
+  .schilo-home-section__heading {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+  }
+}
+
+.schilo-lang__arrow {
+  -webkit-transition: -webkit-transform 0.2s ease;
+  transition: -webkit-transform 0.2s ease;
+  -o-transition: -o-transform 0.2s ease;
+  transition: transform 0.2s ease;
+}
+
+.schilo-lang__btn[aria-expanded="true"] .schilo-lang__arrow {
+  -webkit-transform: rotate(180deg);
+  -moz-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+/* ============================================================
+   5. BORDER-RADIUS — PRÉFIXES (anciens Android / Firefox)
+   ============================================================ */
+
+.schilo-card,
+.schilo-lang__dropdown,
+.schilo-verse__block,
+.schilo-contact-success,
+.schilo-contact-error,
+.schilo-contact-guide__conseil-inner,
+.schilo-contact-guide__questions {
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  border-radius: 12px;
+}
+
+.schilo-btn,
+.schilo-btn-search,
+.schilo-btn-primary,
+.schilo-btn-contact,
+.schilo-btn-icon,
+.schilo-lang__btn,
+.schilo-pill,
+.schilo-vpill {
+  -webkit-border-radius: 99px;
+  -moz-border-radius: 99px;
+  border-radius: 99px;
+}
+
+.schilo-ev-badge,
+.schilo-contact-info__icon,
+.schilo-contact-success__icon {
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  border-radius: 50%;
+}
+
+/* ============================================================
+   6. BOX-SHADOW — PRÉFIXES
+   ============================================================ */
+
+.schilo-lang__dropdown {
+  -webkit-box-shadow: 0 8px 24px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.06);
+  -moz-box-shadow: 0 8px 24px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.06);
+  box-shadow: 0 8px 24px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.06);
+}
+
+/* ============================================================
+   7. GRADIENT — PRÉFIXES
+   ============================================================ */
+
+.schilo-hero,
+.schilo-footer,
+.schilo-sb-card--dark {
+  /* Fallback couleur unie pour très anciens navigateurs */
+  background-color: #1e2a3a;
+}
+
+/* ============================================================
+   8. USER-SELECT — PRÉFIXES
+   ============================================================ */
+
+.schilo-lang__btn,
+.schilo-nav__brand {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* ============================================================
+   9. APPEARANCE — PRÉFIXES (formulaires)
+   ============================================================ */
+
+.schilo-contact-group input,
+.schilo-contact-group select,
+.schilo-contact-group textarea,
+.schilo-lang__btn,
+button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Checkbox : garder l'apparence native */
+input[type="checkbox"] {
+  -webkit-appearance: checkbox;
+  -moz-appearance: checkbox;
+  appearance: checkbox;
+}
+
+/* ============================================================
+   10. OBJECT-FIT — PRÉFIXES (images drapeaux)
+   ============================================================ */
+
+.schilo-lang__flag-img {
+  -o-object-fit: cover;
+  object-fit: cover;
+}
+
+/* ============================================================
+   11. STICKY — PRÉFIXES
+   ============================================================ */
+
+.schilo-nav {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+}
+
+/* ============================================================
+   12. SCROLL BEHAVIOR — PRÉFIXES
+   ============================================================ */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* iOS : scroll momentum */
+.schilo-lang__dropdown,
+.schilo-nav__links {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================================
+   13. PLACEHOLDER — PRÉFIXES
+   ============================================================ */
+
+.schilo-contact-group input::-webkit-input-placeholder,
+.schilo-contact-group textarea::-webkit-input-placeholder { color: var(--schilo-text-muted); }
+.schilo-contact-group input::-moz-placeholder,
+.schilo-contact-group textarea::-moz-placeholder { color: var(--schilo-text-muted); opacity: 1; }
+.schilo-contact-group input:-ms-input-placeholder,
+.schilo-contact-group textarea:-ms-input-placeholder { color: var(--schilo-text-muted); }
+.schilo-contact-group input::placeholder,
+.schilo-contact-group textarea::placeholder { color: var(--schilo-text-muted); }
+
+/* ============================================================
+   14. FOCUS — ACCESSIBILITÉ TOUS NAVIGATEURS
+   ============================================================ */
+
+:focus { outline: 2px solid var(--schilo-accent); outline-offset: 2px; }
+:focus:not(:focus-visible) { outline: none; }
+:focus-visible { outline: 2px solid var(--schilo-accent); outline-offset: 2px; }
+
+/* Firefox */
+button::-moz-focus-inner { border: 0; }
+
+/* ============================================================
+   15. PRINT — BASIQUE COMPATIBLE
+   ============================================================ */
+
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ============================================================
+   16. VARIABLES CSS — FALLBACKS VALEURS FIXES
+   Pour navigateurs sans support CSS Custom Properties (IE11)
+   ============================================================ */
+
+/* IE11 ne supporte pas les variables CSS — on fournit des valeurs de repli */
+.schilo-nav     { background: #ffffff; border-bottom: 1px solid #dde2ea; }
+.schilo-hero    { background: #1e2a3a; }
+.schilo-footer  { background: #131c28; }
+.schilo-card    { background: #ffffff; border: 1px solid #dde2ea; }
+.schilo-btn-primary { background: #1e2a3a; color: #ffffff; }
+.schilo-btn-contact { border: 1px solid #dde2ea; color: #556070; }
+.schilo-btn-icon    { background-color: #f4f6f9; border: 1px solid #dde2ea; color: #556070; }
+.schilo-ev-badge--mat  { background: #e05a2b; }
+.schilo-ev-badge--marc { background: #2e9e4f; }
+.schilo-ev-badge--luc  { background: #2872d4; }
+.schilo-ev-badge--jean { background: #7c4db8; }

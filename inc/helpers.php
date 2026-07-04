@@ -1,0 +1,59 @@
+<?php
+/**
+ * Fonctions helper utilisées dans les templates.
+ */
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Retourne l'URL d'un asset du thème.
+ */
+function schilo_asset( string $path ): string {
+    return SCHILO_ASSETS . '/' . ltrim( $path, '/' );
+}
+
+/**
+ * Retourne la couleur CSS d'un Évangile.
+ * @param string $ev  'mat' | 'marc' | 'luc' | 'jean'
+ */
+function schilo_ev_color( string $ev ): string {
+    return [
+        'mat'  => '#e05a2b',
+        'marc' => '#2e9e4f',
+        'luc'  => '#2872d4',
+        'jean' => '#7c4db8',
+    ][ $ev ] ?? '#8a96a8';
+}
+
+/**
+ * Retourne la lettre d'un Évangile.
+ */
+function schilo_ev_letter( string $ev ): string {
+    return [
+        'mat'  => 'M',
+        'marc' => 'M',
+        'luc'  => 'L',
+        'jean' => 'J',
+    ][ $ev ] ?? '?';
+}
+
+/**
+ * Retourne le nom complet d'un Évangile.
+ */
+function schilo_ev_name( string $ev ): string {
+    return [
+        'mat'  => 'Matthieu',
+        'marc' => 'Marc',
+        'luc'  => 'Luc',
+        'jean' => 'Jean',
+    ][ $ev ] ?? $ev;
+}
+
+/**
+ * Affiche le badge d'un Évangile.
+ */
+function schilo_ev_badge( string $ev, string $size = '32px' ): void {
+    echo '<span class="schilo-ev-badge schilo-ev-badge--' . esc_attr( $ev )
+        . '" style="width:' . esc_attr( $size ) . ';height:' . esc_attr( $size ) . '">'
+        . esc_html( schilo_ev_letter( $ev ) )
+        . '</span>';
+}

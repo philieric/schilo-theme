@@ -1,0 +1,827 @@
+/* ══════════════════════════════════════════════════════════════════
+   single.css — Page d'article individuel
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Bouton Export PDF ──────────────────────────────────────────────── */
+.schilo-pdf-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  width: 100%;
+  padding: .65rem 1rem;
+  background: var(--schilo-accent, #2872d4);
+  color: #fff;
+  font-size: .82rem;
+  font-weight: 600;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background .15s, transform .1s;
+}
+.schilo-pdf-btn:hover {
+  background: var(--schilo-accent-dark, #1a3a6c);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.schilo-pdf-btn svg { flex-shrink: 0; }
+
+/* ── Barre de progression de lecture ───────────────────────────────── */
+#schilo-read-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: var(--schilo-accent, #2872d4);
+  z-index: 9999;
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────── */
+.schilo-single-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 360px;
+  display: flex;
+  align-items: flex-end;
+  background: var(--schilo-bg-dark);
+}
+
+.schilo-single-hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.schilo-single-hero__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  filter: saturate(0.55) brightness(0.45);
+}
+
+.schilo-single-hero__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to bottom,
+    rgba(18, 28, 46, 0.25) 0%,
+    rgba(18, 28, 46, 0.78) 55%,
+    rgba(18, 28, 46, 0.97) 100%
+  );
+}
+
+.schilo-single-hero__inner {
+  position: relative;
+  z-index: 2;
+  padding-top: 3.5rem;
+  padding-bottom: 2.5rem;
+  width: 100%;
+}
+
+/* Fil d'Ariane */
+.schilo-single-hero__breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .35rem;
+  margin-bottom: 1rem;
+  font-size: 12px;
+  color: rgba(255,255,255,.4);
+  font-family: var(--schilo-font-sans);
+}
+
+.schilo-single-hero__breadcrumb a {
+  color: rgba(255,255,255,.55);
+  text-decoration: none;
+  transition: color .15s;
+}
+
+.schilo-single-hero__breadcrumb a:hover { color: #fff; }
+
+/* Badge PER */
+.schilo-single-hero__per {
+  display: inline-block;
+  margin-bottom: .6rem;
+  padding: .16rem .6rem;
+  border-radius: 99px;
+  background: var(--schilo-accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  font-family: var(--schilo-font-sans);
+}
+
+/* Titre */
+.schilo-single-hero__title {
+  margin: 0 0 .75rem;
+  font-family: var(--schilo-font-serif);
+  font-size: clamp(1.5rem, 3.5vw, 2.3rem);
+  font-weight: 500;
+  line-height: 1.25;
+  color: #fff;
+  max-width: 70%;
+}
+
+/* Extrait */
+.schilo-single-hero__excerpt {
+  margin: 0 0 1.1rem;
+  max-width: 70%;
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(255,255,255,.65);
+  font-family: var(--schilo-font-sans);
+}
+
+/* Badges méta (temps, tags, versets…) */
+.schilo-single-hero__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.schilo-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .22rem .65rem;
+  border-radius: 99px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.15);
+  color: rgba(255,255,255,.82);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--schilo-font-sans);
+}
+
+.schilo-hero-badge--time {
+  background: rgba(40,114,212,.3);
+  border-color: rgba(40,114,212,.4);
+}
+
+/* ── Barre d'onglets ──────────────────────────────────────────────── */
+.schilo-single-tabnav {
+  background: var(--schilo-bg-card);
+  border-bottom: 1px solid var(--schilo-border);
+  z-index: 200;
+  transition: box-shadow .2s;
+}
+
+.schilo-single-tabnav.is-sticky {
+  position: sticky;
+  top: 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+
+.schilo-single-tabnav__inner {
+  display: flex;
+  align-items: stretch;
+}
+
+.schilo-tabnav-list {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.schilo-tabnav-list::-webkit-scrollbar { display: none; }
+
+.schilo-tabnav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .8rem 1rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--schilo-text-secondary);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  font-family: var(--schilo-font-sans);
+  transition: color .15s, border-color .15s;
+}
+
+.schilo-tabnav-link:hover {
+  color: var(--schilo-text-primary);
+}
+
+.schilo-tabnav-link.is-active {
+  color: var(--schilo-accent);
+  border-bottom-color: var(--schilo-accent);
+}
+
+.schilo-tabnav-link .ti { font-size: 14px; }
+
+/* ── Layout 2 colonnes ────────────────────────────────────────────── */
+.schilo-single-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 2rem;
+  align-items: start;
+  padding-top: 2rem;
+  padding-bottom: 4rem;
+}
+
+.schilo-single-main { min-width: 0; }
+
+/* ── Sections builder — reset ─────────────────────────────────────── */
+.schilo-post {
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+.schilo-post-header { display: none; }
+
+.schilo-post-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Section base ─────────────────────────────────────────────────── */
+[id^="sec-"] { scroll-margin-top: 52px; }
+
+.schilo-section {
+  background: var(--schilo-bg-card);
+  border: 1px solid var(--schilo-border);
+  border-radius: var(--schilo-radius-lg);
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--schilo-shadow-sm);
+}
+
+.schilo-section-title {
+  margin: 0 0 1rem;
+  font-family: var(--schilo-font-serif);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--schilo-text-primary);
+  padding-bottom: .65rem;
+  border-bottom: 1px solid var(--schilo-border);
+}
+
+.schilo-section-content {
+  font-family: var(--schilo-font-sans);
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--schilo-text-primary);
+}
+
+.schilo-section-content p { margin: 0 0 .85rem; }
+.schilo-section-content p:last-child { margin-bottom: 0; }
+
+.schilo-section-content a {
+  color: var(--schilo-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: rgba(40,114,212,.35);
+}
+
+.schilo-section-content a:hover {
+  text-decoration-color: var(--schilo-accent);
+}
+
+/* Titre simple masqué (dans le hero) */
+.schilo-section-titre-simple { display: none; }
+
+/* ── Intro ──────────────────────────────────────────────────────────── */
+.schilo-section-intro {
+  background: var(--schilo-accent-pale);
+  border-color: rgba(40,114,212,.18);
+}
+
+.schilo-section-intro .schilo-section-title {
+  border-color: rgba(40,114,212,.2);
+  color: var(--schilo-accent-dark);
+}
+
+.schilo-section-intro .schilo-section-content { color: var(--schilo-accent-dark); }
+
+/* ── Contexte ───────────────────────────────────────────────────────── */
+.schilo-section-contexte {
+  border-left: 3px solid var(--schilo-accent);
+  border-radius: 0 var(--schilo-radius-lg) var(--schilo-radius-lg) 0;
+}
+
+/* ── Conclusion ─────────────────────────────────────────────────────── */
+.schilo-section-conclusion {
+  background: var(--schilo-bg-dark);
+  border-color: transparent;
+}
+
+.schilo-section-conclusion .schilo-section-title {
+  color: rgba(255,255,255,.9);
+  border-color: rgba(255,255,255,.12);
+}
+
+.schilo-section-conclusion .schilo-section-content { color: rgba(255,255,255,.85); }
+.schilo-section-conclusion .schilo-section-content a { color: rgba(255,255,255,.7); }
+
+/* ── Textes bibliques ───────────────────────────────────────────────── */
+.schilo-section-evangiles {
+  background: var(--schilo-bg-muted);
+  border-color: var(--schilo-border);
+}
+
+.schilo-section-evangiles .schilo-section-title {
+  color: var(--schilo-text-secondary);
+  border-color: var(--schilo-border);
+}
+
+.schilo-evangiles-list { display: flex; flex-direction: column; gap: .85rem; }
+
+.citation-matthieu,
+.citation-marc,
+.citation-luc,
+.citation-jean,
+.citation-bible {
+  border-radius: var(--schilo-radius-md);
+  padding: 1rem 1.15rem;
+  border: 1px solid transparent;
+}
+
+.citation-matthieu { background: var(--schilo-mat-bg);  border-color: var(--schilo-mat-border); }
+.citation-marc     { background: var(--schilo-marc-bg); border-color: var(--schilo-marc-border); }
+.citation-luc      { background: var(--schilo-luc-bg);  border-color: var(--schilo-luc-border); }
+.citation-jean     { background: var(--schilo-jean-bg); border-color: var(--schilo-jean-border); }
+.citation-bible    { background: #eff3f9; border-color: rgba(139,20,175,.2); }
+
+.schilo-evangile-label {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin-bottom: .5rem;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  font-family: var(--schilo-font-sans);
+}
+
+.citation-matthieu .schilo-evangile-label { color: var(--schilo-mat-dark); }
+.citation-marc     .schilo-evangile-label { color: var(--schilo-marc-dark); }
+.citation-luc      .schilo-evangile-label { color: var(--schilo-luc-dark); }
+.citation-jean     .schilo-evangile-label { color: var(--schilo-jean-dark); }
+.citation-bible    .schilo-evangile-label { color: #5c0d7a; }
+
+.citation-matthieu:not(:has(.schilo-evangile-reference)),
+.citation-marc:not(:has(.schilo-evangile-reference)),
+.citation-luc:not(:has(.schilo-evangile-reference)),
+.citation-jean:not(:has(.schilo-evangile-reference)),
+.citation-bible:not(:has(.schilo-evangile-reference)) { padding: .55rem 1rem; }
+
+.schilo-evangile-reference {
+  font-family: var(--schilo-font-sans);
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--schilo-text-primary);
+}
+
+.schilo-evangile-reference .usx-version-switcher,
+.schilo-section-content    .usx-version-switcher { display: inline !important; }
+
+.schilo-evangile-reference .usx-version-content,
+.schilo-section-content    .usx-version-content  { display: inline !important; }
+
+.schilo-evangile-reference .bible-ref,
+.schilo-section-content    .bible-ref {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px 2px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: var(--schilo-font-sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  line-height: 1.6;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  text-decoration: none;
+  /* Défaut : livres non-évangiles (violet) */
+  background: #eff3f9;
+  color: #5c0d7a;
+  border-color: rgba(139,20,175,.25);
+}
+
+/* Pills colorées par évangile */
+.bible-ref[data-ref^="Matthieu "] { background: #fffaf6; color: #8a0000; border-color: rgba(215,31,31,.3); }
+.bible-ref[data-ref^="Marc "]     { background: #effff9; color: #083008; border-color: rgba(15,73,15,.3); }
+.bible-ref[data-ref^="Luc "]      { background: #f4fffe; color: #060c55; border-color: rgba(10,19,126,.3); }
+.bible-ref[data-ref^="Jean "]     { background: #fffff1; color: #2e2a02; border-color: rgba(72,66,4,.3); }
+
+.bible-ref:hover { filter: brightness(.94); }
+
+.schilo-evangile-reference .usxv-toolbar,
+.schilo-section-content    .usxv-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem;
+  margin-bottom: .6rem;
+}
+
+/* ── Liens / Consultation ───────────────────────────────────────────── */
+.schilo-links-intro {
+  margin: 0 0 .75rem;
+  font-size: 15px;
+  color: var(--schilo-text-secondary);
+  font-family: var(--schilo-font-sans);
+}
+
+.schilo-links-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.schilo-links-link {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .7rem 1rem;
+  border-radius: var(--schilo-radius-md);
+  background: var(--schilo-bg-muted);
+  border: 1px solid var(--schilo-border);
+  text-decoration: none;
+  color: var(--schilo-text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--schilo-font-sans);
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+.schilo-links-link:hover {
+  background: var(--schilo-accent-pale);
+  border-color: rgba(40,114,212,.3);
+  color: var(--schilo-accent-dark);
+}
+
+.schilo-links-arrow { flex-shrink: 0; color: var(--schilo-text-muted); font-size: 13px; }
+.schilo-links-link:hover .schilo-links-arrow { color: var(--schilo-accent); }
+.schilo-links-link-disabled { opacity: .5; cursor: default; pointer-events: none; }
+
+/* ── Détails techniques ─────────────────────────────────────────────── */
+.schilo-details-blocks { display: flex; flex-direction: column; gap: .6rem; }
+
+.schilo-details-box {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .75rem 1rem;
+  border-radius: var(--schilo-radius-md);
+  background: var(--schilo-bg-muted);
+  border: 1px solid var(--schilo-border);
+  font-family: var(--schilo-font-sans);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--schilo-text-primary);
+}
+
+.schilo-details-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--schilo-accent);
+  color: #fff;
+  font-size: 11px;
+  font-style: italic;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.schilo-details-box-content p { margin: 0; }
+.schilo-details-box-content p + p { margin-top: .35rem; }
+
+.schilo-image-textes-layout,
+.schilo-details-techniques-layout,
+.schilo-detail-img-droite-layout {
+  display: grid;
+  grid-template-columns: minmax(200px, 38%) 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.schilo-details-colonnes-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.schilo-image-textes-media img,
+.schilo-details-media img,
+.schilo-colonnes-media img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--schilo-radius-md);
+  border: 1px solid var(--schilo-border);
+}
+
+/* ── Commentaires ───────────────────────────────────────────────────── */
+.schilo-section-paragraphe .schilo-section-content { line-height: 1.85; }
+
+.schilo-section-paragraphe .bible-ref {
+  /* hérite du style pill défini plus haut */
+}
+
+.schilo-section-paragraphe .usx-version-switcher,
+.schilo-section-paragraphe .usx-version-content { display: inline !important; }
+
+/* ── Sidebar ────────────────────────────────────────────────────────── */
+.schilo-single-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: sticky;
+  top: calc(var(--schilo-tabnav-h, 44px) + 1rem);
+  max-height: calc(100vh - var(--schilo-tabnav-h, 44px) - 2rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.schilo-sidebar-card {
+  background: var(--schilo-bg-card);
+  border: 1px solid var(--schilo-border);
+  border-radius: var(--schilo-radius-lg);
+  padding: 1rem 1.1rem;
+  box-shadow: var(--schilo-shadow-sm);
+}
+
+.schilo-sidebar-card__title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--schilo-text-muted);
+  font-family: var(--schilo-font-sans);
+  margin-bottom: .75rem;
+}
+
+/* Navigation sidebar */
+.schilo-sidebar-nav { padding: .85rem 1rem; }
+
+.schilo-sidebar-navlink {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .55rem .65rem;
+  border-radius: var(--schilo-radius-md);
+  text-decoration: none;
+  color: var(--schilo-text-primary);
+  font-family: var(--schilo-font-sans);
+  font-size: 13px;
+  transition: background .15s;
+}
+
+.schilo-sidebar-navlink + .schilo-sidebar-navlink { margin-top: .35rem; }
+
+.schilo-sidebar-navlink:hover { background: var(--schilo-bg-muted); }
+
+.schilo-sidebar-navlink--next {
+  background: var(--schilo-accent);
+  color: #fff;
+  font-weight: 500;
+}
+
+.schilo-sidebar-navlink--next:hover { background: var(--schilo-accent-dark); }
+
+.schilo-sidebar-navlink__dir {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  opacity: .7;
+}
+
+.schilo-sidebar-navlink__label {
+  display: block;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.schilo-sidebar-navlink .ti { flex-shrink: 0; font-size: 14px; }
+
+/* Évangiles sidebar */
+.schilo-sidebar-evangiles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+
+.schilo-sidebar-evangile {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  font-family: var(--schilo-font-sans);
+  font-size: 13px;
+}
+
+.schilo-sidebar-evangile__dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--schilo-border);
+}
+
+.schilo-sidebar-evangile.citation-matthieu .schilo-sidebar-evangile__dot { background: var(--schilo-mat); }
+.schilo-sidebar-evangile.citation-marc     .schilo-sidebar-evangile__dot { background: var(--schilo-marc); }
+.schilo-sidebar-evangile.citation-luc      .schilo-sidebar-evangile__dot { background: var(--schilo-luc); }
+.schilo-sidebar-evangile.citation-jean     .schilo-sidebar-evangile__dot { background: var(--schilo-jean); }
+.schilo-sidebar-evangile.citation-bible    .schilo-sidebar-evangile__dot { background: #8b14af; }
+
+.schilo-sidebar-evangile__name { flex: 1; color: var(--schilo-text-primary); }
+.schilo-sidebar-evangile__count { color: var(--schilo-text-muted); font-size: 12px; }
+
+/* Statistiques sidebar */
+.schilo-sidebar-stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.schilo-sidebar-stats li {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: 13px;
+  font-family: var(--schilo-font-sans);
+  color: var(--schilo-text-secondary);
+}
+
+.schilo-sidebar-stats li .ti { color: var(--schilo-text-muted); font-size: 14px; }
+.schilo-sidebar-stats li span { flex: 1; }
+.schilo-sidebar-stats li strong { color: var(--schilo-text-primary); }
+
+/* Thèmes sidebar */
+.schilo-sidebar-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+
+.schilo-sidebar-theme-tag {
+  display: inline-block;
+  padding: .18rem .55rem;
+  border-radius: 99px;
+  background: var(--schilo-bg-muted);
+  border: 1px solid var(--schilo-border);
+  color: var(--schilo-text-secondary);
+  font-size: 12px;
+  font-family: var(--schilo-font-sans);
+  text-decoration: none;
+  transition: background .15s, color .15s;
+}
+
+.schilo-sidebar-theme-tag:hover {
+  background: var(--schilo-accent-pale);
+  color: var(--schilo-accent-dark);
+  border-color: rgba(40,114,212,.25);
+}
+
+/* ── Navigation bas de page ─────────────────────────────────────────── */
+.schilo-single-bootnav {
+  background: var(--schilo-bg-dark);
+  border-top: 1px solid rgba(255,255,255,.08);
+  padding: 1.25rem 0;
+}
+
+.schilo-single-bootnav__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.schilo-bootnav-prev { display: flex; justify-content: flex-start; }
+.schilo-bootnav-next { display: flex; justify-content: flex-end; }
+
+.schilo-bootnav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .75rem 1.25rem;
+  border-radius: var(--schilo-radius-lg);
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.85);
+  text-decoration: none;
+  font-family: var(--schilo-font-sans);
+  font-size: 13px;
+  max-width: 320px;
+  transition: background .15s, border-color .15s;
+}
+
+.schilo-bootnav-link:hover {
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.18);
+  color: #fff;
+}
+
+.schilo-bootnav-link--next {
+  background: var(--schilo-accent);
+  border-color: var(--schilo-accent);
+  color: #fff;
+}
+
+.schilo-bootnav-link--next:hover {
+  background: var(--schilo-accent-dark);
+  border-color: var(--schilo-accent-dark);
+}
+
+.schilo-bootnav-link small {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  opacity: .65;
+  margin-bottom: 2px;
+}
+
+.schilo-bootnav-link .ti { flex-shrink: 0; font-size: 16px; }
+
+/* ── Article non migré ──────────────────────────────────────────────── */
+.schilo-single-not-migrated {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 2rem;
+  border-radius: var(--schilo-radius-lg);
+  background: var(--schilo-bg-muted);
+  border: 1px dashed var(--schilo-border-mid);
+  text-align: center;
+  color: var(--schilo-text-muted);
+  font-family: var(--schilo-font-sans);
+}
+
+.schilo-single-not-migrated .ti { font-size: 2rem; opacity: .4; }
+.schilo-single-not-migrated p { margin: 0; font-size: 15px; }
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .schilo-single-layout {
+    grid-template-columns: 1fr 240px;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 860px) {
+  .schilo-single-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .schilo-single-hero__title,
+  .schilo-single-hero__excerpt {
+    max-width: 100%;
+  }
+
+  .schilo-single-sidebar {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .schilo-single-tabnav { overflow-x: auto; }
+  .schilo-single-hero { min-height: 260px; }
+  .schilo-single-hero__inner { padding-top: 2rem; padding-bottom: 1.75rem; }
+}
+
+@media (max-width: 600px) {
+  .schilo-single-hero { min-height: 200px; }
+  .schilo-section { padding: 1.1rem 1rem; }
+
+  .schilo-image-textes-layout,
+  .schilo-details-techniques-layout,
+  .schilo-detail-img-droite-layout,
+  .schilo-details-colonnes-layout { grid-template-columns: 1fr; }
+
+  .schilo-single-bootnav__inner { grid-template-columns: 1fr; }
+  .schilo-bootnav-next { justify-content: flex-start; }
+
+  .schilo-bootnav-link { max-width: none; width: 100%; }
+}

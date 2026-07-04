@@ -1,0 +1,871 @@
+/* ============================================================
+   ARCHIVE — CATÉGORIES / TAGS
+   ============================================================ */
+
+/* ── Hero ── */
+.schilo-archive-hero {
+    background: var(--schilo-bg-dark);
+    padding: 2.5rem 0 2rem;
+}
+
+.schilo-archive-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 1.5rem;
+    font-size: 12px;
+    color: rgba(255,255,255,.45);
+}
+
+.schilo-archive-breadcrumb a {
+    color: rgba(255,255,255,.55);
+    text-decoration: none;
+    transition: color var(--schilo-transition);
+}
+
+.schilo-archive-breadcrumb a:hover { color: #fff; }
+
+.schilo-archive-breadcrumb i {
+    font-size: 11px;
+    color: rgba(255,255,255,.25);
+}
+
+.schilo-archive-breadcrumb span[aria-current] { color: rgba(255,255,255,.75); }
+
+.schilo-archive-hero__inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+}
+
+.schilo-archive-hero__icon {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: var(--schilo-radius-md);
+    background: rgba(255,255,255,.1);
+    color: rgba(255,255,255,.7);
+    font-size: 24px;
+}
+
+.schilo-archive-hero__title {
+    margin: 0 0 .4rem;
+    color: #fff;
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.schilo-archive-hero__desc,
+.schilo-archive-hero__desc p {
+    margin: .5rem 0 0;
+    color: rgba(255,255,255,.85);
+    font-size: 15px;
+    line-height: 1.75;
+    max-width: 680px;
+}
+
+/* ── Conteneur principal ── */
+.schilo-archive {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+}
+
+/* ── Barre d'outils ── */
+.schilo-archive-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--schilo-border);
+}
+
+.schilo-archive-toolbar__count {
+    margin: 0;
+    color: var(--schilo-text-secondary);
+    font-size: 13px;
+}
+
+.schilo-archive-toolbar__count strong { color: var(--schilo-text-primary); }
+
+/* utilitaire sr-only (accessible) */
+.schilo-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.schilo-archive-toolbar__actions {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+/* ── Sélecteur de tri ── */
+.schilo-archive-sort-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.schilo-archive-sort-icon {
+    position: absolute;
+    left: 10px;
+    font-size: 14px;
+    color: var(--schilo-text-muted);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.schilo-archive-select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0 2rem 0 2rem;
+    height: 34px;
+    border: 1px solid var(--schilo-border);
+    border-radius: var(--schilo-radius-sm);
+    background: var(--schilo-bg-card);
+    color: var(--schilo-text-secondary);
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    transition: border-color var(--schilo-transition), color var(--schilo-transition);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ba3af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+}
+
+.schilo-archive-select:hover,
+.schilo-archive-select:focus {
+    border-color: var(--schilo-accent);
+    color: var(--schilo-text-primary);
+}
+
+.schilo-archive-select--narrow {
+    padding-right: 1.75rem;
+    min-width: 0;
+    width: auto;
+}
+
+/* ── Slider zoom texte ── */
+.schilo-archive-zoom {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 6px;
+    border: 1px solid var(--schilo-border);
+    border-radius: var(--schilo-radius-sm);
+    background: transparent;
+}
+
+.schilo-archive-zoom__icon {
+    color: var(--schilo-text-muted);
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.schilo-archive-zoom__icon--sm { font-size: 11px; }
+.schilo-archive-zoom__icon--lg { font-size: 16px; }
+
+.schilo-archive-zoom__range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 80px;
+    height: 3px;
+    border-radius: 99px;
+    background: linear-gradient(
+        to right,
+        var(--schilo-accent) 0%,
+        var(--schilo-accent) var(--zoom-pct, 50%),
+        var(--schilo-border) var(--zoom-pct, 50%),
+        var(--schilo-border) 100%
+    );
+    cursor: pointer;
+    outline: none;
+    border: none;
+}
+
+.schilo-archive-zoom__range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--schilo-accent);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--schilo-accent);
+    cursor: pointer;
+    transition: transform .15s ease;
+}
+
+.schilo-archive-zoom__range::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.schilo-archive-zoom__range::-moz-range-thumb {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--schilo-accent);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--schilo-accent);
+    cursor: pointer;
+}
+
+.schilo-archive-view-toggle {
+    display: flex;
+    gap: 4px;
+}
+
+.schilo-archive-view-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--schilo-border);
+    border-radius: var(--schilo-radius-sm);
+    background: transparent;
+    color: var(--schilo-text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    transition: background var(--schilo-transition), border-color var(--schilo-transition), color var(--schilo-transition);
+}
+
+.schilo-archive-view-btn:hover {
+    border-color: var(--schilo-accent);
+    color: var(--schilo-accent);
+}
+
+.schilo-archive-view-btn.is-active {
+    border-color: var(--schilo-accent);
+    background: var(--schilo-accent-pale);
+    color: var(--schilo-accent-dark);
+}
+
+/* ── Grille d'articles ── */
+.schilo-archive-posts--grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+.schilo-archive-posts--list {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+}
+
+/* ── Carte — mode grille ── */
+.schilo-archive-posts--grid .schilo-archive-card {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--schilo-border);
+    border-radius: var(--schilo-radius-lg);
+    background: var(--schilo-bg-card);
+    box-shadow: var(--schilo-shadow-sm);
+    overflow: hidden;
+    transition: box-shadow var(--schilo-transition), transform var(--schilo-transition);
+}
+
+.schilo-archive-posts--grid .schilo-archive-card:hover {
+    box-shadow: var(--schilo-shadow-md);
+    transform: translateY(-3px);
+}
+
+.schilo-archive-posts--grid .schilo-archive-card__thumb-link {
+    display: block;
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--schilo-bg-muted);
+}
+
+/* Badge PER/ANN — coin supérieur droit de l'image */
+.schilo-archive-card__per-badge {
+    position: absolute;
+    top: .6rem;
+    right: .6rem;
+    z-index: 2;
+    background: rgba(0,0,0,.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 4px;
+    pointer-events: none;
+    border: 1px solid rgba(255,255,255,.18);
+    line-height: 1.4;
+}
+
+/* Overlay bleuté sur toutes les images — harmonise les tons chauds avec la charte */
+.schilo-archive-card__thumb-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(28, 72, 140, .12);
+    pointer-events: none;
+    z-index: 1;
+    transition: opacity var(--schilo-transition);
+}
+.schilo-archive-card:hover .schilo-archive-card__thumb-link::after {
+    opacity: .6;
+}
+
+.schilo-archive-posts--grid .schilo-archive-card__thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: saturate(0.82) brightness(1.06) contrast(1.08);
+    transition: transform .4s ease, filter .4s ease;
+}
+
+.schilo-archive-posts--grid .schilo-archive-card:hover .schilo-archive-card__thumb {
+    filter: saturate(1) brightness(1.1) contrast(1.05);
+}
+
+.schilo-archive-posts--grid .schilo-archive-card:hover .schilo-archive-card__thumb {
+    transform: scale(1.04);
+}
+
+.schilo-archive-posts--grid .schilo-archive-card__thumb--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: var(--schilo-text-hint);
+    font-size: 32px;
+}
+
+.schilo-archive-posts--grid .schilo-archive-card__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 1.1rem 1.25rem 1.25rem;
+    gap: .5rem;
+}
+
+/* ── Carte — mode liste ── */
+.schilo-archive-posts--list .schilo-archive-card {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    position: relative;
+    border: 1px solid var(--schilo-border);
+    border-radius: var(--schilo-radius-lg);
+    background: var(--schilo-bg-card);
+    box-shadow: var(--schilo-shadow-sm);
+    overflow: hidden;
+    transition: box-shadow var(--schilo-transition), transform var(--schilo-transition);
+}
+
+.schilo-archive-posts--list .schilo-archive-card__per-badge {
+    position: absolute;
+    top: .6rem;
+    right: .75rem;
+    background: var(--schilo-bg-muted);
+    color: var(--schilo-text-muted);
+    border: 1px solid var(--schilo-border);
+}
+
+.schilo-archive-posts--list .schilo-archive-card:hover {
+    box-shadow: var(--schilo-shadow-md);
+    transform: translateY(-2px);
+}
+
+.schilo-archive-posts--list .schilo-archive-card__thumb-link {
+    display: block;
+    width: 200px;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: var(--schilo-bg-muted);
+}
+
+.schilo-archive-posts--list .schilo-archive-card__thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: saturate(0.82) brightness(1.06) contrast(1.08);
+    transition: transform .4s ease, filter .4s ease;
+}
+
+.schilo-archive-posts--list .schilo-archive-card:hover .schilo-archive-card__thumb {
+    filter: saturate(1) brightness(1.1) contrast(1.05);
+}
+    transition: transform .4s ease;
+}
+
+.schilo-archive-posts--list .schilo-archive-card:hover .schilo-archive-card__thumb {
+    transform: scale(1.04);
+}
+
+.schilo-archive-posts--list .schilo-archive-card__thumb--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: var(--schilo-text-hint);
+    font-size: 28px;
+}
+
+.schilo-archive-posts--list .schilo-archive-card__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    padding: 1.1rem 1.5rem 1.1rem 1.25rem;
+    gap: .45rem;
+}
+
+/* ── Zoom texte cartes (contrôlé par le slider) ── */
+#schilo-archive-posts { --card-zoom: 1; }
+
+/* ── Éléments communs ── */
+.schilo-archive-card__cat {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: var(--schilo-accent-pale);
+    color: var(--schilo-accent-dark);
+    font-size: calc(10.5px * var(--card-zoom));
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: background var(--schilo-transition);
+    align-self: flex-start;
+}
+
+.schilo-archive-card__cat:hover { background: #c8dff8; }
+
+.schilo-archive-card__title {
+    margin: 0;
+    font-size: calc(15px * var(--card-zoom));
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.schilo-archive-card__title a {
+    color: var(--schilo-text-primary);
+    text-decoration: none;
+    transition: color var(--schilo-transition);
+}
+
+.schilo-archive-card__title a:hover { color: var(--schilo-accent); }
+
+.schilo-archive-card__excerpt {
+    margin: 0;
+    color: var(--schilo-text-secondary);
+    font-size: calc(13px * var(--card-zoom));
+    line-height: 1.65;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.schilo-archive-posts--list .schilo-archive-card__excerpt {
+    -webkit-line-clamp: 2;
+}
+
+.schilo-archive-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    margin-top: auto;
+    padding-top: .75rem;
+    border-top: 1px solid var(--schilo-border);
+    flex-wrap: wrap;
+}
+
+.schilo-archive-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+}
+
+.schilo-archive-card__meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--schilo-text-muted);
+    font-size: calc(11px * var(--card-zoom));
+}
+
+.schilo-archive-card__meta-item i { font-size: calc(13px * var(--card-zoom)); }
+
+.schilo-archive-card__meta-item--modified { color: var(--schilo-text-hint); }
+
+.schilo-archive-card__read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    color: var(--schilo-accent);
+    font-size: calc(12px * var(--card-zoom));
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: gap var(--schilo-transition), color var(--schilo-transition);
+}
+
+.schilo-archive-card__read-more:hover {
+    color: var(--schilo-accent-dark);
+    gap: 7px;
+}
+
+/* ── Pagination ── */
+.schilo-archive-pagination {
+    margin-top: 3rem;
+    display: flex;
+    justify-content: center;
+}
+
+.schilo-archive-pagination .page-numbers {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.schilo-archive-pagination .page-numbers li a,
+.schilo-archive-pagination .page-numbers li span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--schilo-border);
+    border-radius: var(--schilo-radius-sm);
+    background: var(--schilo-bg-card);
+    color: var(--schilo-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    justify-content: center;
+    transition: background var(--schilo-transition), border-color var(--schilo-transition), color var(--schilo-transition);
+}
+
+.schilo-archive-pagination .page-numbers li a:hover {
+    border-color: var(--schilo-accent);
+    background: var(--schilo-accent-pale);
+    color: var(--schilo-accent-dark);
+}
+
+.schilo-archive-pagination .page-numbers li span.current {
+    border-color: var(--schilo-accent);
+    background: var(--schilo-accent);
+    color: #fff;
+}
+
+.schilo-archive-pagination .page-numbers li span.dots {
+    border-color: transparent;
+    background: transparent;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE — PETITS ÉCRANS
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── ≤ 1024px : tablette paysage ── */
+@media (max-width: 1024px) {
+    .schilo-archive-posts--grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ── ≤ 768px : tablette portrait ── */
+@media (max-width: 768px) {
+    .schilo-archive-posts--grid {
+        grid-template-columns: 1fr;
+    }
+    .schilo-archive-posts--list .schilo-archive-card {
+        flex-direction: column;
+    }
+    .schilo-archive-posts--list .schilo-archive-card__thumb-link {
+        width: 100%;
+        height: 180px;
+    }
+    .schilo-archive-toolbar {
+        gap: .75rem;
+    }
+}
+
+/* ── ≤ 600px : grand téléphone / paysage ── */
+@media (max-width: 600px) {
+    .schilo-archive-toolbar {
+        flex-wrap: wrap;
+        gap: .65rem;
+        margin-bottom: 1.25rem;
+    }
+    .schilo-archive-toolbar__count {
+        flex: 0 0 100%;
+        font-size: 12px;
+    }
+    .schilo-archive-toolbar__actions {
+        flex: 0 0 100%;
+        justify-content: space-between;
+        gap: .5rem;
+    }
+    .schilo-archive-sort-wrap {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    .schilo-archive-select {
+        width: 100%;
+        font-size: 12px;
+    }
+}
+
+/* ── ≤ 480px : téléphone portrait ── */
+@media (max-width: 480px) {
+    .schilo-archive-hero {
+        padding: 1.75rem 0 1.5rem;
+    }
+    .schilo-archive-hero__inner {
+        gap: .75rem;
+    }
+    .schilo-archive-hero__icon {
+        width: 42px;
+        height: 42px;
+        font-size: 20px;
+    }
+    .schilo-archive-card__footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .schilo-archive-pagination .page-numbers li a,
+    .schilo-archive-pagination .page-numbers li span {
+        min-width: 34px;
+        height: 34px;
+        padding: 0 8px;
+        font-size: 12px;
+    }
+}
+
+/* ── ≤ 360px : très petit téléphone ── */
+@media (max-width: 360px) {
+    .schilo-archive-toolbar__actions {
+        flex-wrap: wrap;
+    }
+    .schilo-archive-sort-wrap {
+        flex: 1 1 calc(50% - .25rem);
+    }
+    .schilo-archive-view-toggle {
+        margin-left: auto;
+    }
+    .schilo-archive-hero__title {
+        font-size: 20px;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE — GRANDS ÉCRANS
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── ≥ 1400px : grand laptop ── */
+@media (min-width: 1400px) {
+    .schilo-archive-posts--grid {
+        gap: 1.5rem;
+    }
+    .schilo-archive-card__title {
+        font-size: calc(16px * var(--card-zoom));
+    }
+}
+
+/* ── ≥ 1600px : très grand laptop / petit moniteur ── */
+@media (min-width: 1600px) {
+    .schilo-archive-hero {
+        padding: 3rem 0 2.5rem;
+    }
+    .schilo-archive-hero__title {
+        font-size: clamp(26px, 2.5vw, 38px);
+    }
+    .schilo-archive-hero__desc {
+        font-size: 14.5px;
+    }
+    .schilo-archive-hero__icon {
+        width: 58px;
+        height: 58px;
+        font-size: 26px;
+    }
+    .schilo-archive-card__body {
+        padding: 1.25rem 1.5rem 1.5rem;
+    }
+    .schilo-archive-card__title {
+        font-size: calc(16px * var(--card-zoom));
+    }
+    .schilo-archive-card__excerpt {
+        font-size: calc(13.5px * var(--card-zoom));
+    }
+    .schilo-archive-select {
+        font-size: 14px;
+        height: 36px;
+    }
+    .schilo-archive-view-btn {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* ── ≥ 1920px : Full HD ── */
+@media (min-width: 1920px) {
+    .schilo-archive-posts--grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1.75rem;
+    }
+    .schilo-archive-hero {
+        padding: 3.5rem 0 3rem;
+    }
+    .schilo-archive-hero__title {
+        font-size: clamp(28px, 2.2vw, 42px);
+    }
+    .schilo-archive-hero__icon {
+        width: 62px;
+        height: 62px;
+        font-size: 28px;
+    }
+    .schilo-archive-card__title {
+        font-size: calc(17px * var(--card-zoom));
+    }
+    .schilo-archive-card__excerpt {
+        font-size: calc(14px * var(--card-zoom));
+    }
+    .schilo-archive-toolbar {
+        margin-bottom: 2rem;
+        padding-bottom: 1.25rem;
+    }
+    .schilo-archive-toolbar__count {
+        font-size: 14px;
+    }
+}
+
+/* ── ≥ 2560px : 2K / QHD ── */
+@media (min-width: 2560px) {
+    .schilo-archive-posts--grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 2rem;
+    }
+    .schilo-archive-hero {
+        padding: 4rem 0 3.5rem;
+    }
+    .schilo-archive-hero__title {
+        font-size: clamp(32px, 2vw, 52px);
+    }
+    .schilo-archive-hero__icon {
+        width: 72px;
+        height: 72px;
+        font-size: 34px;
+    }
+    .schilo-archive-hero__desc {
+        font-size: 16px;
+        max-width: 800px;
+    }
+    .schilo-archive-breadcrumb {
+        font-size: 14px;
+    }
+    .schilo-archive-card__title {
+        font-size: calc(19px * var(--card-zoom));
+    }
+    .schilo-archive-card__excerpt {
+        font-size: calc(15px * var(--card-zoom));
+    }
+    .schilo-archive-card__meta-item {
+        font-size: calc(13px * var(--card-zoom));
+    }
+    .schilo-archive-select {
+        height: 40px;
+        font-size: 14.5px;
+    }
+    .schilo-archive-view-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+    .schilo-archive-pagination .page-numbers li a,
+    .schilo-archive-pagination .page-numbers li span {
+        height: 44px;
+        min-width: 44px;
+        font-size: 15px;
+    }
+}
+
+/* ── ≥ 3840px : 4K ── */
+@media (min-width: 3840px) {
+    .schilo-archive-posts--grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 2.5rem;
+    }
+    .schilo-archive-hero {
+        padding: 5rem 0 4rem;
+    }
+    .schilo-archive-hero__title {
+        font-size: clamp(40px, 1.8vw, 64px);
+    }
+    .schilo-archive-hero__icon {
+        width: 80px;
+        height: 80px;
+        font-size: 38px;
+        border-radius: 20px;
+    }
+    .schilo-archive-hero__desc {
+        font-size: 18px;
+        max-width: 1000px;
+    }
+    .schilo-archive-card__body {
+        padding: 1.5rem 2rem 2rem;
+    }
+    .schilo-archive-card__title {
+        font-size: calc(22px * var(--card-zoom));
+    }
+    .schilo-archive-card__excerpt {
+        font-size: calc(17px * var(--card-zoom));
+        -webkit-line-clamp: 4;
+    }
+    .schilo-archive-card__meta-item {
+        font-size: calc(14px * var(--card-zoom));
+    }
+    .schilo-archive-select {
+        height: 46px;
+        font-size: 16px;
+        padding-left: 2.25rem;
+    }
+    .schilo-archive-view-btn {
+        width: 46px;
+        height: 46px;
+        font-size: 22px;
+    }
+    .schilo-archive-pagination .page-numbers li a,
+    .schilo-archive-pagination .page-numbers li span {
+        height: 52px;
+        min-width: 52px;
+        font-size: 17px;
+    }
+}

@@ -1,0 +1,15 @@
+{
+    "name": "philieric/schilo-theme",
+    "description": "Thème WordPress principal de Schilo.org",
+    "type": "wordpress-theme",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Eric Philippot",
+            "email": "philieric@msn.com"
+        }
+    ],
+    "require": {
+        "composer/installers": "^2.0"
+    }
+}

@@ -1,0 +1,90 @@
+/* ── Éditeur de tableau admin ─────────────────────────────── */
+#sct-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#sct-table td {
+    padding: 3px 4px;
+    vertical-align: middle;
+    border: 1px solid #ddd;
+}
+
+#sct-table td input[type="text"] {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid #c8ccd0;
+    border-radius: 3px;
+    font-size: 12px;
+    line-height: 1.5;
+    box-sizing: border-box;
+    background: #fff;
+    transition: border-color .15s;
+}
+#sct-table td input[type="text"]:focus {
+    outline: none;
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+#sct-table td.sct-head-cell {
+    background: #f0f4ff;
+}
+#sct-table td.sct-head-cell input[type="text"] {
+    font-weight: 600;
+    background: #f0f4ff;
+    border-color: #bfdbfe;
+}
+#sct-table td.sct-head-cell input[type="text"]:focus {
+    background: #fff;
+}
+
+/* Bouton supprimer ligne */
+#sct-table td.sct-del-cell {
+    width: 28px;
+    padding: 2px;
+    border: none;
+    background: transparent;
+}
+#sct-table td.sct-del-cell button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    transition: background .15s;
+}
+#sct-table td.sct-del-cell button:hover {
+    background: #fca5a5;
+}
+
+/* Bouton supprimer colonne */
+#sct-col-del-row td.sct-del-col-cell {
+    padding: 3px 4px;
+    text-align: center;
+    border: none;
+    background: transparent;
+}
+#sct-col-del-row td.sct-del-col-cell button {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    border-radius: 3px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s;
+}
+#sct-col-del-row td.sct-del-col-cell button:hover {
+    background: #fca5a5;
+}

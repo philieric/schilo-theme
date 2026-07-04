@@ -1,0 +1,542 @@
+/* ============================================================
+   PAGE DE CONNEXION — DESIGN SYSTEM SCHILO
+   ============================================================ */
+
+:root {
+    --schilo-login-bg-page: #eef0f4;
+    --schilo-login-bg-card: #ffffff;
+    --schilo-login-bg-dark: #1e2a3a;
+    --schilo-login-bg-mid: #273548;
+    --schilo-login-bg-footer: #131c28;
+    --schilo-login-bg-input: #f8f9fb;
+    --schilo-login-border: #dde2ea;
+    --schilo-login-border-mid: #c8d0dc;
+    --schilo-login-text: #1a2230;
+    --schilo-login-text-secondary: #556070;
+    --schilo-login-text-muted: #8a96a8;
+    --schilo-login-text-hint: #b0bac8;
+    --schilo-login-accent: #2872d4;
+    --schilo-login-accent-dark: #0e3f88;
+    --schilo-login-accent-pale: #e2eefb;
+    --schilo-login-accent-border: #80b0e8;
+    --schilo-login-accent-ring: rgba(40, 114, 212, .12);
+    --schilo-login-icon: #7db3e8;
+    --schilo-login-white-85: rgba(255, 255, 255, .85);
+    --schilo-login-white-48: rgba(255, 255, 255, .48);
+    --schilo-login-white-38: rgba(255, 255, 255, .38);
+    --schilo-login-white-30: rgba(255, 255, 255, .3);
+    --schilo-login-white-28: rgba(255, 255, 255, .28);
+    --schilo-login-white-06: rgba(255, 255, 255, .06);
+    --schilo-login-mat: #e05a2b;
+    --schilo-login-mat-bg: #fdeee8;
+    --schilo-login-marc: #2e9e4f;
+    --schilo-login-luc: #2872d4;
+    --schilo-login-jean: #7c4db8;
+    --schilo-login-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --schilo-login-radius-sm: 6px;
+    --schilo-login-radius-md: 10px;
+    --schilo-login-radius-lg: 14px;
+    --schilo-login-container: 1400px;
+    --schilo-login-container-w: 90%;
+    --schilo-login-transition: 150ms ease;
+    --schilo-login-shadow: 0 4px 24px rgba(0, 0, 0, .07), 0 1px 4px rgba(0, 0, 0, .04);
+}
+
+html,
+body.login {
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    background: var(--schilo-login-bg-page);
+    color: var(--schilo-login-text);
+    font-family: var(--schilo-login-font);
+}
+
+body.login {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+body.login *,
+body.login *::before,
+body.login *::after {
+    box-sizing: border-box;
+}
+
+/* ── En-tête ── */
+.schilo-login-header {
+    width: 100%;
+    min-height: 56px;
+    background: var(--schilo-login-bg-card);
+    border-bottom: 1px solid var(--schilo-login-border);
+}
+
+.schilo-login-header__inner {
+    width: var(--schilo-login-container-w);
+    max-width: var(--schilo-login-container);
+    min-height: 56px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.schilo-login-brand,
+.schilo-login-footer__identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.schilo-login-brand {
+    color: var(--schilo-login-text);
+    text-decoration: none;
+}
+
+.schilo-login-brand__mark,
+.schilo-login-footer__mark {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 9px;
+}
+
+.schilo-login-brand__mark {
+    background: var(--schilo-login-bg-dark);
+}
+
+.schilo-login-brand__mark i,
+.schilo-login-footer__mark i {
+    color: var(--schilo-login-icon);
+    font-size: 17px;
+}
+
+.schilo-login-brand__text {
+    display: block;
+}
+
+.schilo-login-brand__name {
+    display: block;
+    color: var(--schilo-login-bg-dark);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.schilo-login-brand__tagline {
+    display: block;
+    color: var(--schilo-login-text-muted);
+    font-size: 10px;
+    letter-spacing: .04em;
+    line-height: 1.4;
+}
+
+.schilo-login-header__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--schilo-login-border);
+    border-radius: 99px;
+    color: var(--schilo-login-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background var(--schilo-login-transition), color var(--schilo-login-transition), border-color var(--schilo-login-transition);
+}
+
+.schilo-login-header__back:hover,
+.schilo-login-header__back:focus {
+    border-color: var(--schilo-login-accent-border);
+    background: var(--schilo-login-accent-pale);
+    color: var(--schilo-login-accent-dark);
+}
+
+/* ── Carte de connexion WordPress ── */
+#login {
+    width: calc(100% - 2rem);
+    max-width: 380px;
+    margin: 3.5rem auto;
+    padding: 2.5rem 2.25rem;
+    border: 1px solid var(--schilo-login-border);
+    border-radius: var(--schilo-login-radius-lg);
+    background: var(--schilo-login-bg-card);
+    box-shadow: var(--schilo-login-shadow);
+}
+
+#login h1 {
+    margin: 0;
+}
+
+#login h1 a {
+    width: auto;
+    height: auto;
+    margin: 0 auto 1.5rem;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-image: none;
+    color: var(--schilo-login-text);
+    font-family: var(--schilo-login-font);
+    font-size: 0;
+    font-weight: 600;
+    text-decoration: none;
+    text-indent: 0;
+    text-shadow: none;
+}
+
+#login h1 a::before {
+    width: 36px;
+    height: 36px;
+    content: '';
+    display: inline-flex;
+    flex-shrink: 0;
+    border-radius: var(--schilo-login-radius-md);
+    background-color: var(--schilo-login-accent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 12c2-2.96 0-7-1-8 0 3.038-1.773 4.741-3 6-1.226 1.26-2 3.24-2 5a6 6 0 1 0 12 0c0-1.532-1.056-3.94-2-5-1.786 3-2.791 3-4 2z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 20px;
+}
+
+#login h1 a::after {
+    content: 'Schilo';
+    color: var(--schilo-login-text);
+    font-size: 22px;
+}
+
+#login form {
+    margin-top: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+#login form label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--schilo-login-text-secondary);
+    font-size: 12.5px;
+    font-weight: 500;
+}
+
+#login form input[type='text'],
+#login form input[type='email'],
+#login form input[type='password'] {
+    width: 100%;
+    min-height: 40px;
+    margin-top: 0;
+    padding: 9px 12px;
+    border: 1px solid var(--schilo-login-border);
+    border-radius: 8px;
+    outline: none;
+    background: var(--schilo-login-bg-input);
+    box-shadow: none;
+    color: var(--schilo-login-text);
+    font-family: var(--schilo-login-font);
+    font-size: 14px;
+    transition: border-color var(--schilo-login-transition), box-shadow var(--schilo-login-transition), background var(--schilo-login-transition);
+}
+
+#login form input[type='text']:focus,
+#login form input[type='email']:focus,
+#login form input[type='password']:focus {
+    border-color: var(--schilo-login-accent);
+    background: var(--schilo-login-bg-card);
+    box-shadow: 0 0 0 3px var(--schilo-login-accent-ring);
+}
+
+.wp-pwd {
+    position: relative;
+}
+
+button.wp-hide-pw {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--schilo-login-text-muted);
+    cursor: pointer;
+    transform: translateY(-50%);
+}
+
+button.wp-hide-pw:hover {
+    color: var(--schilo-login-accent);
+}
+
+#login form .submit input {
+    width: 100%;
+    min-height: 40px;
+    padding: 10px 18px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--schilo-login-accent);
+    box-shadow: none;
+    color: var(--schilo-login-bg-card);
+    cursor: pointer;
+    font-family: var(--schilo-login-font);
+    font-size: 14px;
+    font-weight: 500;
+    text-shadow: none;
+    transition: background var(--schilo-login-transition), transform 80ms ease;
+}
+
+#login form .submit input:hover,
+#login form .submit input:focus {
+    background: var(--schilo-login-accent-dark);
+}
+
+#login form .submit input:active {
+    transform: scale(.99);
+}
+
+#loginform .forgetmenot {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 1.1rem;
+}
+
+#loginform .forgetmenot label {
+    margin: 0;
+    color: var(--schilo-login-text-secondary);
+    cursor: pointer;
+    font-size: 12.5px;
+}
+
+#loginform input[type='checkbox'] {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    accent-color: var(--schilo-login-accent);
+    cursor: pointer;
+}
+
+#login_error,
+.login .message,
+.login .success {
+    margin-bottom: 1rem;
+    padding: 10px 14px;
+    border-left: 3px solid var(--schilo-login-accent);
+    border-radius: 8px;
+    background: var(--schilo-login-accent-pale);
+    box-shadow: none;
+    color: var(--schilo-login-text);
+    font-size: 13px;
+}
+
+#login_error {
+    border-left-color: var(--schilo-login-mat);
+    background: var(--schilo-login-mat-bg);
+}
+
+#login #nav,
+#login #backtoblog {
+    margin: .75rem 0 0;
+    padding: 0;
+    text-align: center;
+}
+
+#login #nav {
+    margin-top: 1rem;
+    padding-top: .75rem;
+    border-top: 1px solid var(--schilo-login-bg-page);
+}
+
+#login #nav a,
+#login #backtoblog a,
+.login .privacy-policy-page-link a {
+    color: var(--schilo-login-text-muted);
+    font-size: 12.5px;
+    text-decoration: none;
+    transition: color var(--schilo-login-transition);
+}
+
+#login #nav a:hover,
+#login #backtoblog a:hover,
+.login .privacy-policy-page-link a:hover {
+    color: var(--schilo-login-accent);
+}
+
+#login .wpa-block {
+    margin-top: .5rem;
+    padding: 6px 10px;
+    border: 1px dashed var(--schilo-login-border);
+    border-radius: var(--schilo-login-radius-sm);
+    color: var(--schilo-login-text-hint);
+    font-size: 11px;
+}
+
+body.login #language-switcher,
+body.login .language-switcher {
+    margin: -1.5rem auto 2.5rem;
+    text-align: center;
+}
+
+/* ── Pied de page ── */
+.schilo-login-footer {
+    width: 100%;
+    margin-top: auto;
+    padding: 2rem 0 1.25rem;
+    background: var(--schilo-login-bg-footer);
+}
+
+.schilo-login-footer__inner {
+    width: var(--schilo-login-container-w);
+    max-width: var(--schilo-login-container);
+    margin: 0 auto;
+}
+
+.schilo-login-footer__top,
+.schilo-login-footer__bottom,
+.schilo-login-footer__links,
+.schilo-login-footer__legend,
+.schilo-login-footer__legend-item {
+    display: flex;
+    align-items: center;
+}
+
+.schilo-login-footer__top,
+.schilo-login-footer__bottom {
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.schilo-login-footer__top {
+    padding-bottom: 1.25rem;
+}
+
+.schilo-login-footer__mark {
+    background: var(--schilo-login-bg-mid);
+}
+
+.schilo-login-footer__name {
+    color: var(--schilo-login-bg-card);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.schilo-login-footer__description {
+    margin-top: 2px;
+    color: var(--schilo-login-white-38);
+    font-size: 12px;
+}
+
+.schilo-login-footer__links {
+    gap: 1.25rem;
+}
+
+.schilo-login-footer__links a {
+    color: var(--schilo-login-white-48);
+    font-size: 12.5px;
+    text-decoration: none;
+    transition: color var(--schilo-login-transition);
+}
+
+.schilo-login-footer__links a:hover,
+.schilo-login-footer__links a:focus {
+    color: var(--schilo-login-white-85);
+}
+
+.schilo-login-footer__bottom {
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--schilo-login-white-06);
+}
+
+.schilo-login-footer__copy {
+    color: var(--schilo-login-white-28);
+    font-size: 11.5px;
+}
+
+.schilo-login-footer__legend {
+    flex-wrap: wrap;
+    gap: 1.1rem;
+}
+
+.schilo-login-footer__legend-item {
+    gap: 5px;
+    color: var(--schilo-login-white-30);
+    font-size: 10.5px;
+}
+
+.schilo-login-footer__legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.schilo-login-footer__legend-dot--mat {
+    background: var(--schilo-login-mat);
+}
+
+.schilo-login-footer__legend-dot--marc {
+    background: var(--schilo-login-marc);
+}
+
+.schilo-login-footer__legend-dot--luc {
+    background: var(--schilo-login-luc);
+}
+
+.schilo-login-footer__legend-dot--jean {
+    background: var(--schilo-login-jean);
+}
+
+@media (max-width: 600px) {
+    .schilo-login-header__inner,
+    .schilo-login-footer__inner {
+        width: calc(100% - 2rem);
+    }
+
+    .schilo-login-brand__tagline {
+        display: none;
+    }
+
+    .schilo-login-header__back span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+    }
+
+    .schilo-login-header__back {
+        width: 36px;
+        height: 36px;
+        justify-content: center;
+        padding: 0;
+        border-radius: 50%;
+    }
+
+    #login {
+        margin: 2rem auto;
+    }
+
+    .schilo-login-footer__top,
+    .schilo-login-footer__bottom {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 420px) {
+    #login {
+        padding: 2rem 1.25rem;
+        border-radius: var(--schilo-login-radius-md);
+    }
+
+    .schilo-login-footer__description {
+        max-width: 220px;
+    }
+}

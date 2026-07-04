@@ -1,0 +1,257 @@
+.schilo-post { max-width: 1100px; margin: 0 auto; }
+.schilo-post-header { margin-bottom: 2rem; }
+.schilo-post-title { font-size: clamp(2rem, 4vw, 3rem); line-height: 1.1; }
+.schilo-post-sections { display: flex; flex-direction: column; gap: 2rem; }
+.schilo-section { padding: 1.5rem; border-radius: 18px; background: #fff; }
+.schilo-section-title { margin-top: 0; margin-bottom: 1rem; }
+.schilo-section-content { line-height: 1.75; }
+.schilo-image-textes-layout { display: grid; grid-template-columns: minmax(220px, 36%) 1fr; gap: 1.5rem; align-items: start; }
+.schilo-image-textes-media img { width: 100%; height: auto; border-radius: 14px; }
+@media (max-width: 760px) { .schilo-section { padding: 1rem; } .schilo-image-textes-layout { grid-template-columns: 1fr; } }
+
+
+.schilo-related-articles ul {
+    display: grid;
+    gap: .6rem;
+    margin: 1rem 0 0;
+    padding-left: 1.2rem;
+}
+
+.schilo-evangiles-versets {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.schilo-evangile-verset {
+    padding: 0.85rem 1rem;
+    border-left: 4px solid currentColor;
+    background: rgba(0, 0, 0, 0.035);
+    border-radius: 0.5rem;
+}
+
+
+.schilo-evangiles-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.citation-matthieu,
+.citation-marc,
+.citation-luc,
+.citation-jean,
+.citation-bible {
+    padding: 1rem;
+    border-radius: .75rem;
+    background: rgba(0, 0, 0, .03);
+}
+
+.schilo-evangile-label {
+    display: block;
+    margin-bottom: .4rem;
+}
+
+.schilo-evangiles-list { display: grid; gap: 1rem; }
+.citation-matthieu, .citation-marc, .citation-luc, .citation-jean, .citation-bible { padding: 1rem; border-radius: .75rem; background: rgba(0,0,0,.03); }
+.schilo-evangile-label { display: block; margin-bottom: .4rem; }
+
+/* v0.9 — section "Détails techniques" */
+.schilo-details-techniques-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 40%) 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.schilo-details-blocks {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.schilo-details-blocks-after {
+    margin-top: 1.5rem;
+}
+
+.schilo-details-media img {
+    width: 100%;
+    height: auto;
+    border-radius: 14px;
+}
+
+.schilo-details-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.9rem 1.1rem;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.schilo-details-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.12);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.schilo-details-box-content p {
+    margin: 0;
+}
+
+.schilo-details-box-content p + p {
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 760px) {
+    .schilo-details-techniques-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* v0.10 — section "Détails par colonne" */
+.schilo-details-colonnes-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.schilo-colonnes-media img {
+    width: 100%;
+    height: auto;
+    border-radius: 14px;
+}
+
+.schilo-colonnes-blocks {
+    display: grid;
+    gap: 0.75rem;
+}
+
+@media (max-width: 760px) {
+    .schilo-details-colonnes-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .schilo-details-colonnes-image-left .schilo-colonnes-media {
+        order: -1;
+    }
+}
+
+/* v0.11 — section "Détail technique - Image droite" */
+.schilo-detail-img-droite-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 40%) 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.schilo-section-detail-technique-img-droite .schilo-details-blocks-after {
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 760px) {
+    .schilo-detail-img-droite-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* v0.12 — images optionnelles (haut/bas) pour "Détail technique - Image droite" */
+.schilo-detail-img-extra {
+    margin-bottom: 1.5rem;
+}
+
+.schilo-detail-img-bas {
+    margin-top: 1.5rem;
+    margin-bottom: 0;
+}
+
+.schilo-details-blocks-before-top {
+    margin-bottom: 1.5rem;
+}
+
+/* v0.16 — section "Liens / Articles liés" */
+.schilo-links-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.schilo-links-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1.1rem;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.04);
+    text-decoration: none;
+    color: inherit;
+    font-weight: 600;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.schilo-links-link:hover {
+    background: rgba(0, 0, 0, 0.08);
+    transform: translateX(2px);
+}
+
+.schilo-links-arrow {
+    flex-shrink: 0;
+}
+
+.schilo-links-link-disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.schilo-links-intro {
+    margin: 0 0 1rem;
+    font-weight: 600;
+}
+
+/* Section questions */
+.schilo-questions-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.schilo-question-item {
+    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.03);
+    border-left: 4px solid #3a5a8c;
+}
+
+.schilo-question-text {
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.schilo-question-num {
+    display: inline-block;
+    margin-right: 0.35rem;
+    color: #3a5a8c;
+    font-weight: 700;
+}
+
+.schilo-question-answer {
+    margin: 0;
+    line-height: 1.65;
+    color: #444;
+}
+
+.schilo-question-answer p {
+    margin: 0;
+}
+
+.schilo-question-answer p + p {
+    margin-top: 0.5rem;
+}

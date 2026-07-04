@@ -1,0 +1,862 @@
+/*
+ * Schilo Theme — responsive.css
+ * Breakpoints :
+ *   ≤ 1280px  laptops standard
+ *   ≤ 1024px  tablettes paysage / petits laptops
+ *   ≤  768px  tablettes portrait
+ *   ≤  600px  grands téléphones / paysage mobile
+ *   ≤  480px  petits téléphones
+ *   ≤  360px  très petits écrans
+ */
+
+/* ============================================================
+   1. VARIABLES RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1024px) {
+  :root {
+    --schilo-container-w: 94%;
+    --schilo-nav-h: 52px;
+  }
+}
+
+/* ============================================================
+   PAGE D'ACCUEIL
+   ============================================================ */
+
+@media (max-width: 1280px) {
+  .schilo-home-hero__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(330px, .8fr);
+    gap: 3rem;
+  }
+
+  .schilo-home-themes {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .schilo-home-category-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .schilo-home-hero {
+    padding-top: 4rem;
+  }
+
+  .schilo-home-hero__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .schilo-home-hero__content {
+    max-width: 760px;
+  }
+
+  .schilo-home-featured {
+    max-width: 760px;
+  }
+
+  .schilo-home-paths {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .schilo-home-resources {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .schilo-home-themes,
+  .schilo-home-category-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .schilo-home-category-children {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .schilo-home-verse {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .schilo-home-verse__actions {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .schilo-home-hero {
+    padding: 3rem 0 2.75rem;
+  }
+
+  .schilo-home-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .schilo-home-verse {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+    padding: 1.5rem;
+  }
+
+  .schilo-home-verse__identity {
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
+  .schilo-home-verse__actions {
+    grid-column: auto;
+  }
+
+  .schilo-home-section {
+    padding: 3.5rem 0;
+  }
+
+  .schilo-home-paths,
+  .schilo-home-themes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .schilo-home-cta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .schilo-home-hero > .schilo-container,
+  .schilo-home-section > .schilo-container {
+    width: calc(100% - 2rem);
+  }
+
+  .schilo-home-hero__grid {
+    gap: 2.25rem;
+  }
+
+  .schilo-home-hero__description {
+    font-size: 14px;
+  }
+
+  .schilo-home-hero__actions,
+  .schilo-home-cta__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .schilo-home-button {
+    width: 100%;
+  }
+
+  .schilo-home-featured {
+    grid-template-columns: 1fr;
+  }
+
+  .schilo-home-featured__card--main {
+    min-height: 165px;
+    grid-column: auto;
+  }
+
+  .schilo-home-section__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .schilo-home-paths,
+  .schilo-home-resources,
+  .schilo-home-themes,
+  .schilo-home-category-list,
+  .schilo-home-category-children {
+    grid-template-columns: 1fr;
+  }
+
+  .schilo-home-theme {
+    min-height: 185px;
+  }
+
+  .schilo-home-cta {
+    margin-top: 3rem;
+    padding: 1.5rem;
+  }
+
+  .schilo-home-category-index {
+    margin-top: 2.5rem;
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .schilo-home-hero__eyebrow {
+    font-size: 9px;
+  }
+
+  .schilo-home-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --schilo-container-w: 100%;
+    --schilo-nav-h: 50px;
+  }
+}
+
+/* ============================================================
+   2. NAVIGATION
+   ============================================================ */
+
+/* ── 1280px : compresser légèrement ── */
+@media (max-width: 1280px) {
+  .schilo-nav__links { gap: 1.25rem; }
+  .schilo-nav__links a { font-size: 12.5px; }
+}
+
+/* ── 1024px : masquer certains liens ── */
+@media (max-width: 1024px) {
+  .schilo-nav__links { gap: 1rem; }
+  .schilo-nav__links a { font-size: 12px; }
+  .schilo-btn-primary { padding: 6px 14px; font-size: 12px; }
+}
+
+/* ── 768px : basculer en menu burger ── */
+@media (max-width: 768px) {
+  .schilo-nav__links {
+    display: none;
+    position: fixed;
+    top: var(--schilo-nav-h);
+    left: 0; right: 0;
+    background: var(--schilo-bg-card);
+    border-bottom: 1px solid var(--schilo-border);
+    padding: 1rem 1.25rem;
+    flex-direction: column;
+    gap: 0;
+    z-index: 190;
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  }
+
+  .schilo-nav__links.is-open {
+    display: flex;
+  }
+
+  .schilo-nav__links a {
+    font-size: 14px;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--schilo-border);
+    border-left: none;
+    color: var(--schilo-text-primary);
+  }
+
+  .schilo-nav__links a:last-child {
+    border-bottom: none;
+  }
+
+  .schilo-nav__links a.current-menu-item {
+    color: var(--schilo-accent);
+    border-bottom-color: var(--schilo-border);
+  }
+
+  .schilo-nav__toggle { display: flex; }
+
+  .schilo-btn-primary { display: none; }
+  .schilo-nav__right .schilo-btn-contact { display: none; }
+
+  /* Sélecteur de langue — version compacte */
+  .schilo-lang__btn span.schilo-lang__current { display: none; }
+  .schilo-lang__dropdown { right: -10px; }
+}
+
+/* ── 600px : nav ultra-compacte ── */
+@media (max-width: 600px) {
+  .schilo-nav__inner { padding: 0 1rem; gap: 0.75rem; }
+  .schilo-nav__brand-tagline { display: none; }
+  .schilo-btn-search span { display: none; }
+  .schilo-btn-search { padding: 6px 10px; border-radius: 50%; }
+}
+
+/* ── 480px ── */
+@media (max-width: 480px) {
+  .schilo-nav__brand-name { font-size: 13px; }
+  .schilo-nav__brand-mark { width: 28px; height: 28px; }
+  .schilo-nav__brand-mark i { font-size: 14px; }
+}
+
+/* ============================================================
+   3. HERO DARK
+   ============================================================ */
+
+@media (max-width: 1024px) {
+  .schilo-hero { padding: 3rem 0 0; }
+  .schilo-hero__title { font-size: clamp(24px, 3.5vw, 34px); }
+}
+
+@media (max-width: 768px) {
+  .schilo-hero { padding: 2.5rem 0 0; }
+  .schilo-hero__inner {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    padding-bottom: 2.5rem;
+  }
+  .schilo-hero__title { font-size: clamp(22px, 5vw, 30px); }
+  .schilo-hero__desc { font-size: 14px; }
+}
+
+@media (max-width: 600px) {
+  .schilo-hero { padding: 2rem 0 0; }
+  .schilo-hero__inner { padding: 0 1rem 2rem; }
+  .schilo-hero__title { font-size: clamp(20px, 5.5vw, 26px); }
+  .schilo-hero__desc { font-size: 13px; margin-bottom: 1.25rem; }
+  .schilo-hero__eyebrow { font-size: 10px; padding: 4px 10px; }
+}
+
+@media (max-width: 480px) {
+  .schilo-hero__title { font-size: 20px; }
+}
+
+/* ============================================================
+   4. LAYOUT GÉNÉRAL (container + grille principale)
+   ============================================================ */
+
+@media (max-width: 1024px) {
+  .schilo-grid-main {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* Container pleine largeur mobile avec padding latéral */
+@media (max-width: 600px) {
+  .schilo-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* ============================================================
+   5. CARDS
+   ============================================================ */
+
+@media (max-width: 600px) {
+  .schilo-card__head { padding: 0.75rem 1rem; }
+  .schilo-card__body { padding: 0.9rem 1rem; }
+  .schilo-card__title { font-size: 10px; }
+}
+
+@media (max-width: 480px) {
+  .schilo-card { border-radius: 10px; }
+  .schilo-card__head { padding: 0.65rem 0.9rem; }
+  .schilo-card__body { padding: 0.8rem 0.9rem; }
+}
+
+/* ============================================================
+   6. VERSETS BIBLIQUES
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .schilo-verse__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 0.75rem 0.9rem;
+  }
+
+  .schilo-verse__versions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .schilo-verse__body { padding: 0.85rem 0.9rem; }
+  .schilo-verse__text { font-size: 14px; line-height: 1.75; }
+}
+
+@media (max-width: 480px) {
+  .schilo-vpill { font-size: 10px; padding: 3px 9px; }
+  .schilo-verse__text { font-size: 13px; }
+  .schilo-ev-badge { width: 28px; height: 28px; font-size: 12px; }
+}
+
+/* ============================================================
+   7. SIDEBAR
+   ============================================================ */
+
+/* La sidebar passe sous le contenu principal sur tablette */
+@media (max-width: 1024px) {
+  .schilo-sidebar {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .schilo-sb-card { margin-bottom: 0; }
+}
+
+@media (max-width: 600px) {
+  .schilo-sidebar {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   8. BOUTONS
+   ============================================================ */
+
+@media (max-width: 600px) {
+  .schilo-btn { padding: 9px 16px; font-size: 13px; }
+  .schilo-btn i { font-size: 14px; }
+}
+
+@media (max-width: 480px) {
+  .schilo-btn { padding: 8px 14px; font-size: 12px; }
+}
+
+/* ============================================================
+   9. FOOTER
+   ============================================================ */
+
+@media (max-width: 1280px) {
+  .schilo-footer__grid { gap: 2rem; }
+}
+
+@media (max-width: 1024px) {
+  .schilo-footer__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .schilo-footer {
+    padding: 2.5rem 1rem 1.25rem;
+  }
+
+  .schilo-footer__grid {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+
+  .schilo-footer__desc { max-width: 100%; }
+
+  .schilo-footer__bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding-top: 1.25rem;
+  }
+
+  .schilo-footer__legend { gap: 0.75rem; }
+  .schilo-footer__copy { font-size: 11px; }
+}
+
+@media (max-width: 480px) {
+  .schilo-footer { padding: 2rem 0.9rem 1rem; }
+  .schilo-footer__brand-name { font-size: 14px; }
+  .schilo-footer__col-title { font-size: 10px; }
+  .schilo-footer__links a { font-size: 12px; }
+}
+
+/* ============================================================
+   10. TYPOGRAPHIE RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 768px) {
+  h1 { font-size: clamp(20px, 5vw, 28px); }
+  h2 { font-size: clamp(17px, 4vw, 22px); }
+  h3 { font-size: clamp(15px, 3.5vw, 18px); }
+  body { font-size: 14px; }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: clamp(18px, 5.5vw, 22px); }
+  h2 { font-size: clamp(15px, 4.5vw, 18px); }
+  h3 { font-size: 15px; }
+  body { font-size: 13.5px; }
+}
+
+/* ============================================================
+   11. SÉLECTEUR DE LANGUE — responsive
+   ============================================================ */
+
+@media (max-width: 480px) {
+  .schilo-lang__btn {
+    padding: 5px 8px;
+    gap: 4px;
+  }
+
+  .schilo-lang__dropdown {
+    right: -40px !important;
+    width: 170px !important;
+    min-width: 170px !important;
+  }
+
+  .schilo-lang__option {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+
+  .schilo-lang__flag-img {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+/* ============================================================
+   12. UTILITAIRES RESPONSIVE
+   ============================================================ */
+
+/* Masquer sur mobile */
+@media (max-width: 768px) {
+  .schilo-hide-mobile { display: none !important; }
+}
+
+/* Masquer sur tablette et moins */
+@media (max-width: 1024px) {
+  .schilo-hide-tablet { display: none !important; }
+}
+
+/* Afficher seulement sur mobile */
+.schilo-show-mobile { display: none !important; }
+@media (max-width: 768px) {
+  .schilo-show-mobile { display: block !important; }
+}
+
+/* Images responsive */
+@media (max-width: 768px) {
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Empêcher le débordement horizontal */
+@media (max-width: 600px) {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  * { box-sizing: border-box; }
+
+  /* Tableaux scrollables */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ============================================================
+   13. TOUCH & ACCESSIBILITÉ
+   ============================================================ */
+
+/* Zones de tap suffisamment grandes sur mobile */
+@media (max-width: 768px) {
+  .schilo-btn,
+  .schilo-lang__btn,
+  .schilo-btn-search,
+  .schilo-nav__toggle {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .schilo-lang__option {
+    min-height: 44px !important;
+  }
+
+  /* Archive : boutons vue et selects accessibles au toucher */
+  .schilo-archive-view-btn {
+    min-height: 44px;
+    min-width: 44px;
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+
+  .schilo-archive-select {
+    min-height: 44px;
+    height: 44px;
+    font-size: 16px; /* évite le zoom auto iOS sur focus */
+  }
+}
+
+/* Focus visible amélioré sur touch */
+@media (max-width: 768px) {
+  :focus-visible {
+    outline: 2px solid var(--schilo-accent);
+    outline-offset: 2px;
+  }
+}
+
+/* ============================================================
+   14. IMPRESSION
+   ============================================================ */
+
+@media print {
+  .schilo-nav,
+  .schilo-sidebar,
+  .schilo-footer,
+  .schilo-lang,
+  #gt_float_wrapper,
+  .schilo-btn-primary,
+  .schilo-archive-toolbar,
+  .schilo-archive-pagination {
+    display: none !important;
+  }
+
+  .schilo-archive-hero {
+    background: #fff !important;
+    color: #000 !important;
+    padding: 1rem 0 .5rem;
+  }
+
+  .schilo-archive-hero__title,
+  .schilo-archive-hero__desc,
+  .schilo-archive-breadcrumb { color: #000 !important; }
+
+  .schilo-archive-posts--grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+  }
+
+  .schilo-archive-card {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  .schilo-archive-card__read-more { display: none; }
+
+  .schilo-grid-main {
+    grid-template-columns: 1fr;
+  }
+
+  .schilo-card {
+    border: 1px solid #ccc;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  body {
+    font-size: 12pt;
+    color: #000;
+    background: #fff;
+  }
+
+  h1, h2, h3 { color: #000; }
+
+  a { color: #000; text-decoration: underline; }
+
+  .schilo-verse__text {
+    font-size: 11pt;
+    line-height: 1.6;
+  }
+}
+
+/* ============================================================
+   15. SAFE AREA — iPhone encoche / Dynamic Island / Android cutout
+   ============================================================ */
+
+@supports (padding: max(0px)) {
+  .schilo-nav__inner {
+    padding-left: max(1.5rem, env(safe-area-inset-left));
+    padding-right: max(1.5rem, env(safe-area-inset-right));
+  }
+
+  .schilo-footer__inner {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+
+  @media (max-width: 600px) {
+    .schilo-nav__inner {
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
+    }
+
+    .schilo-container {
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
+    }
+
+    /* Nav fixe : tenir compte de l'encoche en haut */
+    .schilo-nav {
+      padding-top: env(safe-area-inset-top);
+    }
+  }
+}
+
+/* ============================================================
+   16. GRANDS ÉCRANS — 1400px et au-delà
+   ============================================================ */
+
+/*
+ * Stratégie :
+ * - Le container est plafonné à 1400px (--schilo-container)
+ * - Au-delà, on augmente les espacements et les tailles de police
+ * - Le fond de page reste visible sur les côtés (bg-page)
+ * - On ne laisse jamais le contenu s'étirer indéfiniment
+ */
+
+/* ── 1400px : taille standard large ── */
+@media (min-width: 1400px) {
+  :root {
+    --schilo-container-w: 94%;
+  }
+
+  body { font-size: 15.5px; }
+
+  .schilo-nav__links { gap: 2.5rem; }
+  .schilo-nav__links a { font-size: 13.5px; }
+}
+
+/* ── 1600px : très grand laptop / petit moniteur ── */
+@media (min-width: 1600px) {
+  :root {
+    --schilo-container-w: 92%;
+    --schilo-nav-h: 60px;
+  }
+
+  body { font-size: 16px; line-height: 1.7; }
+
+  /* Nav */
+  .schilo-nav__brand-name  { font-size: 16px; }
+  .schilo-nav__brand-mark  { width: 36px; height: 36px; }
+  .schilo-nav__brand-mark i { font-size: 18px; }
+  .schilo-nav__links a     { font-size: 14px; }
+  .schilo-btn-search       { font-size: 14px; padding: 7px 18px; }
+  .schilo-btn-primary      { font-size: 14px; padding: 8px 20px; }
+
+  /* Cards */
+  .schilo-card__head       { padding: 1rem 1.5rem; }
+  .schilo-card__body       { padding: 1.3rem 1.5rem; }
+  .schilo-card__title      { font-size: 12px; letter-spacing: .07em; }
+
+  /* Versets */
+  .schilo-verse__text      { font-size: 15.5px; line-height: 1.9; }
+  .schilo-verse__head      { padding: .75rem 1.1rem; }
+  .schilo-verse__body      { padding: 1.1rem 1.2rem; }
+  .schilo-vpill            { font-size: 12px; padding: 4px 12px; }
+  .schilo-ev-badge         { width: 34px; height: 34px; font-size: 14px; }
+
+  /* Hero */
+  .schilo-hero             { padding: 6rem 0 0; }
+  .schilo-hero__title      { font-size: clamp(36px, 3vw, 48px); }
+  .schilo-hero__desc       { font-size: 16px; }
+
+  /* Sidebar */
+  .schilo-sb-card          { padding: 1.1rem 1.25rem; }
+  .schilo-sb-title         { font-size: 11px; }
+
+  /* Footer */
+  .schilo-footer           { padding: 4.5rem 0 2rem; }
+  .schilo-footer__grid     { gap: 4rem; }
+  .schilo-footer__desc     { font-size: 14px; max-width: 320px; }
+  .schilo-footer__links a  { font-size: 14px; }
+}
+
+/* ── 1920px : Full HD / moniteur standard ── */
+@media (min-width: 1920px) {
+  :root {
+    --schilo-container:   1600px;
+    --schilo-container-w: 89%;
+    --schilo-nav-h: 64px;
+  }
+
+  body { font-size: 16.5px; }
+
+  /* Empêcher les lignes de texte trop longues */
+  .schilo-card__body p,
+  .schilo-hero__desc,
+  .schilo-footer__desc {
+    max-width: 68ch;
+  }
+
+  /* Hero */
+  .schilo-hero             { padding: 7rem 0 0; }
+  .schilo-hero__title      { font-size: clamp(40px, 2.8vw, 52px); }
+  .schilo-hero__desc       { font-size: 17px; }
+  .schilo-hero__eyebrow    { font-size: 12px; padding: 6px 16px; }
+
+  /* Nav */
+  .schilo-nav__inner       { height: 64px; }
+  .schilo-nav__brand-name  { font-size: 17px; }
+  .schilo-nav__brand-mark  { width: 38px; height: 38px; }
+  .schilo-nav__links       { gap: 3rem; }
+  .schilo-nav__links a     { font-size: 14.5px; }
+
+  /* Versets */
+  .schilo-verse__text      { font-size: 16px; line-height: 1.95; }
+
+  /* Cards */
+  .schilo-card__head       { padding: 1.1rem 1.6rem; }
+  .schilo-card__body       { padding: 1.5rem 1.6rem; }
+
+  /* Grille principale : sidebar un peu plus large */
+  .schilo-grid-main {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 2rem;
+  }
+
+  /* Footer */
+  .schilo-footer           { padding: 5rem 0 2.5rem; }
+  .schilo-footer__grid     { gap: 5rem; margin-bottom: 3rem; }
+}
+
+/* ── 2560px : 2K / QHD ── */
+@media (min-width: 2560px) {
+  :root {
+    --schilo-container:   2000px;
+    --schilo-container-w: 84%;
+    --schilo-nav-h: 68px;
+  }
+
+  body { font-size: 17px; line-height: 1.75; }
+
+  .schilo-hero__title      { font-size: clamp(44px, 2.5vw, 58px); }
+  .schilo-hero__desc       { font-size: 18px; max-width: 640px; }
+  .schilo-hero             { padding: 8rem 0 0; }
+
+  .schilo-nav__links a     { font-size: 15px; }
+  .schilo-nav__brand-name  { font-size: 18px; }
+
+  .schilo-verse__text      { font-size: 17px; }
+
+  .schilo-grid-main {
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 2.5rem;
+  }
+
+  .schilo-footer__grid     { gap: 6rem; }
+  .schilo-footer__links a  { font-size: 15px; }
+}
+
+/* ── 3840px : 4K ── */
+@media (min-width: 3840px) {
+  :root {
+    --schilo-container:   3000px;
+    --schilo-container-w: 82%;
+    --schilo-nav-h: 72px;
+  }
+
+  html  { font-size: 20px; }
+  body  { font-size: 18px; line-height: 1.8; }
+
+  .schilo-hero__title      { font-size: clamp(50px, 2vw, 72px); }
+  .schilo-hero__desc       { font-size: 20px; max-width: 700px; }
+
+  .schilo-nav__brand-mark  { width: 46px; height: 46px; }
+  .schilo-nav__brand-mark i { font-size: 22px; }
+  .schilo-nav__brand-name  { font-size: 20px; }
+  .schilo-nav__links a     { font-size: 16px; gap: 3.5rem; }
+
+  .schilo-grid-main {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 3rem;
+  }
+
+  .schilo-card             { border-radius: 18px; }
+  .schilo-card__head       { padding: 1.4rem 2rem; }
+  .schilo-card__body       { padding: 1.8rem 2rem; }
+
+  .schilo-verse__text      { font-size: 19px; line-height: 2; }
+  .schilo-ev-badge         { width: 42px; height: 42px; font-size: 18px; }
+}
