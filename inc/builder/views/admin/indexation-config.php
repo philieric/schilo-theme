@@ -11,11 +11,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sia_config_nonce'])) 
 
         $provider = sanitize_key($_POST['sia_default_provider'] ?? 'claude');
         update_option('schilo_indexation_default_provider', in_array($provider, array_keys($ia_providers)) ? $provider : 'claude', false);
+
+        $validation_mode = sanitize_key($_POST['sia_validation_mode'] ?? 'manuel');
+        update_option('schilo_indexation_validation_mode', in_array($validation_mode, ['manuel', 'auto'], true) ? $validation_mode : 'manuel', false);
+
         $saved = true;
     }
 }
 
 $default_provider = get_option('schilo_indexation_default_provider', 'claude');
+$validation_mode  = get_option('schilo_indexation_validation_mode', 'manuel');
 $back_url = admin_url('admin.php?page=schilo-builder-indexation');
 ?>
 <div class="wrap schilo-builder-settings">
@@ -57,6 +62,25 @@ $back_url = admin_url('admin.php?page=schilo-builder-indexation');
                     Configurer les cles API IA
                 </a>
             </p>
+        </div>
+
+        <!-- Mode de validation -->
+        <div class="sia-val-bloc" style="display:block;margin-top:16px;">
+            <div class="sia-val-bloc-title">Mode de validation de l'indexation IA</div>
+            <label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;font-size:14px;">
+                <input type="radio" name="sia_validation_mode" value="manuel" <?php checked($validation_mode, 'manuel'); ?> style="margin-top:3px;">
+                <span>
+                    <strong>Manuelle (recommande)</strong><br>
+                    <span style="color:#64748b;font-size:13px;">Les propositions de l'IA sont enregistrees en statut « en attente ». Rien ne passe en « valide » sans relecture et validation humaine.</span>
+                </span>
+            </label>
+            <label style="display:flex;align-items:flex-start;gap:8px;font-size:14px;">
+                <input type="radio" name="sia_validation_mode" value="auto" <?php checked($validation_mode, 'auto'); ?> style="margin-top:3px;">
+                <span>
+                    <strong>Automatique</strong><br>
+                    <span style="color:#dc2626;font-size:13px;">Les propositions de l'IA sont enregistrees directement en statut « valide », sans relecture humaine. A n'utiliser que si vous faites confiance au contenu genere pour les prefixes concernes.</span>
+                </span>
+            </label>
         </div>
 
         <!-- Infos table SQL -->
