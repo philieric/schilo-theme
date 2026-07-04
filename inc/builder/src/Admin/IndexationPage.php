@@ -120,11 +120,20 @@ class IndexationPage
             wp_send_json_error(['message' => $result->get_error_message()]);
         }
 
+        // Mode automatique : enregistrer directement en "valide", sans passer par la modale de relecture.
+        $auto_mode  = get_option('schilo_indexation_validation_mode', 'manuel') === 'auto';
+        $auto_saved = false;
+        if ($auto_mode) {
+            $auto_saved = $this->service->saveValidated($post_id, $result, get_current_user_id(), 'valide');
+        }
+
         wp_send_json_success([
             'fields'        => $result,
             'post_id'       => $post_id,
             'provider_used' => $used,
             'fallback_msg'  => $fallback_msg,
+            'auto_mode'     => $auto_mode,
+            'auto_saved'    => $auto_saved,
         ]);
     }
 
@@ -146,8 +155,10 @@ class IndexationPage
             wp_send_json_error(['message' => 'Aucun article selectionne.']);
         }
 
-        $results = ['ok' => [], 'error' => []];
-        $user_id = get_current_user_id();
+        $results   = ['ok' => [], 'error' => []];
+        $user_id   = get_current_user_id();
+        $auto_mode = get_option('schilo_indexation_validation_mode', 'manuel') === 'auto';
+        $statut    = $auto_mode ? 'valide' : 'en_attente';
 
         foreach ($post_ids as $post_id) {
             if (!$post_id) continue;
@@ -157,9 +168,10 @@ class IndexationPage
                 continue;
             }
 
-            // Pre-remplit les champs proposes par l'IA, statut "en_attente" :
-            // reste soumis a la validation humaine avant de passer a "valide".
-            $saved = $this->service->saveValidated($post_id, $r, $user_id, 'en_attente');
+            // Pre-remplit les champs proposes par l'IA. Statut selon le mode choisi
+            // dans la configuration : "en_attente" (validation humaine requise) ou
+            // "valide" directement si le mode automatique est active.
+            $saved = $this->service->saveValidated($post_id, $r, $user_id, $statut);
             if ($saved) {
                 $results['ok'][] = $post_id;
             } else {
@@ -167,6 +179,7 @@ class IndexationPage
             }
         }
 
+        $results['auto_mode'] = $auto_mode;
         wp_send_json_success($results);
     }
 
