@@ -22,6 +22,10 @@ une branche existante, ou préparer une release vers `master`.
 **Règle absolue** : toute nouvelle modification (feature, correctif, chantier du roadmap)
 passe par une sous-branche dédiée, jamais directement sur `develop` ou `master`.
 
+Cette règle s'applique à **tous les skills du dépôt**, pas seulement à celui-ci : les
+skills [[indexation]] et [[migration]] rappellent chacun ce prérequis en tête de fichier
+et renvoient ici (section 2) pour la procédure de création de branche.
+
 ---
 
 ## 1. Convention de nommage des sous-branches
@@ -211,3 +215,47 @@ git log --oneline --graph --all -20
 ```
 
 À lancer en début de session pour savoir où reprendre le travail.
+
+---
+
+## 10. Travailler sur plusieurs branches en parallèle (git worktree)
+
+**Contrainte** : un seul dossier de travail = une seule branche extraite à la fois.
+Le dossier principal (`wp-content\themes\schilo-theme`) est celui servi en live par
+Apache sur `schilo.local` — on ne peut donc pas y `checkout` une deuxième branche
+sans arrêter de prévisualiser la première.
+
+**Solution** : `git worktree` crée un dossier supplémentaire relié au même dépôt
+(même historique, même remote), chacun sur sa propre branche, sans dupliquer le `.git`.
+
+```powershell
+Set-Location "C:\Apache24\htdocs\schilo\wp-content\themes\schilo-theme"
+git fetch origin
+
+# Nouvelle branche de travail dans un dossier séparé, partant de develop à jour
+git worktree add "C:\Apache24\worktrees\schilo-theme-feature-y" -b feature/nom-chantier-y develop
+
+# Ou pour une branche qui existe déjà (ex: feature/indexation-validation-mode)
+git worktree add "C:\Apache24\worktrees\schilo-theme-indexation" feature/indexation-validation-mode
+```
+
+Chaque worktree suit exactement les mêmes règles que le reste de ce document
+(nommage §1, tests avant fusion §3, fusion vers `develop` §4).
+
+### Limite importante : aperçu live
+
+Seul le dossier principal (`wp-content\themes\schilo-theme`) est reconnu par
+WordPress/Apache comme le thème actif sur `schilo.local`. Un worktree secondaire
+permet d'éditer, committer, lancer `php -l` et faire les revues de code — mais
+**pas** de voir le rendu dans le navigateur, tant qu'il n'a pas son propre vhost
+Apache + une installation WordPress séparée (base de données dédiée). Si un
+aperçu live simultané des deux branches est nécessaire, il faut créer ce
+second environnement (site miroir local) — à faire sur demande explicite,
+c'est un chantier à part entière.
+
+### Nettoyage après fusion
+
+```powershell
+git worktree remove "C:\Apache24\worktrees\schilo-theme-feature-y"
+git worktree prune
+```
