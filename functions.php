@@ -134,6 +134,22 @@ add_action( 'admin_enqueue_scripts', function ( string $hook ): void {
 
 // -- Admin : nettoyage automatique du collage Word dans l'editeur classique --
 // -- + boutons H1-H6 / P a la place du menu deroulant "Paragraphe / Titre" --
+
+// Table de reference des raccourcis (token -> snippet), partagee entre le bouton
+// mce_buttons (savoir si le menu "Balises" doit apparaitre) et le JS d'insertion.
+function schilo_default_raccourcis_map(): array {
+    return array(
+        array( 'token' => ';bb',  'snippet' => '[/bib]',      'place_caret' => 'none',    'in_tinymce' => false, 'label' => '' ),
+        array( 'token' => ';bv',  'snippet' => '[/bvc]',      'place_caret' => 'none',    'in_tinymce' => false, 'label' => '' ),
+        array( 'token' => ';bi',  'snippet' => '[/bib]',      'place_caret' => 'none',    'in_tinymce' => false, 'label' => '' ),
+        array( 'token' => ';bn',  'snippet' => '[/bnv]',      'place_caret' => 'none',    'in_tinymce' => false, 'label' => '' ),
+        array( 'token' => ';bib', 'snippet' => '[bib][/bib]', 'place_caret' => 'between', 'in_tinymce' => true,  'label' => 'Bible' ),
+        array( 'token' => ';bvc', 'snippet' => '[bvc][/bvc]', 'place_caret' => 'between', 'in_tinymce' => true,  'label' => 'Vidéo' ),
+        array( 'token' => ';brc', 'snippet' => '[brc][/brc]', 'place_caret' => 'between', 'in_tinymce' => true,  'label' => 'Bloc riche' ),
+        array( 'token' => ';bnv', 'snippet' => '[bnv][/bnv]', 'place_caret' => 'between', 'in_tinymce' => true,  'label' => 'Navigation' ),
+    );
+}
+
 add_filter( 'mce_buttons', function ( array $buttons ): array {
     $heading_buttons = array( 'schilo_h1', 'schilo_h2', 'schilo_h3', 'schilo_h4', 'schilo_h5', 'schilo_h6', 'schilo_p' );
     $key = array_search( 'formatselect', $buttons, true );
@@ -147,22 +163,25 @@ add_filter( 'mce_buttons', function ( array $buttons ): array {
         array_splice( $buttons, $italic_key + 1, 0, array( 'underline' ) );
     }
     $buttons[] = 'pastetext';
+
+    $raccourcis_map = get_option( 'raccourcis_live_map' );
+    if ( ! is_array( $raccourcis_map ) || empty( $raccourcis_map ) ) {
+        $raccourcis_map = schilo_default_raccourcis_map();
+    }
+    $has_menu_entries = count( array_filter( $raccourcis_map, function ( $entry ) {
+        return ! empty( $entry['in_tinymce'] );
+    } ) ) > 0;
+    if ( $has_menu_entries ) {
+        $buttons[] = 'schilo_shortcodes';
+    }
+
     return $buttons;
 } );
 
 add_filter( 'tiny_mce_before_init', function ( array $init ): array {
     $raccourcis_map = get_option( 'raccourcis_live_map' );
     if ( ! is_array( $raccourcis_map ) || empty( $raccourcis_map ) ) {
-        $raccourcis_map = array(
-            array( 'token' => ';bb',  'snippet' => '[/bib]',      'place_caret' => 'none' ),
-            array( 'token' => ';bv',  'snippet' => '[/bvc]',      'place_caret' => 'none' ),
-            array( 'token' => ';bi',  'snippet' => '[/bib]',      'place_caret' => 'none' ),
-            array( 'token' => ';bn',  'snippet' => '[/bnv]',      'place_caret' => 'none' ),
-            array( 'token' => ';bib', 'snippet' => '[bib][/bib]', 'place_caret' => 'between' ),
-            array( 'token' => ';bvc', 'snippet' => '[bvc][/bvc]', 'place_caret' => 'between' ),
-            array( 'token' => ';brc', 'snippet' => '[brc][/brc]', 'place_caret' => 'between' ),
-            array( 'token' => ';bnv', 'snippet' => '[bnv][/bnv]', 'place_caret' => 'between' ),
-        );
+        $raccourcis_map = schilo_default_raccourcis_map();
     }
     $raccourcis_json = wp_json_encode( $raccourcis_map );
 
@@ -273,6 +292,41 @@ function (editor) {
             }
         });
     });
+
+    /* Menu "Balises" : insere le shortcode d'un raccourci au clic (sans passer par le token clavier) */
+    function schiloInsertSnippet(item) {
+        editor.focus();
+        var snippet  = item.snippet || '';
+        var closeIdx = snippet.indexOf(']');
+        if (item.place_caret === 'between' && closeIdx !== -1) {
+            editor.insertContent(snippet.substring(0, closeIdx + 1));
+            var bookmark = editor.selection.getBookmark();
+            editor.insertContent(snippet.substring(closeIdx + 1));
+            editor.selection.moveToBookmark(bookmark);
+        } else {
+            editor.insertContent(snippet);
+        }
+    }
+
+    var schiloMenuItems = schiloRaccourcis.filter(function (item) {
+        return !!item.in_tinymce;
+    });
+
+    if (schiloMenuItems.length) {
+        editor.addButton('schilo_shortcodes', {
+            type: 'menubutton',
+            text: 'Balises',
+            icon: false,
+            menu: schiloMenuItems.map(function (item) {
+                return {
+                    text: item.label || item.token,
+                    onclick: function () {
+                        schiloInsertSnippet(item);
+                    }
+                };
+            })
+        });
+    }
 }
 JS;
     return $init;

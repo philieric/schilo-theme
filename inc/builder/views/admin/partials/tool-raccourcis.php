@@ -20,12 +20,14 @@
         <?php wp_nonce_field('schilo_save_raccourcis', 'schilo_raccourcis_nonce'); ?>
         <input type="hidden" name="schilo_tool_action" value="save_raccourcis">
 
-        <table class="widefat fixed" id="schilo-raccourcis-table" style="max-width:700px;margin-bottom:12px;">
+        <table class="widefat fixed" id="schilo-raccourcis-table" style="max-width:900px;margin-bottom:12px;">
             <thead>
                 <tr>
                     <th style="width:120px;">Token</th>
                     <th>Snippet inséré</th>
                     <th style="width:150px;">Placement curseur</th>
+                    <th style="width:80px;">Inclure dans TinyMCE</th>
+                    <th style="width:150px;">Libellé du bouton</th>
                     <th style="width:60px;"></th>
                 </tr>
             </thead>
@@ -47,6 +49,15 @@
                             <option value="none"   <?php selected($entry['place_caret'], 'none'); ?>>Aucun</option>
                             <option value="between"<?php selected($entry['place_caret'], 'between'); ?>>Entre les balises</option>
                         </select>
+                    </td>
+                    <td style="text-align:center;">
+                        <input type="checkbox" name="raccourcis_map[<?php echo (int) $i; ?>][in_tinymce]" value="1"
+                               <?php checked(!empty($entry['in_tinymce'])); ?>>
+                    </td>
+                    <td>
+                        <input type="text" name="raccourcis_map[<?php echo (int) $i; ?>][label]"
+                               value="<?php echo esc_attr($entry['label'] ?? ''); ?>"
+                               style="width:100%;" placeholder="Libellé affiché dans le menu">
                     </td>
                     <td style="text-align:center;">
                         <button type="button" class="button schilo-remove-raccourci" title="Supprimer">✕</button>
@@ -76,6 +87,8 @@
                 '<option value="none">Aucun</option>' +
                 '<option value="between">Entre les balises</option>' +
             '</select></td>' +
+            '<td style="text-align:center;"><input type="checkbox" name="raccourcis_map[' + idx + '][in_tinymce]" value="1"></td>' +
+            '<td><input type="text" name="raccourcis_map[' + idx + '][label]" style="width:100%;" placeholder="Libellé affiché dans le menu"></td>' +
             '<td style="text-align:center;"><button type="button" class="button schilo-remove-raccourci" title="Supprimer">✕</button></td>' +
         '</tr>';
         $('#schilo-raccourcis-rows').append(row);
