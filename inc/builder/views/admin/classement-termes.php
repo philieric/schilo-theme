@@ -66,22 +66,40 @@ $base_url = admin_url('admin.php?page=schilo-builder-classement&tab=termes');
         <table class="widefat scl-table" id="scl-terms-table">
             <thead><tr><th style="width:22%;">Nom</th><th>Description</th><th style="width:80px;">Ordre</th><th style="width:80px;">Actions</th></tr></thead>
             <tbody>
-                <?php foreach ($tree as $term) : ?>
+                <?php
+                $render_term_row = function ($term, bool $isChild) use ($current_tax) {
+                    $generatedAt = $term->term_id ? get_term_meta((int) $term->term_id, ClassementService::DESC_GENERATED_META, true) : '';
+                    ?>
                 <tr data-term-id="<?php echo esc_attr((int) $term->term_id); ?>">
-                    <td><strong><?php echo esc_html($term->name); ?></strong></td>
-                    <td><textarea class="scl-term-description" rows="6" placeholder="Description affichée sur la page publique (150-250 mots conseillés)..." data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>"><?php echo esc_textarea($term->description); ?></textarea></td>
+                    <td<?php echo $isChild ? ' style="padding-left:28px;"' : ''; ?>>
+                        <strong><?php echo ($isChild ? '— ' : '') . esc_html($term->name); ?></strong><br>
+                        <button type="button" class="button button-small scl-btn-generate-desc" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>" title="Générer/regénérer la description de ce terme via IA">
+                            <span class="dashicons dashicons-superhero" style="font-size:14px;height:14px;width:14px;vertical-align:middle;"></span> Générer via IA
+                        </button>
+                    </td>
+                    <td>
+                        <textarea class="scl-term-description" rows="6" placeholder="Description affichée sur la page publique (150-250 mots conseillés)..." data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>"><?php echo esc_textarea($term->description); ?></textarea>
+                        <div class="scl-term-gen-status" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" style="margin-top:4px;">
+                            <small style="color:<?php echo $generatedAt ? '#64748b' : '#b91c1c'; ?>;">
+                                <?php echo $generatedAt
+                                    ? 'Généré via IA le ' . esc_html(date_i18n('d/m/Y à H:i', strtotime($generatedAt)))
+                                    : 'Pas encore généré via IA'; ?>
+                            </small>
+                            <button type="button" class="button button-small scl-btn-generate-desc" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>" style="margin-left:6px;">Générer via IA</button>
+                        </div>
+                    </td>
                     <td><input type="number" min="0" class="scl-term-ordre" value="<?php echo esc_attr(get_term_meta((int) $term->term_id, 'schilo_ordre', true) ?: 0); ?>" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>"></td>
                     <td><button type="button" class="button button-small scl-btn-delete-term" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>">Supprimer</button></td>
                 </tr>
-                <?php foreach ($term->children as $child) : ?>
-                <tr data-term-id="<?php echo esc_attr((int) $child->term_id); ?>">
-                    <td style="padding-left:28px;">— <?php echo esc_html($child->name); ?></td>
-                    <td><textarea class="scl-term-description" rows="6" placeholder="Description affichée sur la page publique (150-250 mots conseillés)..." data-term-id="<?php echo esc_attr((int) $child->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>"><?php echo esc_textarea($child->description); ?></textarea></td>
-                    <td><input type="number" min="0" class="scl-term-ordre" value="<?php echo esc_attr(get_term_meta((int) $child->term_id, 'schilo_ordre', true) ?: 0); ?>" data-term-id="<?php echo esc_attr((int) $child->term_id); ?>"></td>
-                    <td><button type="button" class="button button-small scl-btn-delete-term" data-term-id="<?php echo esc_attr((int) $child->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>">Supprimer</button></td>
-                </tr>
-                <?php endforeach; ?>
-                <?php endforeach; ?>
+                    <?php
+                };
+                foreach ($tree as $term) :
+                    $render_term_row($term, false);
+                    foreach ($term->children as $child) :
+                        $render_term_row($child, true);
+                    endforeach;
+                endforeach;
+                ?>
             </tbody>
         </table>
         <?php endif; ?>

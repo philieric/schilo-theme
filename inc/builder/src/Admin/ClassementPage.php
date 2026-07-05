@@ -29,6 +29,7 @@ class ClassementPage
         add_action('wp_ajax_schilo_classement_save_term_description', [$this, 'ajaxSaveTermDescription']);
         add_action('wp_ajax_schilo_classement_propose_term_structure',    [$this, 'ajaxProposeTermStructure']);
         add_action('wp_ajax_schilo_classement_propose_term_descriptions', [$this, 'ajaxProposeTermDescriptions']);
+        add_action('wp_ajax_schilo_classement_generate_term_description', [$this, 'ajaxGenerateTermDescription']);
         add_action('wp_ajax_schilo_classement_apply_terms',     [$this, 'ajaxApplyTermCuration']);
     }
 
@@ -356,6 +357,39 @@ class ClassementPage
         }
 
         wp_send_json_success(['descriptions' => $descriptions]);
+    }
+
+    /**
+     * Genere/regenere la description d'UN seul terme (boutons individuels de
+     * la vue Termes, sur le nom et sur la description).
+     */
+    public function ajaxGenerateTermDescription(): void
+    {
+        @set_time_limit(90);
+
+        check_ajax_referer('schilo_classement', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Acces refuse.'], 403);
+        }
+
+        $provider  = sanitize_key($_POST['provider'] ?? 'claude');
+        $ia_config = get_option('schilo_ia_config', []);
+        if (empty($ia_config[$provider]['api_key'] ?? '')) {
+            wp_send_json_error(['message' => 'Cle API ' . $provider . ' non configuree. Allez dans Schilo Builder > IA.']);
+        }
+
+        $taxonomy = sanitize_key($_POST['taxonomy'] ?? '');
+        $term_id  = absint($_POST['term_id'] ?? 0);
+        if (!$term_id) {
+            wp_send_json_error(['message' => 'Terme invalide.']);
+        }
+
+        $result = $this->service->generateSingleTermDescription($provider, $taxonomy, $term_id);
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()]);
+        }
+
+        wp_send_json_success($result);
     }
 
     public function ajaxApplyTermCuration(): void

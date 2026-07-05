@@ -8,6 +8,9 @@ class ClassementService
 
     public const TAXONOMIES = ['schilo_parcours', 'schilo_theme', 'schilo_serie'];
 
+    /** Term meta : date/heure de la derniere generation de description via IA. */
+    public const DESC_GENERATED_META = 'schilo_ia_desc_generated_at';
+
     public function __construct()
     {
         global $wpdb;
@@ -257,6 +260,21 @@ class ClassementService
         if (!$this->isValidTaxonomy($taxonomy)) return false;
         $result = wp_update_term($term_id, $taxonomy, ['description' => $description]);
         return !is_wp_error($result);
+    }
+
+    /**
+     * Marque un terme comme ayant une description generee via IA a l'instant
+     * present — permet d'afficher un statut ("Genere le ...") et d'eviter de
+     * regenerer inutilement lors des prochains passages de la curation en lot.
+     */
+    public function markDescriptionGenerated(int $term_id): void
+    {
+        update_term_meta($term_id, self::DESC_GENERATED_META, current_time('mysql'));
+    }
+
+    public function getDescriptionGeneratedAt(int $term_id): string
+    {
+        return (string) get_term_meta($term_id, self::DESC_GENERATED_META, true);
     }
 
     public function deleteTerm(int $term_id, string $taxonomy): bool
@@ -756,6 +774,30 @@ class ClassementService
     /**
      * Un appel IA rapide par taxonomie (noms + hierarchie seulement).
      */
+    /**
+     * Map nom => {description, generated_at} pour tous les termes existants
+     * d'une taxonomie (parents + enfants), utilisee pour enrichir la
+     * structure proposee par l'IA (qui ne connait que les noms) avec l'etat
+     * deja en base — permet au JS de sauter les termes deja generes.
+     */
+    private function buildExistingTermMap(string $taxonomy): array
+    {
+        $map = [];
+        foreach ($this->getTermsTree($taxonomy) as $term) {
+            $map[$term->name] = [
+                'description'  => $term->description,
+                'generated_at' => $this->getDescriptionGeneratedAt((int) $term->term_id),
+            ];
+            foreach ($term->children as $child) {
+                $map[$child->name] = [
+                    'description'  => $child->description,
+                    'generated_at' => $this->getDescriptionGeneratedAt((int) $child->term_id),
+                ];
+            }
+        }
+        return $map;
+    }
+
     public function proposeTermStructure(string $provider): array|\WP_Error
     {
         $result = [];
@@ -767,7 +809,24 @@ class ClassementService
             $parsed = $this->parseIaJson($raw);
             if (is_wp_error($parsed)) return $parsed;
 
-            $result[$taxonomy] = $parsed[$taxonomy] ?? [];
+            $existing = $this->buildExistingTermMap($taxonomy);
+            $items    = (array) ($parsed[$taxonomy] ?? []);
+            foreach ($items as &$item) {
+                $name = trim((string) ($item['name'] ?? ''));
+                $item['description']  = $existing[$name]['description'] ?? '';
+                $item['generated_at'] = $existing[$name]['generated_at'] ?? '';
+                if (!empty($item['children']) && is_array($item['children'])) {
+                    foreach ($item['children'] as &$child) {
+                        $cname = trim((string) ($child['name'] ?? ''));
+                        $child['description']  = $existing[$cname]['description'] ?? '';
+                        $child['generated_at'] = $existing[$cname]['generated_at'] ?? '';
+                    }
+                    unset($child);
+                }
+            }
+            unset($item);
+
+            $result[$taxonomy] = $items;
         }
         return $result;
     }
@@ -853,6 +912,7 @@ class ClassementService
                     continue;
                 }
                 $this->updateTermOrder((int) $parent['term_id'], $order++);
+                if ($description !== '') $this->markDescriptionGenerated((int) $parent['term_id']);
                 $summary[$taxonomy]++;
 
                 $childOrder = 1;
@@ -866,6 +926,7 @@ class ClassementService
                         continue;
                     }
                     $this->updateTermOrder((int) $child['term_id'], $childOrder++);
+                    if ($childDescription !== '') $this->markDescriptionGenerated((int) $child['term_id']);
                     $summary[$taxonomy]++;
                 }
             }
@@ -881,9 +942,43 @@ class ClassementService
                 continue;
             }
             $this->updateTermOrder((int) $term['term_id'], $order++);
+            if ($description !== '') $this->markDescriptionGenerated((int) $term['term_id']);
             $summary['schilo_serie']++;
         }
 
         return $summary;
+    }
+
+    /**
+     * Genere (ou regenere) la description d'UN seul terme deja existant, via
+     * le bouton individuel de la vue Termes — evite de relancer tout le
+     * cycle structure+lots pour ajuster un seul terme.
+     */
+    public function generateSingleTermDescription(string $provider, string $taxonomy, int $term_id): array|\WP_Error
+    {
+        if (!$this->isValidTaxonomy($taxonomy)) {
+            return new \WP_Error('bad_taxonomy', 'Taxonomie invalide.');
+        }
+
+        $term = get_term($term_id, $taxonomy);
+        if (!$term || is_wp_error($term)) {
+            return new \WP_Error('not_found', 'Terme introuvable.');
+        }
+
+        $descriptions = $this->proposeTermDescriptions($provider, $taxonomy, [$term->name]);
+        if (is_wp_error($descriptions)) return $descriptions;
+
+        $description = trim((string) ($descriptions[$term->name] ?? ''));
+        if ($description === '') {
+            return new \WP_Error('empty', "L'IA n'a pas renvoye de description pour ce terme.");
+        }
+
+        $this->updateTermDescription($term_id, $taxonomy, $description);
+        $this->markDescriptionGenerated($term_id);
+
+        return [
+            'description'  => $description,
+            'generated_at' => $this->getDescriptionGeneratedAt($term_id),
+        ];
     }
 }

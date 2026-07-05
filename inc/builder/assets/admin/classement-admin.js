@@ -178,19 +178,29 @@ jQuery(function ($) {
     function itemName(item) { return typeof item === 'object' && item ? (item.name || '') : String(item || ''); }
     function itemDescription(item) { return typeof item === 'object' && item ? (item.description || '') : ''; }
 
+    // Un terme deja genere via IA (item.generated_at rempli par le PHP, voir
+    // ClassementService::proposeTermStructure) n'est pas remis dans la file :
+    // conserve sa description existante telle quelle, evite un aller-retour
+    // IA inutile. Le bouton individuel "Générer via IA" reste le moyen de
+    // forcer une regeneration ponctuelle.
+    function needsGeneration(item) { return !itemGeneratedAt(item); }
+    function itemGeneratedAt(item) { return typeof item === 'object' && item ? (item.generated_at || '') : ''; }
+
     function buildDescriptionQueue(structure) {
         var queue = [];
         ['schilo_theme', 'schilo_parcours'].forEach(function (tax) {
             var names = [];
             (structure[tax] || []).forEach(function (item) {
-                names.push(itemName(item));
-                (item.children || []).forEach(function (child) { names.push(itemName(child)); });
+                if (needsGeneration(item)) names.push(itemName(item));
+                (item.children || []).forEach(function (child) {
+                    if (needsGeneration(child)) names.push(itemName(child));
+                });
             });
             for (var i = 0; i < names.length; i += DESC_BATCH_SIZE) {
                 queue.push({ tax: tax, names: names.slice(i, i + DESC_BATCH_SIZE) });
             }
         });
-        var serieNames = (structure.schilo_serie || []).map(itemName);
+        var serieNames = (structure.schilo_serie || []).filter(needsGeneration).map(itemName);
         for (var j = 0; j < serieNames.length; j += DESC_BATCH_SIZE) {
             queue.push({ tax: 'schilo_serie', names: serieNames.slice(j, j + DESC_BATCH_SIZE) });
         }
@@ -198,16 +208,22 @@ jQuery(function ($) {
     }
 
     function applyDescriptionMap(structure, descMap) {
+        // Seuls les termes effectivement traites (presents dans descMap) sont
+        // mis a jour ; les termes sautes gardent la description que le PHP a
+        // deja posee dans la structure (existing.description).
         ['schilo_theme', 'schilo_parcours'].forEach(function (tax) {
             (structure[tax] || []).forEach(function (item) {
-                item.description = descMap[tax + '::' + itemName(item)] || '';
+                var key = tax + '::' + itemName(item);
+                if (Object.prototype.hasOwnProperty.call(descMap, key)) item.description = descMap[key];
                 (item.children || []).forEach(function (child) {
-                    child.description = descMap[tax + '::' + itemName(child)] || '';
+                    var ckey = tax + '::' + itemName(child);
+                    if (Object.prototype.hasOwnProperty.call(descMap, ckey)) child.description = descMap[ckey];
                 });
             });
         });
         (structure.schilo_serie || []).forEach(function (item) {
-            item.description = descMap['schilo_serie::' + itemName(item)] || '';
+            var key = 'schilo_serie::' + itemName(item);
+            if (Object.prototype.hasOwnProperty.call(descMap, key)) item.description = descMap[key];
         });
     }
 
@@ -414,6 +430,53 @@ jQuery(function ($) {
             }
         });
     });
+
+    /* ---- Page termes : generation individuelle (bouton sur le nom et
+       sur la description) --------------------------------------------- */
+    $(document).on('click', '.scl-btn-generate-desc', function () {
+        var $btn = $(this);
+        var termId = $btn.data('term-id');
+        var taxonomy = $btn.data('taxonomy');
+        var provider = $('#scl-curation-provider').val() || 'claude';
+        var $row = $btn.closest('tr');
+        var $textarea = $row.find('.scl-term-description');
+        var $status = $row.find('.scl-term-gen-status small');
+
+        $row.find('.scl-btn-generate-desc').prop('disabled', true);
+        $status.text('Génération en cours…').css('color', '#2872d4');
+
+        $.ajax({
+            url: ajaxUrl,
+            type: 'POST',
+            timeout: 90000,
+            data: {
+                action: 'schilo_classement_generate_term_description',
+                nonce: nonce,
+                provider: provider,
+                taxonomy: taxonomy,
+                term_id: termId
+            }
+        }).done(function (res) {
+            $row.find('.scl-btn-generate-desc').prop('disabled', false);
+            if (!res.success) {
+                $status.text((res.data && res.data.message) || 'Erreur IA.').css('color', '#dc2626');
+                return;
+            }
+            var d = res.data || {};
+            $textarea.val(d.description || '');
+            $status.text(d.generated_at ? 'Généré via IA le ' + formatMysqlDate(d.generated_at) : '').css('color', '#64748b');
+        }).fail(function () {
+            $row.find('.scl-btn-generate-desc').prop('disabled', false);
+            $status.text('Erreur réseau.').css('color', '#dc2626');
+        });
+    });
+
+    function formatMysqlDate(mysql) {
+        var dt = new Date(mysql.replace(' ', 'T'));
+        if (isNaN(dt.getTime())) return mysql;
+        var pad = function (n) { return ('0' + n).slice(-2); };
+        return pad(dt.getDate()) + '/' + pad(dt.getMonth() + 1) + '/' + dt.getFullYear() + ' à ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes());
+    }
 
     /* ---- Page termes : ajouter un terme --------------------------- */
     $(document).on('click', '#scl-btn-add-term', function () {
