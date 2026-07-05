@@ -786,14 +786,14 @@ class SettingsPage
     private function getDefaultRaccourcisMap()
     {
         return array(
-            array('token' => ';bb',  'snippet' => '[/bib]',      'place_caret' => 'none'),
-            array('token' => ';bv',  'snippet' => '[/bvc]',      'place_caret' => 'none'),
-            array('token' => ';bi',  'snippet' => '[/bib]',      'place_caret' => 'none'),
-            array('token' => ';bn',  'snippet' => '[/bnv]',      'place_caret' => 'none'),
-            array('token' => ';bib', 'snippet' => '[bib][/bib]', 'place_caret' => 'between'),
-            array('token' => ';bvc', 'snippet' => '[bvc][/bvc]', 'place_caret' => 'between'),
-            array('token' => ';brc', 'snippet' => '[brc][/brc]', 'place_caret' => 'between'),
-            array('token' => ';bnv', 'snippet' => '[bnv][/bnv]', 'place_caret' => 'between'),
+            array('token' => ';bb',  'snippet' => '[/bib]',      'place_caret' => 'none',    'in_tinymce' => false, 'label' => ''),
+            array('token' => ';bv',  'snippet' => '[/bvc]',      'place_caret' => 'none',    'in_tinymce' => false, 'label' => ''),
+            array('token' => ';bi',  'snippet' => '[/bib]',      'place_caret' => 'none',    'in_tinymce' => false, 'label' => ''),
+            array('token' => ';bn',  'snippet' => '[/bnv]',      'place_caret' => 'none',    'in_tinymce' => false, 'label' => ''),
+            array('token' => ';bib', 'snippet' => '[bib][/bib]', 'place_caret' => 'between', 'in_tinymce' => true,  'label' => 'Bible'),
+            array('token' => ';bvc', 'snippet' => '[bvc][/bvc]', 'place_caret' => 'between', 'in_tinymce' => true,  'label' => 'Vidéo'),
+            array('token' => ';brc', 'snippet' => '[brc][/brc]', 'place_caret' => 'between', 'in_tinymce' => true,  'label' => 'Bloc riche'),
+            array('token' => ';bnv', 'snippet' => '[bnv][/bnv]', 'place_caret' => 'between', 'in_tinymce' => true,  'label' => 'Navigation'),
         );
     }
 
@@ -809,11 +809,19 @@ class SettingsPage
             $token      = isset($entry['token'])      ? sanitize_text_field((string) $entry['token'])   : '';
             $snippet    = isset($entry['snippet'])    ? sanitize_text_field((string) $entry['snippet']) : '';
             $place_caret = isset($entry['place_caret']) ? sanitize_key((string) $entry['place_caret'])  : 'none';
+            $in_tinymce = !empty($entry['in_tinymce']);
+            $label      = isset($entry['label']) ? sanitize_text_field((string) $entry['label']) : '';
 
             if ($token === '' || $snippet === '') continue;
             if (!in_array($place_caret, array('none', 'between'), true)) $place_caret = 'none';
 
-            $map[] = array('token' => $token, 'snippet' => $snippet, 'place_caret' => $place_caret);
+            $map[] = array(
+                'token'       => $token,
+                'snippet'     => $snippet,
+                'place_caret' => $place_caret,
+                'in_tinymce'  => $in_tinymce,
+                'label'       => $label,
+            );
         }
 
         update_option('raccourcis_live_map', $map, false);
