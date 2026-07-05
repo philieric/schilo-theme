@@ -305,7 +305,11 @@ jQuery(function ($) {
 
     function renderCurationPreview(suggestion) {
         window.sclCurationSuggestion = suggestion;
-        var html = '<p><strong>Suggestion IA</strong> — décochez ce que vous ne voulez pas créer, puis validez. '
+        var html = '<div style="background:#fff8e1;border:1px solid #f0c419;border-radius:6px;padding:10px 14px;margin-bottom:12px;">'
+            + '<strong>⚠️ Brouillon — rien n\'est encore enregistré.</strong> Ce que tu vois ci-dessous est une proposition de l\'IA : '
+            + 'le tableau « Termes existants » plus bas n\'est pas encore modifié. Décoche ce que tu ne veux pas garder, puis clique sur '
+            + '« Créer les termes sélectionnés » en bas de cet aperçu pour enregistrer réellement (le statut « Généré via IA » n\'apparaîtra qu\'à ce moment-là).</div>'
+            + '<p><strong>Suggestion IA</strong> — décochez ce que vous ne voulez pas créer, puis validez. '
             + 'Les termes qui existent déjà (même nom) seront simplement réutilisés (leur description sera mise à jour si besoin), jamais dupliqués.</p>';
 
         ['schilo_theme', 'schilo_parcours'].forEach(function (tax) {
@@ -333,7 +337,10 @@ jQuery(function ($) {
         });
         html += '</div>';
 
-        html += '<div style="margin-top:14px;"><button type="button" id="scl-btn-apply-terms" class="button button-primary">Créer les termes sélectionnés</button></div>';
+        html += '<div style="margin-top:14px;">'
+            + '<p style="color:#92400e;font-size:12px;margin-bottom:6px;">Rien n\'est encore enregistré : clique ci-dessous pour appliquer et mettre à jour le statut des termes dans le tableau plus bas.</p>'
+            + '<button type="button" id="scl-btn-apply-terms" class="button button-primary">Créer les termes sélectionnés</button>'
+            + '</div>';
 
         $('#scl-curation-preview').html(html).show();
     }
