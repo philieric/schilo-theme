@@ -123,9 +123,10 @@ function schilo_classement_render_article_item( int $post_id ): void {
 	$service = new \Schilo\Builder\Service\IndexationService();
 	$row     = $service->getByPostId( $post_id );
 
-	$resume = $row['resume_court'] ?? '';
-	$temps  = (int) ( $row['temps_lecture_min'] ?? 0 );
-	$niveau = $row['niveau_lecture'] ?? '';
+	$resume       = $row['resume_court'] ?? '';
+	$temps        = (int) ( $row['temps_lecture_min'] ?? 0 );
+	$niveau       = $row['niveau_lecture'] ?? '';
+	$public_cible = $row['public_cible'] ?? '';
 	?>
 	<li class="schilo-parcours-article">
 		<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" class="schilo-parcours-article__title">
@@ -134,10 +135,11 @@ function schilo_classement_render_article_item( int $post_id ): void {
 		<?php if ( $resume ) : ?>
 			<p class="schilo-parcours-article__excerpt"><?php echo esc_html( wp_trim_words( $resume, 28 ) ); ?></p>
 		<?php endif; ?>
-		<?php if ( $temps || $niveau ) : ?>
+		<?php if ( $temps || $niveau || $public_cible ) : ?>
 			<p class="schilo-parcours-article__meta">
 				<?php if ( $temps ) : ?><span><i class="ti ti-clock" aria-hidden="true"></i> <?php echo (int) $temps; ?> min</span><?php endif; ?>
-				<?php if ( $niveau ) : ?><span><i class="ti ti-signal-3" aria-hidden="true"></i> <?php echo esc_html( $niveau ); ?></span><?php endif; ?>
+				<?php if ( $niveau ) : ?><span><i class="ti ti-signal-3" aria-hidden="true"></i> Niveau : <?php echo esc_html( $niveau ); ?></span><?php endif; ?>
+				<?php if ( $public_cible ) : ?><span><i class="ti ti-users" aria-hidden="true"></i> Public : <?php echo esc_html( $public_cible ); ?></span><?php endif; ?>
 			</p>
 		<?php endif; ?>
 	</li>
