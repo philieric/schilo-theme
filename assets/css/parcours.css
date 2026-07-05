@@ -8,6 +8,13 @@
   gap: 1rem;
 }
 
+.schilo-card__desc {
+  margin: 0 0 1rem;
+  font-size: .9rem;
+  line-height: 1.55;
+  color: var(--schilo-text-secondary, #64748b);
+}
+
 .schilo-parcours-grid__item {
   display: block;
   padding: 1.1rem 1.25rem;

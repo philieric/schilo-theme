@@ -99,6 +99,9 @@ get_header();
 				</div>
 			</div>
 			<div class="schilo-card__body">
+				<?php if ( $child->description ) : ?>
+					<p class="schilo-card__desc"><?php echo esc_html( $child->description ); ?></p>
+				<?php endif; ?>
 				<?php $render_posts( (int) $child->term_id ); ?>
 			</div>
 		</div>
