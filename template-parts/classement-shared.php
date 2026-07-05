@@ -121,10 +121,13 @@ function schilo_classement_render_sidebar( array $agg, int $article_count ): voi
  * qui applique le code couleur par evangile (citation-matthieu/marc/luc/
  * jean, mauve pour le reste de la Bible). Essaie plusieurs references si
  * la premiere n'est pas reconnue par le shortcode (format libre issu de
- * l'IA), sans jamais afficher d'erreur publiquement.
+ * l'IA), sans jamais afficher d'erreur publiquement. Renvoie aussi la
+ * couleur d'evangile detectee, pour teinter le reste de la carte.
  */
-function schilo_classement_pick_bible_verse_html( array $references ): string {
-	if ( empty( $references ) || ! shortcode_exists( 'brc' ) ) return '';
+function schilo_classement_pick_bible_verse( array $references ): array {
+	if ( empty( $references ) || ! shortcode_exists( 'brc' ) ) {
+		return [ 'html' => '', 'gospel' => '' ];
+	}
 
 	$refs = $references;
 	shuffle( $refs );
@@ -135,18 +138,38 @@ function schilo_classement_pick_bible_verse_html( array $references ): string {
 
 		$html = do_shortcode( '[brc]' . $ref . '[/brc]' );
 		if ( $html && strpos( $html, 'usx-error' ) === false ) {
-			return $html;
+			$gospel = '';
+			if ( preg_match( '/citation-(matthieu|marc|luc|jean|bible)/', $html, $m ) ) {
+				$gospel = $m[1];
+			}
+			return [ 'html' => $html, 'gospel' => $gospel ];
 		}
 	}
 
-	return '';
+	return [ 'html' => '', 'gospel' => '' ];
 }
 
 /**
- * Rendu enrichi d'un article dans une liste : verset biblique au hasard,
- * resume court, lien "En savoir plus", puis meta (niveau/public/temps).
- * Le titre reste present mais en retrait (repere visuel discret), a
- * partir de la fiche d'indexation de l'article.
+ * Separe le prefixe technique (ex: "PER003") du reste du titre d'un
+ * article (ex: "Annonce de la naissance de Jean le Baptiste"), pour
+ * afficher le prefixe comme etiquette plutot que dans le fil du titre.
+ * Renvoie [prefix, titre_sans_prefixe] — prefix vide si aucun trouve.
+ */
+function schilo_classement_split_title_prefix( string $title ): array {
+	// get_the_title() renvoie le tiret encode en entite HTML (&#8211;) via wptexturize,
+	// pas le caractere litteral — on decode avant d'appliquer le regex.
+	$title = html_entity_decode( $title, ENT_QUOTES, 'UTF-8' );
+	if ( preg_match( '/^([A-Z]{2,5}\d{2,4})\s*[-–:]\s*(.+)$/u', trim( $title ), $m ) ) {
+		return [ $m[1], trim( $m[2] ) ];
+	}
+	return [ '', $title ];
+}
+
+/**
+ * Rendu enrichi et editorial d'un article dans une liste : etiquette de
+ * prefixe en coin, resume avec lettrine, verset biblique au hasard teinte
+ * par evangile, appel a l'action "En savoir plus", puis meta (niveau/
+ * public/temps) — a partir de la fiche d'indexation de l'article.
  */
 function schilo_classement_render_article_item( int $post_id ): void {
 	$service = new \Schilo\Builder\Service\IndexationService();
@@ -157,24 +180,32 @@ function schilo_classement_render_article_item( int $post_id ): void {
 	$niveau       = $row['niveau_lecture'] ?? '';
 	$public_cible = $row['public_cible'] ?? '';
 
-	$references = json_decode( $row['references_bibliques'] ?? '[]', true );
-	$verse_html = is_array( $references ) ? schilo_classement_pick_bible_verse_html( $references ) : '';
+	[ $prefix, $title ] = schilo_classement_split_title_prefix( get_the_title( $post_id ) );
+
+	$references   = json_decode( $row['references_bibliques'] ?? '[]', true );
+	$verse        = is_array( $references ) ? schilo_classement_pick_bible_verse( $references ) : [ 'html' => '', 'gospel' => '' ];
+	$gospel_class = $verse['gospel'] ? 'schilo-parcours-article--' . $verse['gospel'] : '';
+	$permalink    = get_permalink( $post_id );
 	?>
-	<li class="schilo-parcours-article">
-		<div class="schilo-parcours-article__eyebrow">
-			<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"><?php echo esc_html( get_the_title( $post_id ) ); ?></a>
-		</div>
+	<li class="schilo-parcours-article <?php echo esc_attr( $gospel_class ); ?>">
+		<?php if ( $prefix ) : ?>
+			<span class="schilo-parcours-article__tag"><?php echo esc_html( $prefix ); ?></span>
+		<?php endif; ?>
+
+		<a href="<?php echo esc_url( $permalink ); ?>" class="schilo-parcours-article__title">
+			<?php echo esc_html( $title ); ?>
+		</a>
 
 		<?php if ( $resume ) : ?>
-			<p class="schilo-parcours-article__excerpt"><?php echo esc_html( $resume ); ?></p>
+			<p class="schilo-parcours-article__excerpt schilo-parcours-article__excerpt--dropcap"><?php echo esc_html( $resume ); ?></p>
 		<?php endif; ?>
 
-		<?php if ( $verse_html ) : ?>
-			<div class="schilo-parcours-article__verse"><?php echo $verse_html; ?></div>
+		<?php if ( $verse['html'] ) : ?>
+			<div class="schilo-parcours-article__verse"><?php echo $verse['html']; ?></div>
 		<?php endif; ?>
 
-		<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" class="schilo-parcours-article__more">
-			<?php esc_html_e( 'En savoir plus', 'schilo' ); ?> <i class="ti ti-arrow-right" aria-hidden="true"></i>
+		<a href="<?php echo esc_url( $permalink ); ?>" class="schilo-parcours-article__more">
+			<?php esc_html_e( 'Lire la suite', 'schilo' ); ?> <i class="ti ti-arrow-right" aria-hidden="true"></i>
 		</a>
 
 		<?php if ( $temps || $niveau || $public_cible ) : ?>
