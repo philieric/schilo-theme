@@ -55,6 +55,12 @@ $filter_url = function (array $override) use ($base_url, $statut, $prefix) {
             <span class="scl-stat-num" style="color:#64748b;"><?php echo esc_html($counts['non_classes']); ?></span>
             <span class="scl-stat-label">Non classés</span>
         </a>
+        <?php if (!empty($counts['suggestions'])) : ?>
+        <div class="scl-stat-card" style="cursor:default;">
+            <span class="scl-stat-num" style="color:#92400e;"><?php echo esc_html($counts['suggestions']); ?></span>
+            <span class="scl-stat-label">Suggestions en attente</span>
+        </div>
+        <?php endif; ?>
     </div>
 
     <div class="scl-prefix-pills">
@@ -98,8 +104,9 @@ $filter_url = function (array $override) use ($base_url, $statut, $prefix) {
         </thead>
         <tbody>
             <?php foreach ($rows as $row) :
-                $post_id = (int) $row['post_id'];
-                $classe  = ($row['statut_classement'] ?? 'non_classe') === 'classe';
+                $post_id     = (int) $row['post_id'];
+                $classe      = ($row['statut_classement'] ?? 'non_classe') === 'classe';
+                $has_suggestion = !empty($row['has_suggestion']);
             ?>
             <tr data-post-id="<?php echo esc_attr($post_id); ?>">
                 <td class="check-column"><input type="checkbox" class="scl-row-check" value="<?php echo esc_attr($post_id); ?>"></td>
@@ -110,13 +117,15 @@ $filter_url = function (array $override) use ($base_url, $statut, $prefix) {
                 <td>
                     <?php if ($classe) : ?>
                         <span class="scl-badge scl-badge-green">Classé</span>
+                    <?php elseif ($has_suggestion) : ?>
+                        <span class="scl-badge scl-badge-orange" title="Une suggestion IA a ete generee (classement en lot) et attend votre validation.">Suggestion prête</span>
                     <?php else : ?>
                         <span class="scl-badge scl-badge-grey">Non classé</span>
                     <?php endif; ?>
                 </td>
                 <td>
-                    <a href="<?php echo esc_url(add_query_arg(['tab' => 'validation', 'post_id' => $post_id], $base_url)); ?>" class="button button-small">
-                        Classer
+                    <a href="<?php echo esc_url(add_query_arg(['tab' => 'validation', 'post_id' => $post_id], $base_url)); ?>" class="button button-small scl-action-link<?php echo $has_suggestion && !$classe ? ' button-primary' : ''; ?>">
+                        <?php echo ($has_suggestion && !$classe) ? 'Valider' : 'Classer'; ?>
                     </a>
                 </td>
             </tr>

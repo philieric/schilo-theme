@@ -85,8 +85,9 @@
 
 /* ---- Badges ------------------------------------------ */
 .scl-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-.scl-badge-green { background: #dcfce7; color: #166534; }
-.scl-badge-grey  { background: #f1f5f9; color: #475569; }
+.scl-badge-green  { background: #dcfce7; color: #166534; }
+.scl-badge-orange { background: #fef3c7; color: #92400e; }
+.scl-badge-grey   { background: #f1f5f9; color: #475569; }
 
 /* ---- Toolbar ------------------------------------------ */
 .scl-toolbar {

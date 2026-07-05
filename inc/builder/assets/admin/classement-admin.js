@@ -12,6 +12,17 @@ jQuery(function ($) {
             .show();
     }
 
+    /* Notice persistante en haut de la liste — reste jusqu'au clic (X) */
+    function noticePersist($before, msg, isError) {
+        $('.scl-notice-persist').remove();
+        var cls   = isError ? 'notice-error' : 'notice-success';
+        var color = isError ? '#991b1b' : '#166534';
+        var $n = $('<div class="scl-notice-persist notice ' + cls + '" style="margin:8px 0;padding:10px 14px;position:relative;">'
+            + '<button type="button" style="position:absolute;top:6px;right:10px;background:none;border:none;font-size:16px;cursor:pointer;color:' + color + ';" onclick="jQuery(this).parent().remove();">&times;</button>'
+            + '<span>' + msg + '</span></div>');
+        $before.before($n);
+    }
+
     function esc(str) {
         return String(str)
             .replace(/&/g, '&amp;')
@@ -106,9 +117,9 @@ jQuery(function ($) {
         if (!window.confirm('Classer ' + ids.length + ' article(s) via ' + provider + ' ?\nCela peut prendre plusieurs minutes.')) return;
 
         var $btn = $(this);
-        var $feedback = $('#scl-batch-feedback');
+        var $table = $('#scl-articles-table');
         $btn.prop('disabled', true);
-        showFeedback($feedback, 'Classement en cours (' + ids.length + ' articles)...', false);
+        noticePersist($table, 'Classement en cours (' + ids.length + ' article(s))... ne fermez pas cette page.', false);
 
         $.ajax({
             url: ajaxUrl,
@@ -123,19 +134,35 @@ jQuery(function ($) {
         }).done(function (res) {
             $btn.prop('disabled', false);
             if (!res.success) {
-                showFeedback($feedback, (res.data && res.data.message) || 'Erreur batch.', true);
+                noticePersist($table, (res.data && res.data.message) || 'Erreur batch.', true);
                 return;
             }
-            var ok = (res.data.ok || []).length;
-            var err = (res.data.error || []).length;
-            var msg = res.data.auto_mode
-                ? ok + ' article(s) classé(s) automatiquement' + (err ? ', ' + err + ' erreur(s)' : '') + '.'
-                : ok + ' suggestion(s) générée(s), à valider individuellement' + (err ? ' (' + err + ' erreur(s))' : '') + '.';
-            showFeedback($feedback, msg, false);
-            setTimeout(function () { window.location.reload(); }, 1200);
+            var okIds = res.data.ok || [];
+            var errList = res.data.error || [];
+            var autoMode = !!res.data.auto_mode;
+
+            okIds.forEach(function (postId) {
+                var $row = $table.find('tr[data-post-id="' + postId + '"]');
+                if (!$row.length) return;
+                var $statusCell = $row.find('td').eq(5);
+                if (autoMode) {
+                    $statusCell.html('<span class="scl-badge scl-badge-green">Classé</span>');
+                } else {
+                    $statusCell.html('<span class="scl-badge scl-badge-orange" title="Une suggestion IA a ete generee (classement en lot) et attend votre validation.">Suggestion prête</span>');
+                    $row.find('.scl-action-link').addClass('button-primary').text('Valider');
+                }
+                $row.css('background', '#fef9e7');
+                setTimeout(function () { $row.css('background', ''); }, 2500);
+            });
+
+            var msg = autoMode
+                ? '<strong>' + okIds.length + ' article(s) classé(s) automatiquement.</strong>'
+                : '<strong>' + okIds.length + ' suggestion(s) générée(s)</strong> — repérables au badge orange "Suggestion prête", à valider individuellement (bouton "Valider").';
+            if (errList.length) msg += ' — ' + errList.length + ' erreur(s) : ' + errList.map(function (e) { return e.msg; }).join(' ; ');
+            noticePersist($table, msg, errList.length > 0 && okIds.length === 0);
         }).fail(function () {
             $btn.prop('disabled', false);
-            showFeedback($feedback, 'Erreur réseau.', true);
+            noticePersist($table, 'Erreur réseau.', true);
         });
     });
 

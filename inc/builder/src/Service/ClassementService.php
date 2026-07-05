@@ -245,9 +245,11 @@ class ClassementService
 
         $rows = $wpdb->get_results(
             "SELECT i.post_id, i.titre, i.theme_principal, i.sous_theme, i.parcours, i.serie,
-                    i.ordre_serie, i.statut_classement, i.date_classement
+                    i.ordre_serie, i.statut_classement, i.date_classement,
+                    (pm.meta_id IS NOT NULL) as has_suggestion
              FROM {$this->table} i
              JOIN {$wpdb->posts} p ON p.ID = i.post_id
+             LEFT JOIN {$wpdb->postmeta} pm ON pm.post_id = i.post_id AND pm.meta_key = '_schilo_classement_suggestion'
              WHERE 1=1 {$where}
              ORDER BY i.titre ASC
              LIMIT {$per_page} OFFSET {$offset}",
@@ -289,7 +291,17 @@ class ClassementService
         global $wpdb;
         $total   = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$this->table} WHERE statut_indexation = 'valide'");
         $classes = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$this->table} WHERE statut_indexation = 'valide' AND statut_classement = 'classe'");
-        return ['total' => $total, 'classes' => $classes, 'non_classes' => $total - $classes];
+        $suggestions = (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$this->table} i
+             INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = i.post_id AND pm.meta_key = '_schilo_classement_suggestion'
+             WHERE i.statut_indexation = 'valide' AND i.statut_classement != 'classe'"
+        );
+        return [
+            'total'       => $total,
+            'classes'     => $classes,
+            'non_classes' => $total - $classes,
+            'suggestions' => $suggestions,
+        ];
     }
 
     /* =========================================================
