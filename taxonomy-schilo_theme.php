@@ -1,6 +1,8 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
+require_once SCHILO_DIR . '/template-parts/classement-shared.php';
+
 $term     = get_queried_object();
 $taxonomy = 'schilo_theme';
 
@@ -13,33 +15,44 @@ if ( ! $term instanceof WP_Term ) {
 	return;
 }
 
-$render_posts = function ( int $term_id ) use ( $taxonomy ): void {
+$get_post_ids = function ( int $term_id ) use ( $taxonomy ): array {
 	$query = new WP_Query( [
 		'post_type'      => 'post',
 		'post_status'    => 'publish',
 		'posts_per_page' => -1,
+		'fields'         => 'ids',
 		'orderby'        => 'title',
 		'order'          => 'ASC',
 		'tax_query'      => [ [ 'taxonomy' => $taxonomy, 'field' => 'term_id', 'terms' => $term_id ] ],
 	] );
+	return $query->posts;
+};
 
-	if ( ! $query->have_posts() ) {
+$render_posts = function ( int $term_id ) use ( $get_post_ids ): void {
+	$post_ids = $get_post_ids( $term_id );
+
+	if ( empty( $post_ids ) ) {
 		echo '<p style="color:var(--schilo-text-secondary,#64748b);">' . esc_html__( 'Aucun article classé ici pour le moment.', 'schilo' ) . '</p>';
 		return;
 	}
 
 	echo '<ul class="schilo-parcours-articles schilo-parcours-articles--unordered">';
-	while ( $query->have_posts() ) {
-		$query->the_post();
-		echo '<li><a href="' . esc_url( get_permalink() ) . '">' . esc_html( get_the_title() ) . '</a></li>';
+	foreach ( $post_ids as $post_id ) {
+		schilo_classement_render_article_item( (int) $post_id );
 	}
 	echo '</ul>';
-	wp_reset_postdata();
 };
 
 $children = get_term_children( $term->term_id, $taxonomy );
 $children = is_array( $children ) ? $children : [];
 $parent   = $term->parent ? get_term( $term->parent, $taxonomy ) : null;
+
+$all_post_ids = $get_post_ids( $term->term_id );
+foreach ( $children as $child_id ) {
+	$all_post_ids = array_merge( $all_post_ids, $get_post_ids( (int) $child_id ) );
+}
+$all_post_ids = array_unique( $all_post_ids );
+$aggregate    = schilo_classement_aggregate_indexation( $all_post_ids );
 
 get_header();
 ?>
@@ -55,40 +68,44 @@ get_header();
 </div>
 
 <main id="schilo-main" role="main">
-<div class="schilo-container" style="padding-top:2rem;padding-bottom:4rem">
+<div class="schilo-container schilo-parcours-layout">
 
-	<?php if ( $parent && ! is_wp_error( $parent ) ) : ?>
-		<p><a href="<?php echo esc_url( get_term_link( $parent, $taxonomy ) ); ?>">&larr; <?php echo esc_html( $parent->name ); ?></a></p>
-	<?php endif; ?>
+	<div class="schilo-parcours-main">
+		<?php if ( $parent && ! is_wp_error( $parent ) ) : ?>
+			<p><a href="<?php echo esc_url( get_term_link( $parent, $taxonomy ) ); ?>">&larr; <?php echo esc_html( $parent->name ); ?></a></p>
+		<?php endif; ?>
 
-	<div class="schilo-card" style="margin-bottom:1.25rem">
-		<div class="schilo-card__head">
-			<div class="schilo-card__head-left">
-				<div class="schilo-card__icon schilo-card__icon--dark"><i class="ti ti-category"></i></div>
-				<span class="schilo-card__title"><?php echo esc_html( $term->name ); ?></span>
+		<div class="schilo-card" style="margin-bottom:1.25rem">
+			<div class="schilo-card__head">
+				<div class="schilo-card__head-left">
+					<div class="schilo-card__icon schilo-card__icon--dark"><i class="ti ti-category"></i></div>
+					<span class="schilo-card__title"><?php echo esc_html( $term->name ); ?></span>
+				</div>
+			</div>
+			<div class="schilo-card__body">
+				<?php $render_posts( (int) $term->term_id ); ?>
 			</div>
 		</div>
-		<div class="schilo-card__body">
-			<?php $render_posts( (int) $term->term_id ); ?>
-		</div>
-	</div>
 
-	<?php foreach ( $children as $child_id ) :
-		$child = get_term( $child_id, $taxonomy );
-		if ( is_wp_error( $child ) || ! $child ) continue;
-	?>
-	<div class="schilo-card" style="margin-bottom:1.25rem">
-		<div class="schilo-card__head">
-			<div class="schilo-card__head-left">
-				<div class="schilo-card__icon schilo-card__icon--dark"><i class="ti ti-subtask"></i></div>
-				<span class="schilo-card__title"><?php echo esc_html( $child->name ); ?></span>
+		<?php foreach ( $children as $child_id ) :
+			$child = get_term( $child_id, $taxonomy );
+			if ( is_wp_error( $child ) || ! $child ) continue;
+		?>
+		<div class="schilo-card" style="margin-bottom:1.25rem">
+			<div class="schilo-card__head">
+				<div class="schilo-card__head-left">
+					<div class="schilo-card__icon schilo-card__icon--dark"><i class="ti ti-subtask"></i></div>
+					<span class="schilo-card__title"><?php echo esc_html( $child->name ); ?></span>
+				</div>
+			</div>
+			<div class="schilo-card__body">
+				<?php $render_posts( (int) $child->term_id ); ?>
 			</div>
 		</div>
-		<div class="schilo-card__body">
-			<?php $render_posts( (int) $child->term_id ); ?>
-		</div>
+		<?php endforeach; ?>
 	</div>
-	<?php endforeach; ?>
+
+	<?php schilo_classement_render_sidebar( $aggregate, count( $all_post_ids ) ); ?>
 
 </div>
 </main>

@@ -1,6 +1,8 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
+require_once SCHILO_DIR . '/template-parts/classement-shared.php';
+
 $term     = get_queried_object();
 $taxonomy = 'schilo_serie';
 
@@ -17,11 +19,14 @@ $query = new WP_Query( [
 	'post_type'      => 'post',
 	'post_status'    => 'publish',
 	'posts_per_page' => -1,
+	'fields'         => 'ids',
 	'tax_query'      => [ [ 'taxonomy' => $taxonomy, 'field' => 'term_id', 'terms' => $term->term_id ] ],
 	'meta_key'       => '_schilo_ordre_' . $term->term_id,
 	'orderby'        => 'meta_value_num',
 	'order'          => 'ASC',
 ] );
+$post_ids  = $query->posts;
+$aggregate = schilo_classement_aggregate_indexation( $post_ids );
 
 get_header();
 ?>
@@ -37,20 +42,26 @@ get_header();
 </div>
 
 <main id="schilo-main" role="main">
-<div class="schilo-container" style="padding-top:2rem;padding-bottom:4rem">
-	<div class="schilo-card" style="margin-bottom:1.25rem">
-		<div class="schilo-card__body">
-			<?php if ( ! $query->have_posts() ) : ?>
-				<p style="color:var(--schilo-text-secondary,#64748b);"><?php esc_html_e( 'Aucun article classé ici pour le moment.', 'schilo' ); ?></p>
-			<?php else : ?>
-				<ol class="schilo-parcours-articles">
-					<?php while ( $query->have_posts() ) : $query->the_post(); ?>
-						<li><a href="<?php echo esc_url( get_permalink() ); ?>"><?php echo esc_html( get_the_title() ); ?></a></li>
-					<?php endwhile; wp_reset_postdata(); ?>
-				</ol>
-			<?php endif; ?>
+<div class="schilo-container schilo-parcours-layout">
+
+	<div class="schilo-parcours-main">
+		<div class="schilo-card" style="margin-bottom:1.25rem">
+			<div class="schilo-card__body">
+				<?php if ( empty( $post_ids ) ) : ?>
+					<p style="color:var(--schilo-text-secondary,#64748b);"><?php esc_html_e( 'Aucun article classé ici pour le moment.', 'schilo' ); ?></p>
+				<?php else : ?>
+					<ol class="schilo-parcours-articles">
+						<?php foreach ( $post_ids as $post_id ) : ?>
+							<?php schilo_classement_render_article_item( (int) $post_id ); ?>
+						<?php endforeach; ?>
+					</ol>
+				<?php endif; ?>
+			</div>
 		</div>
 	</div>
+
+	<?php schilo_classement_render_sidebar( $aggregate, count( $post_ids ) ); ?>
+
 </div>
 </main>
 
