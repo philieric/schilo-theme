@@ -239,12 +239,15 @@ class Schilo_Setup {
     // ── Colonnes personnalisées ───────────────────────────────────────────
 
     public static function add_list_columns( array $cols ): array {
-        $new = [];
+        $hidden = [ 'categories', 'tags' ];
+        $new    = [];
         foreach ( $cols as $k => $v ) {
             if ( $k === 'title' ) {
                 $new['schilo_prefix'] = 'Préfixe';
             }
-            $new[ $k ] = $v;
+            if ( ! in_array( $k, $hidden, true ) ) {
+                $new[ $k ] = $v;
+            }
             if ( $k === 'categories' ) {
                 $new['schilo_migration'] = 'Migration';
             }
