@@ -125,28 +125,125 @@ function schilo_classement_render_sidebar( array $agg, int $article_count ): voi
  * couleur d'evangile detectee, pour teinter le reste de la carte.
  */
 function schilo_classement_pick_bible_verse( array $references ): array {
-	if ( empty( $references ) || ! shortcode_exists( 'brc' ) ) {
-		return [ 'html' => '', 'gospel' => '' ];
+	$picked = schilo_classement_pick_distinct_bible_verses( $references, 1 );
+	return $picked[0] ?? [ 'html' => '', 'gospel' => '' ];
+}
+
+/**
+ * Rend une reference biblique unique via [brc] (Usx-import), avec code
+ * couleur par evangile. Renvoie null si la reference n'est pas reconnue.
+ */
+function schilo_classement_render_bible_ref( string $ref ): ?array {
+	if ( ! shortcode_exists( 'brc' ) ) return null;
+
+	$ref = trim( str_replace( ',', '.', $ref ) );
+	if ( $ref === '' ) return null;
+
+	$html = do_shortcode( '[brc]' . $ref . '[/brc]' );
+	if ( ! $html || strpos( $html, 'usx-error' ) !== false ) return null;
+
+	$gospel = '';
+	if ( preg_match( '/citation-(matthieu|marc|luc|jean|bible)/', $html, $m ) ) {
+		$gospel = $m[1];
 	}
+	return [ 'html' => $html, 'gospel' => $gospel ];
+}
+
+/**
+ * Choisit jusqu'a $count references bibliques DISTINCTES et valides parmi
+ * celles indexees (ordre aleatoire), pour illustrer plusieurs chapitres
+ * d'un meme resume sans repeter le meme verset.
+ */
+function schilo_classement_pick_distinct_bible_verses( array $references, int $count ): array {
+	if ( empty( $references ) ) return [];
 
 	$refs = $references;
 	shuffle( $refs );
 
-	foreach ( array_slice( $refs, 0, 4 ) as $ref ) {
-		$ref = trim( str_replace( ',', '.', (string) $ref ) );
-		if ( $ref === '' ) continue;
-
-		$html = do_shortcode( '[brc]' . $ref . '[/brc]' );
-		if ( $html && strpos( $html, 'usx-error' ) === false ) {
-			$gospel = '';
-			if ( preg_match( '/citation-(matthieu|marc|luc|jean|bible)/', $html, $m ) ) {
-				$gospel = $m[1];
-			}
-			return [ 'html' => $html, 'gospel' => $gospel ];
-		}
+	$picked = [];
+	foreach ( $refs as $ref ) {
+		if ( count( $picked ) >= $count ) break;
+		$verse = schilo_classement_render_bible_ref( (string) $ref );
+		if ( $verse ) $picked[] = $verse;
 	}
+	return $picked;
+}
 
-	return [ 'html' => '', 'gospel' => '' ];
+/**
+ * Decoupe un texte long en un petit nombre de "chapitres" de lecture
+ * (l'IA ne fournit pas de paragraphes, seulement un bloc continu) en
+ * regroupant les phrases par lots reguliers.
+ */
+function schilo_classement_split_into_chapters( string $text, int $target_chapters = 3 ): array {
+	$text = trim( $text );
+	if ( $text === '' ) return [];
+
+	$sentences = preg_split( '/(?<=[.!?])\s+(?=[A-ZÀ-ÖØ-Þ])/u', $text );
+	$sentences = array_values( array_filter( array_map( 'trim', (array) $sentences ) ) );
+
+	if ( count( $sentences ) <= 1 ) return [ $text ];
+
+	$chapters_count = max( 2, min( $target_chapters, (int) ceil( count( $sentences ) / 3 ) ) );
+	$per_chapter    = (int) ceil( count( $sentences ) / $chapters_count );
+
+	$chapters = [];
+	foreach ( array_chunk( $sentences, max( 1, $per_chapter ) ) as $chunk ) {
+		$chapters[] = implode( ' ', $chunk );
+	}
+	return $chapters;
+}
+
+/**
+ * Rend le bouton declencheur + la fenetre modale (masquee par defaut, geree
+ * en JS) presentant le resume complet de l'article decoupe en "chapitres"
+ * separes par des versets bibliques tires au hasard parmi ceux indexes.
+ * N'affecte pas l'affichage de la carte elle-meme (voir parcours-modal.js).
+ */
+function schilo_classement_render_resume_modal( int $post_id, string $prefix, string $title, array $row ): void {
+	$resume = $row['resume'] ?? '';
+	if ( $resume === '' ) return;
+
+	$references = json_decode( $row['references_bibliques'] ?? '[]', true );
+	$references = is_array( $references ) ? $references : [];
+
+	$chapters   = schilo_classement_split_into_chapters( $resume, 3 );
+	$verses     = schilo_classement_pick_distinct_bible_verses( $references, max( 0, count( $chapters ) - 1 ) );
+	$modal_id   = 'schilo-resume-modal-' . $post_id;
+	$romans     = [ '', 'I', 'II', 'III', 'IV', 'V', 'VI' ];
+	?>
+	<button type="button" class="schilo-parcours-article__detail-btn" data-modal-trigger="<?php echo esc_attr( $modal_id ); ?>">
+		<i class="ti ti-book-2" aria-hidden="true"></i> <?php esc_html_e( 'Résumé détaillé', 'schilo' ); ?>
+	</button>
+
+	<div class="schilo-resume-modal" id="<?php echo esc_attr( $modal_id ); ?>" aria-hidden="true">
+		<div class="schilo-resume-modal__overlay" data-modal-close></div>
+		<div class="schilo-resume-modal__panel" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( $title ); ?>">
+			<button type="button" class="schilo-resume-modal__close" data-modal-close aria-label="Fermer">&times;</button>
+			<div class="schilo-resume-modal__header">
+				<?php if ( $prefix ) : ?><span class="schilo-resume-modal__tag"><?php echo esc_html( $prefix ); ?></span><?php endif; ?>
+				<h3 class="schilo-resume-modal__title"><?php echo esc_html( $title ); ?></h3>
+			</div>
+			<div class="schilo-resume-modal__body">
+				<?php foreach ( $chapters as $index => $chapter ) : ?>
+					<section class="schilo-resume-modal__chapter">
+						<?php if ( count( $chapters ) > 1 ) : ?>
+							<span class="schilo-resume-modal__chapter-num"><?php echo esc_html( $romans[ $index + 1 ] ?? ( $index + 1 ) ); ?></span>
+						<?php endif; ?>
+						<p><?php echo esc_html( $chapter ); ?></p>
+					</section>
+					<?php if ( isset( $verses[ $index ] ) ) : ?>
+						<div class="schilo-resume-modal__verse"><?php echo $verses[ $index ]['html']; ?></div>
+					<?php endif; ?>
+				<?php endforeach; ?>
+			</div>
+			<div class="schilo-resume-modal__footer">
+				<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" class="schilo-parcours-article__more">
+					<?php esc_html_e( "Lire l'article complet", 'schilo' ); ?> <i class="ti ti-arrow-right" aria-hidden="true"></i>
+				</a>
+			</div>
+		</div>
+	</div>
+	<?php
 }
 
 /**
@@ -215,6 +312,8 @@ function schilo_classement_render_article_item( int $post_id ): void {
 				<?php if ( $public_cible ) : ?><span><i class="ti ti-users" aria-hidden="true"></i> Public : <?php echo esc_html( $public_cible ); ?></span><?php endif; ?>
 			</p>
 		<?php endif; ?>
+
+		<?php schilo_classement_render_resume_modal( $post_id, $prefix, $title, $row ); ?>
 	</li>
 	<?php
 }

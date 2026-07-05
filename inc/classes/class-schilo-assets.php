@@ -168,6 +168,13 @@ class Schilo_Assets {
                 [ 'schilo-main' ],
                 self::ver( $dir . '/assets/css/parcours.css' )
             );
+            wp_enqueue_script(
+                'schilo-parcours-modal',
+                SCHILO_ASSETS . '/js/parcours-modal.js',
+                [],
+                self::ver( $dir . '/assets/js/parcours-modal.js' ),
+                true
+            );
         }
 
         if ( is_page_template( 'page-sitemap.php' ) ) {

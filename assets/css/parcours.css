@@ -237,7 +237,168 @@
   gap: .3rem;
 }
 
+/* ---- Declencheur "Resume detaille" (modal) ------------------------ */
+.schilo-parcours-article__detail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  margin: 0 .6rem .9rem 0;
+  padding: .45rem 1rem;
+  border-radius: 99px;
+  border: 1.5px dashed var(--spa-accent, var(--schilo-accent, #2872d4));
+  background: transparent;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--spa-accent-dark, var(--schilo-accent-dark, #0e3f88));
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+
+.schilo-parcours-article__detail-btn:hover {
+  background: var(--spa-accent-pale, var(--schilo-accent-pale, #e2eefb));
+}
+
+/* ---- Fenetre modale "Resume detaille" ------------------------------ */
+.schilo-resume-modal {
+  --spm-accent: var(--spa-accent, var(--schilo-accent, #2872d4));
+  --spm-accent-dark: var(--spa-accent-dark, var(--schilo-accent-dark, #0e3f88));
+  --spm-accent-pale: var(--spa-accent-pale, var(--schilo-accent-pale, #e2eefb));
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+}
+
+.schilo-resume-modal.is-open {
+  display: block;
+}
+
+.schilo-resume-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, .6);
+  backdrop-filter: blur(2px);
+  animation: schilo-modal-fade .18s ease;
+}
+
+.schilo-resume-modal__panel {
+  position: relative;
+  z-index: 1;
+  margin: 4vh auto;
+  max-width: 680px;
+  max-height: 90vh;
+  width: calc(100% - 2.5rem);
+  background: var(--schilo-bg-card, #fff);
+  border-radius: 22px;
+  border-top: 6px solid var(--spm-accent);
+  box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .35);
+  overflow-y: auto;
+  animation: schilo-modal-pop .22s cubic-bezier(.2, .9, .3, 1.2);
+}
+
+@keyframes schilo-modal-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes schilo-modal-pop {
+  from { opacity: 0; transform: translateY(14px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.schilo-resume-modal__close {
+  position: absolute;
+  top: .9rem;
+  right: 1.1rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  border: none;
+  background: var(--schilo-bg-muted, #f4f6f9);
+  color: var(--schilo-text-secondary, #64748b);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.schilo-resume-modal__close:hover {
+  background: var(--spm-accent-pale);
+  color: var(--spm-accent-dark);
+}
+
+.schilo-resume-modal__header {
+  position: relative;
+  padding: 2rem 3.2rem 1rem 2rem;
+}
+
+.schilo-resume-modal__tag {
+  display: inline-block;
+  margin-bottom: .5rem;
+  padding: .2rem .65rem;
+  border-radius: 99px;
+  background: var(--spm-accent);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.schilo-resume-modal__title {
+  margin: 0;
+  font-family: var(--schilo-font-serif, serif);
+  font-size: 1.4rem;
+  line-height: 1.3;
+  color: var(--schilo-text-primary, #1e293b);
+}
+
+.schilo-resume-modal__body {
+  padding: 0 2rem 1rem;
+}
+
+.schilo-resume-modal__chapter {
+  position: relative;
+  margin-bottom: 1.2rem;
+  padding-left: 2.4rem;
+}
+
+.schilo-resume-modal__chapter-num {
+  position: absolute;
+  left: 0;
+  top: -.3rem;
+  font-family: var(--schilo-font-serif, serif);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--spm-accent);
+  opacity: .5;
+}
+
+.schilo-resume-modal__chapter p {
+  margin: 0;
+  font-size: .96rem;
+  line-height: 1.7;
+  color: var(--schilo-text-secondary, #64748b);
+}
+
+.schilo-resume-modal__verse {
+  margin: 0 0 1.2rem;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.schilo-resume-modal__footer {
+  padding: 1rem 2rem 1.75rem;
+  border-top: 1px dashed var(--schilo-border, #e2e8f0);
+}
+
+body.schilo-modal-open {
+  overflow: hidden;
+}
+
 @media (max-width: 560px) {
+  .schilo-resume-modal__header { padding: 1.5rem 2.8rem 1rem 1.25rem; }
+  .schilo-resume-modal__body { padding: 0 1.25rem 1rem; }
+  .schilo-resume-modal__footer { padding: 1rem 1.25rem 1.5rem; }
   .schilo-parcours-article { padding: 1.5rem 1.25rem 1.25rem; }
   .schilo-parcours-article__tag { right: -2.1rem; top: 1rem; }
 }
