@@ -487,13 +487,57 @@ body.schilo-modal-open {
   .schilo-parcours-article__tag { right: -2.1rem; top: 1rem; }
 }
 
-/* ---- Sidebar "En bref" (calque des cartes sidebar de single.php) ---- */
+/* ---- Sidebar "En bref" — design enrichi, aligne sur les couleurs des
+   cartes d'articles (evite l'effet "sidebar fade" a cote de contenu tres
+   colore) : accent haut par carte, badge icone rond, carte stats sombre
+   en echo au hero, nuage de mots-cles gradue par frequence. ---- */
 .schilo-sidebar-card {
+  position: relative;
+  overflow: hidden;
   background: var(--schilo-bg-card, #fff);
   border: 1px solid var(--schilo-border, #e2e8f0);
   border-radius: var(--schilo-radius-lg, 14px);
-  padding: 1rem 1.1rem;
+  padding: 1.1rem 1.15rem;
   box-shadow: var(--schilo-shadow-sm, 0 1px 3px rgba(0,0,0,.06));
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.schilo-sidebar-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -14px rgba(15, 23, 42, .22);
+}
+
+.schilo-sidebar-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--schilo-sb-accent, var(--schilo-accent, #2872d4));
+}
+
+.schilo-sidebar-card--people    { --schilo-sb-accent: var(--schilo-mat, #d71f1f); }
+.schilo-sidebar-card--places    { --schilo-sb-accent: var(--schilo-marc, #0f490f); }
+.schilo-sidebar-card--keywords  { --schilo-sb-accent: var(--schilo-jean, #484204); }
+.schilo-sidebar-card--refs      { --schilo-sb-accent: var(--schilo-luc, #0a137e); }
+
+.schilo-sidebar-card__head {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  margin-bottom: .85rem;
+}
+
+.schilo-sidebar-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--schilo-sb-accent, var(--schilo-accent, #2872d4));
+  color: #fff;
+  font-size: 13px;
 }
 
 .schilo-sidebar-card__title {
@@ -502,45 +546,66 @@ body.schilo-modal-open {
   letter-spacing: .07em;
   text-transform: uppercase;
   color: var(--schilo-text-muted, #8a96a8);
-  margin-bottom: .75rem;
 }
 
-.schilo-sidebar-stats {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+/* Carte "En bref" : bloc stats sombre, en echo au hero de la page */
+.schilo-sidebar-card--stats {
+  background: linear-gradient(135deg, var(--schilo-bg-dark, #1e2a3a), var(--schilo-bg-mid, #273548));
+  border-color: transparent;
+}
+
+.schilo-sidebar-card--stats::before { display: none; }
+
+.schilo-sidebar-stat-grid {
   display: flex;
-  flex-direction: column;
-  gap: .5rem;
+  gap: 1.5rem;
 }
 
-.schilo-sidebar-stats li {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  font-size: 13px;
-  color: var(--schilo-text-secondary, #64748b);
+.schilo-sidebar-stat { flex: 1; min-width: 0; }
+
+.schilo-sidebar-stat__num {
+  display: block;
+  font-family: var(--schilo-font-serif, serif);
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
 }
 
-.schilo-sidebar-stats li .ti { color: var(--schilo-text-muted, #8a96a8); font-size: 14px; }
-.schilo-sidebar-stats li span { flex: 1; }
-.schilo-sidebar-stats li strong { color: var(--schilo-text-primary, #1e293b); }
+.schilo-sidebar-stat__label {
+  display: block;
+  margin-top: .35rem;
+  font-size: 11px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.65);
+}
 
 .schilo-sidebar-themes {
   display: flex;
   flex-wrap: wrap;
-  gap: .35rem;
+  gap: .4rem;
 }
 
 .schilo-sidebar-theme-tag {
   display: inline-block;
-  padding: .18rem .55rem;
+  padding: .2rem .6rem;
   border-radius: 99px;
   background: var(--schilo-bg-muted, #f4f6f9);
   border: 1px solid var(--schilo-border, #e2e8f0);
   color: var(--schilo-text-secondary, #64748b);
   font-size: 12px;
+  transition: transform .15s ease, box-shadow .15s ease;
 }
+
+.schilo-sidebar-theme-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px -4px rgba(15,23,42,.3);
+}
+
+/* Nuage de mots-cles : taille degressive selon le rang de frequence */
+.schilo-sidebar-theme-tag--lg { font-size: 14px; font-weight: 700; padding: .28rem .75rem; }
+.schilo-sidebar-theme-tag--sm { font-size: 11px; opacity: .8; }
 
 /* Références bibliques : meme code couleur par evangile que les cartes d'articles */
 .schilo-sidebar-theme-tag--matthieu { background: var(--schilo-mat-pale, #fce8e8); border-color: var(--schilo-mat, #d71f1f); color: var(--schilo-mat-dark, #8a0000); }

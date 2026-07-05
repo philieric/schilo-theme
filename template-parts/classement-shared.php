@@ -58,19 +58,27 @@ function schilo_classement_aggregate_indexation( array $post_ids ): array {
 function schilo_classement_render_sidebar( array $agg, int $article_count ): void {
 	?>
 	<aside class="schilo-parcours-sidebar" aria-label="Informations complémentaires">
-		<div class="schilo-sidebar-card">
-			<div class="schilo-sidebar-card__title">En bref</div>
-			<ul class="schilo-sidebar-stats" role="list">
-				<li><i class="ti ti-files" aria-hidden="true"></i> <span><?php echo (int) $article_count; ?> article<?php echo $article_count > 1 ? 's' : ''; ?></span></li>
+		<div class="schilo-sidebar-card schilo-sidebar-card--stats">
+			<div class="schilo-sidebar-stat-grid">
+				<div class="schilo-sidebar-stat">
+					<span class="schilo-sidebar-stat__num"><?php echo (int) $article_count; ?></span>
+					<span class="schilo-sidebar-stat__label">article<?php echo $article_count > 1 ? 's' : ''; ?></span>
+				</div>
 				<?php if ( $agg['temps_lecture_min'] > 0 ) : ?>
-				<li><i class="ti ti-clock" aria-hidden="true"></i> <span><strong><?php echo (int) $agg['temps_lecture_min']; ?></strong> min de lecture au total</span></li>
+				<div class="schilo-sidebar-stat">
+					<span class="schilo-sidebar-stat__num"><?php echo (int) $agg['temps_lecture_min']; ?></span>
+					<span class="schilo-sidebar-stat__label">min de lecture</span>
+				</div>
 				<?php endif; ?>
-			</ul>
+			</div>
 		</div>
 
 		<?php if ( ! empty( $agg['personnages'] ) ) : ?>
-		<div class="schilo-sidebar-card">
-			<div class="schilo-sidebar-card__title">Personnages</div>
+		<div class="schilo-sidebar-card schilo-sidebar-card--people">
+			<div class="schilo-sidebar-card__head">
+				<span class="schilo-sidebar-icon"><i class="ti ti-users" aria-hidden="true"></i></span>
+				<span class="schilo-sidebar-card__title">Personnages</span>
+			</div>
 			<div class="schilo-sidebar-themes">
 				<?php foreach ( array_slice( $agg['personnages'], 0, 10 ) as $name ) : ?>
 					<span class="schilo-sidebar-theme-tag"><?php echo esc_html( $name ); ?></span>
@@ -80,8 +88,11 @@ function schilo_classement_render_sidebar( array $agg, int $article_count ): voi
 		<?php endif; ?>
 
 		<?php if ( ! empty( $agg['lieux'] ) ) : ?>
-		<div class="schilo-sidebar-card">
-			<div class="schilo-sidebar-card__title">Lieux</div>
+		<div class="schilo-sidebar-card schilo-sidebar-card--places">
+			<div class="schilo-sidebar-card__head">
+				<span class="schilo-sidebar-icon"><i class="ti ti-map-pin" aria-hidden="true"></i></span>
+				<span class="schilo-sidebar-card__title">Lieux</span>
+			</div>
 			<div class="schilo-sidebar-themes">
 				<?php foreach ( array_slice( $agg['lieux'], 0, 10 ) as $name ) : ?>
 					<span class="schilo-sidebar-theme-tag"><?php echo esc_html( $name ); ?></span>
@@ -91,19 +102,27 @@ function schilo_classement_render_sidebar( array $agg, int $article_count ): voi
 		<?php endif; ?>
 
 		<?php if ( ! empty( $agg['mots_cles'] ) ) : ?>
-		<div class="schilo-sidebar-card">
-			<div class="schilo-sidebar-card__title">Mots-clés</div>
+		<div class="schilo-sidebar-card schilo-sidebar-card--keywords">
+			<div class="schilo-sidebar-card__head">
+				<span class="schilo-sidebar-icon"><i class="ti ti-tags" aria-hidden="true"></i></span>
+				<span class="schilo-sidebar-card__title">Mots-clés</span>
+			</div>
 			<div class="schilo-sidebar-themes">
-				<?php foreach ( array_slice( $agg['mots_cles'], 0, 12 ) as $name ) : ?>
-					<span class="schilo-sidebar-theme-tag"><?php echo esc_html( $name ); ?></span>
+				<?php foreach ( array_slice( $agg['mots_cles'], 0, 12 ) as $i => $name ) :
+					$rank = $i < 3 ? 'lg' : ( $i < 7 ? 'md' : 'sm' );
+				?>
+					<span class="schilo-sidebar-theme-tag schilo-sidebar-theme-tag--<?php echo esc_attr( $rank ); ?>"><?php echo esc_html( $name ); ?></span>
 				<?php endforeach; ?>
 			</div>
 		</div>
 		<?php endif; ?>
 
 		<?php if ( ! empty( $agg['references_bibliques'] ) ) : ?>
-		<div class="schilo-sidebar-card">
-			<div class="schilo-sidebar-card__title">Références bibliques</div>
+		<div class="schilo-sidebar-card schilo-sidebar-card--refs">
+			<div class="schilo-sidebar-card__head">
+				<span class="schilo-sidebar-icon"><i class="ti ti-bible" aria-hidden="true"></i></span>
+				<span class="schilo-sidebar-card__title">Références bibliques</span>
+			</div>
 			<div class="schilo-sidebar-themes">
 				<?php foreach ( array_slice( $agg['references_bibliques'], 0, 10 ) as $ref ) :
 					$gospel = schilo_classement_detect_gospel_from_ref( (string) $ref );
