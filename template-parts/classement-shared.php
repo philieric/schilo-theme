@@ -117,13 +117,14 @@ function schilo_classement_render_sidebar( array $agg, int $article_count ): voi
 
 /**
  * Choisit une reference biblique au hasard parmi celles indexees pour un
- * article et rend la carte de verset via le shortcode [bvc] (Usx-import).
- * Essaie plusieurs references si la premiere n'est pas reconnue par le
- * shortcode (format libre issu de l'IA), sans jamais afficher d'erreur
- * publiquement.
+ * article et rend la carte de verset via le shortcode [brc] (Usx-import),
+ * qui applique le code couleur par evangile (citation-matthieu/marc/luc/
+ * jean, mauve pour le reste de la Bible). Essaie plusieurs references si
+ * la premiere n'est pas reconnue par le shortcode (format libre issu de
+ * l'IA), sans jamais afficher d'erreur publiquement.
  */
 function schilo_classement_pick_bible_verse_html( array $references ): string {
-	if ( empty( $references ) || ! shortcode_exists( 'bvc' ) ) return '';
+	if ( empty( $references ) || ! shortcode_exists( 'brc' ) ) return '';
 
 	$refs = $references;
 	shuffle( $refs );
@@ -132,7 +133,7 @@ function schilo_classement_pick_bible_verse_html( array $references ): string {
 		$ref = trim( str_replace( ',', '.', (string) $ref ) );
 		if ( $ref === '' ) continue;
 
-		$html = do_shortcode( '[bvc]' . $ref . '[/bvc]' );
+		$html = do_shortcode( '[brc]' . $ref . '[/brc]' );
 		if ( $html && strpos( $html, 'usx-error' ) === false ) {
 			return $html;
 		}
@@ -164,12 +165,12 @@ function schilo_classement_render_article_item( int $post_id ): void {
 			<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"><?php echo esc_html( get_the_title( $post_id ) ); ?></a>
 		</div>
 
-		<?php if ( $verse_html ) : ?>
-			<div class="schilo-parcours-article__verse"><?php echo $verse_html; ?></div>
-		<?php endif; ?>
-
 		<?php if ( $resume ) : ?>
 			<p class="schilo-parcours-article__excerpt"><?php echo esc_html( wp_trim_words( $resume, 28 ) ); ?></p>
+		<?php endif; ?>
+
+		<?php if ( $verse_html ) : ?>
+			<div class="schilo-parcours-article__verse"><?php echo $verse_html; ?></div>
 		<?php endif; ?>
 
 		<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" class="schilo-parcours-article__more">
