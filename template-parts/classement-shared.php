@@ -105,14 +105,42 @@ function schilo_classement_render_sidebar( array $agg, int $article_count ): voi
 		<div class="schilo-sidebar-card">
 			<div class="schilo-sidebar-card__title">Références bibliques</div>
 			<div class="schilo-sidebar-themes">
-				<?php foreach ( array_slice( $agg['references_bibliques'], 0, 10 ) as $ref ) : ?>
-					<span class="schilo-sidebar-theme-tag"><?php echo esc_html( $ref ); ?></span>
+				<?php foreach ( array_slice( $agg['references_bibliques'], 0, 10 ) as $ref ) :
+					$gospel = schilo_classement_detect_gospel_from_ref( (string) $ref );
+				?>
+					<span class="schilo-sidebar-theme-tag schilo-sidebar-theme-tag--<?php echo esc_attr( $gospel ); ?>"><?php echo esc_html( $ref ); ?></span>
 				<?php endforeach; ?>
 			</div>
 		</div>
 		<?php endif; ?>
 	</aside>
 	<?php
+}
+
+/**
+ * Detecte l'evangile (ou "bible" par defaut) a partir du seul libelle d'une
+ * reference (ex. "Luc 1.5-25"), par simple correspondance du premier mot —
+ * sans invoquer le shortcode [brc] (qui ferait une requete DB par reference).
+ * Utilise pour colorer a moindre cout une liste de tags (sidebar).
+ */
+function schilo_classement_detect_gospel_from_ref( string $ref ): string {
+	$ref = trim( $ref );
+	if ( $ref === '' ) return 'bible';
+
+	static $map = [
+		'matthieu' => 'matthieu', 'matthew' => 'matthieu', 'matt' => 'matthieu', 'mt' => 'matthieu',
+		'marc'     => 'marc',     'mark'    => 'marc',     'mc'   => 'marc',     'mr' => 'marc',
+		'luc'      => 'luc',      'luke'    => 'luc',      'lc'   => 'luc',      'lk' => 'luc',
+		'jean'     => 'jean',     'john'    => 'jean',     'jn'   => 'jean',
+	];
+
+	if ( preg_match( '/^([a-zà-ÿ]+)/iu', $ref, $m ) ) {
+		$word = strtolower( $m[1] );
+		if ( isset( $map[ $word ] ) ) {
+			return $map[ $word ];
+		}
+	}
+	return 'bible';
 }
 
 /**

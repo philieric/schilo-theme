@@ -9,8 +9,15 @@
 }
 
 .schilo-card__desc {
-  margin: 0 0 1rem;
-  font-size: .9rem;
+  position: relative;
+  margin: 0 0 1.25rem;
+  padding: .85rem 1.1rem .85rem 1.4rem;
+  border-left: 3px solid var(--schilo-accent, #2872d4);
+  background: var(--schilo-bg-muted, #f4f6f9);
+  border-radius: 0 12px 12px 0;
+  font-family: var(--schilo-font-serif, serif);
+  font-size: 1rem;
+  font-style: italic;
   line-height: 1.55;
   color: var(--schilo-text-secondary, #64748b);
 }
@@ -470,3 +477,10 @@ body.schilo-modal-open {
   color: var(--schilo-text-secondary, #64748b);
   font-size: 12px;
 }
+
+/* Références bibliques : meme code couleur par evangile que les cartes d'articles */
+.schilo-sidebar-theme-tag--matthieu { background: var(--schilo-mat-pale, #fce8e8); border-color: var(--schilo-mat, #d71f1f); color: var(--schilo-mat-dark, #8a0000); }
+.schilo-sidebar-theme-tag--marc     { background: var(--schilo-marc-pale, #d0efda); border-color: var(--schilo-marc, #0f490f); color: var(--schilo-marc-dark, #083008); }
+.schilo-sidebar-theme-tag--luc      { background: var(--schilo-luc-pale, #c8d0f0); border-color: var(--schilo-luc, #0a137e); color: var(--schilo-luc-dark, #060c55); }
+.schilo-sidebar-theme-tag--jean     { background: var(--schilo-jean-pale, #f0ecc0); border-color: var(--schilo-jean, #484204); color: var(--schilo-jean-dark, #2e2a02); }
+.schilo-sidebar-theme-tag--bible    { background: #ede0f8; border-color: #6d3fc0; color: #4a1878; }

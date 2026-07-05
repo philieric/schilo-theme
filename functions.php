@@ -11,7 +11,7 @@ define( 'SCHILO_ASSETS',  SCHILO_URI . '/assets' );
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Schilo Builder (intÃƒÂ©grÃƒÂ© au thÃƒÂ¨me) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ( ! defined( 'SCHILO_BUILDER_VERSION' ) ) {
-    define( 'SCHILO_BUILDER_VERSION', '1.6.2' );
+    define( 'SCHILO_BUILDER_VERSION', '1.6.3' );
     define( 'SCHILO_BUILDER_PATH',    SCHILO_DIR . '/inc/builder/' );
     define( 'SCHILO_BUILDER_URL',     SCHILO_URI . '/inc/builder/' );
 
