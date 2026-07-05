@@ -47,7 +47,19 @@
 (function () {
     'use strict';
 
-    document.addEventListener('DOMContentLoaded', function () {
+    // Les scripts places en pied de page s'executent souvent apres que
+    // DOMContentLoaded ait deja ete emis : un simple addEventListener
+    // raterait alors l'evenement de facon intermittente selon les
+    // navigateurs/la vitesse de chargement. On verifie donc readyState.
+    function ready(fn) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', fn);
+        } else {
+            fn();
+        }
+    }
+
+    ready(function () {
         var tabnav = document.getElementById('schilo-parcours-tabnav');
         if (!tabnav) return;
 
@@ -69,7 +81,8 @@
         var sections = Array.prototype.slice.call(document.querySelectorAll('[id^="sec-"]'));
         if (!sections.length || !links.length || typeof IntersectionObserver === 'undefined') return;
 
-        var navH = tabnav.offsetHeight;
+        var siteNav = document.querySelector('.schilo-nav');
+        var navH = tabnav.offsetHeight + ( siteNav ? siteNav.offsetHeight : 0 );
         var spy = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
                 if (entry.isIntersecting) {
