@@ -150,13 +150,13 @@ class ClassementService
         return $tree;
     }
 
-    public function createTerm(string $taxonomy, string $name, int $parent = 0, int $ordre = 0): array|\WP_Error
+    public function createTerm(string $taxonomy, string $name, int $parent = 0, int $ordre = 0, string $description = ''): array|\WP_Error
     {
         if (!$this->isValidTaxonomy($taxonomy)) {
             return new \WP_Error('bad_taxonomy', 'Taxonomie inconnue.');
         }
 
-        $result = wp_insert_term($name, $taxonomy, ['parent' => $parent]);
+        $result = wp_insert_term($name, $taxonomy, ['parent' => $parent, 'description' => $description]);
         if (is_wp_error($result)) return $result;
 
         update_term_meta((int) $result['term_id'], 'schilo_ordre', $ordre);
@@ -168,6 +168,13 @@ class ClassementService
         return (bool) update_term_meta($term_id, 'schilo_ordre', $ordre);
     }
 
+    public function updateTermDescription(int $term_id, string $taxonomy, string $description): bool
+    {
+        if (!$this->isValidTaxonomy($taxonomy)) return false;
+        $result = wp_update_term($term_id, $taxonomy, ['description' => $description]);
+        return !is_wp_error($result);
+    }
+
     public function deleteTerm(int $term_id, string $taxonomy): bool
     {
         if (!$this->isValidTaxonomy($taxonomy)) return false;
@@ -176,19 +183,24 @@ class ClassementService
     }
 
     /**
-     * Cree un terme s'il n'existe pas deja (recherche par nom exact), sinon renvoie l'existant.
+     * Cree un terme s'il n'existe pas deja (recherche par nom exact), sinon renvoie
+     * l'existant — et met a jour sa description si une nouvelle est fournie (ne
+     * renomme/supprime jamais un terme existant, seule la description est synchronisee).
      */
-    public function findOrCreateTerm(string $taxonomy, string $name, int $parent = 0): array|\WP_Error
+    public function findOrCreateTerm(string $taxonomy, string $name, int $parent = 0, string $description = ''): array|\WP_Error
     {
         $name = trim($name);
         if ($name === '') return new \WP_Error('empty_name', 'Nom de terme vide.');
 
         $existing = get_term_by('name', $name, $taxonomy);
         if ($existing) {
+            if ($description !== '' && $description !== $existing->description) {
+                $this->updateTermDescription((int) $existing->term_id, $taxonomy, $description);
+            }
             return ['term_id' => (int) $existing->term_id, 'term_taxonomy_id' => (int) $existing->term_taxonomy_id];
         }
 
-        return $this->createTerm($taxonomy, $name, $parent);
+        return $this->createTerm($taxonomy, $name, $parent, 0, $description);
     }
 
     /* =========================================================
@@ -589,9 +601,9 @@ class ClassementService
             $tree = $this->getTermsTree($taxonomy);
             $lines = [];
             foreach ($tree as $term) {
-                $lines[] = '- ' . $term->name;
+                $lines[] = '- ' . $term->name . ($term->description ? ' (description actuelle : "' . $term->description . '")' : ' (SANS DESCRIPTION)');
                 foreach ($term->children as $child) {
-                    $lines[] = '  - ' . $child->name;
+                    $lines[] = '  - ' . $child->name . ($child->description ? ' (description actuelle : "' . $child->description . '")' : ' (SANS DESCRIPTION)');
                 }
             }
             return $lines ? implode("\n", $lines) : '(aucun terme existant pour le moment)';
@@ -615,12 +627,17 @@ class ClassementService
              . "- Les parcours et etapes representent un ordre de lecture (un parcours peut avoir des etapes enfants).\n"
              . "- Les themes peuvent avoir des sous-themes enfants.\n"
              . "- Les series sont a plat (pas de hierarchie).\n"
-             . "- Conserve les termes existants listes ci-dessus s'ils restent pertinents (ne les recree pas, ils seront reutilises automatiquement si le nom correspond exactement).\n\n"
+             . "- Conserve les termes existants listes ci-dessus s'ils restent pertinents (ne les recree pas, ils seront reutilises automatiquement si le nom correspond exactement).\n"
+             . "- IMPORTANT : fournis une \"description\" courte (1 a 2 phrases, destinee a etre affichee "
+             . "publiquement en haut de la page de ce terme) pour CHAQUE terme (parents, etapes/sous-themes "
+             . "compris), y compris pour les termes deja existants marques \"(SANS DESCRIPTION)\" ci-dessus. "
+             . "Pour un terme qui a deja une description, ne la reecris que si elle peut etre amelioree, "
+             . "sinon renvoie-la telle quelle.\n\n"
              . "Retourne UNIQUEMENT un JSON avec cette structure exacte (aucun texte avant/apres, sans backticks) :\n"
              . "{\n"
-             . "  \"schilo_theme\": [ { \"name\": \"Nom du theme\", \"children\": [\"Sous-theme 1\", \"Sous-theme 2\"] } ],\n"
-             . "  \"schilo_parcours\": [ { \"name\": \"Nom du parcours\", \"children\": [\"Etape 1\", \"Etape 2\"] } ],\n"
-             . "  \"schilo_serie\": [\"Nom de serie 1\", \"Nom de serie 2\"]\n"
+             . "  \"schilo_theme\": [ { \"name\": \"Nom du theme\", \"description\": \"...\", \"children\": [ { \"name\": \"Sous-theme\", \"description\": \"...\" } ] } ],\n"
+             . "  \"schilo_parcours\": [ { \"name\": \"Nom du parcours\", \"description\": \"...\", \"children\": [ { \"name\": \"Etape\", \"description\": \"...\" } ] } ],\n"
+             . "  \"schilo_serie\": [ { \"name\": \"Nom de serie\", \"description\": \"...\" } ]\n"
              . "}";
     }
 
@@ -637,6 +654,18 @@ class ClassementService
      * editee par l'humain) : cree les termes manquants via findOrCreateTerm (les termes
      * existants sont reutilises, jamais renommes ni supprimes), assigne un ordre croissant.
      */
+    /**
+     * Extrait {name, description} d'un element de suggestion, qu'il soit un
+     * simple nom (string, ancien format) ou un objet {name, description}.
+     */
+    private function extractNameDescription($item): array
+    {
+        if (is_array($item)) {
+            return [trim((string) ($item['name'] ?? '')), trim((string) ($item['description'] ?? ''))];
+        }
+        return [trim((string) $item), ''];
+    }
+
     public function applyTermCuration(array $suggestion): array
     {
         $summary = ['schilo_theme' => 0, 'schilo_parcours' => 0, 'schilo_serie' => 0, 'errors' => []];
@@ -644,10 +673,10 @@ class ClassementService
         foreach (['schilo_theme', 'schilo_parcours'] as $taxonomy) {
             $order = 1;
             foreach ((array) ($suggestion[$taxonomy] ?? []) as $item) {
-                $name = is_array($item) ? (string) ($item['name'] ?? '') : (string) $item;
-                if (trim($name) === '') continue;
+                [$name, $description] = $this->extractNameDescription($item);
+                if ($name === '') continue;
 
-                $parent = $this->findOrCreateTerm($taxonomy, $name, 0);
+                $parent = $this->findOrCreateTerm($taxonomy, $name, 0, $description);
                 if (is_wp_error($parent)) {
                     $summary['errors'][] = "{$taxonomy} / {$name} : " . $parent->get_error_message();
                     continue;
@@ -657,10 +686,10 @@ class ClassementService
 
                 $childOrder = 1;
                 $children = is_array($item) ? (array) ($item['children'] ?? []) : [];
-                foreach ($children as $childName) {
-                    $childName = trim((string) $childName);
+                foreach ($children as $childItem) {
+                    [$childName, $childDescription] = $this->extractNameDescription($childItem);
                     if ($childName === '') continue;
-                    $child = $this->findOrCreateTerm($taxonomy, $childName, (int) $parent['term_id']);
+                    $child = $this->findOrCreateTerm($taxonomy, $childName, (int) $parent['term_id'], $childDescription);
                     if (is_wp_error($child)) {
                         $summary['errors'][] = "{$taxonomy} / {$name} > {$childName} : " . $child->get_error_message();
                         continue;
@@ -672,10 +701,10 @@ class ClassementService
         }
 
         $order = 1;
-        foreach ((array) ($suggestion['schilo_serie'] ?? []) as $name) {
-            $name = trim((string) $name);
+        foreach ((array) ($suggestion['schilo_serie'] ?? []) as $item) {
+            [$name, $description] = $this->extractNameDescription($item);
             if ($name === '') continue;
-            $term = $this->findOrCreateTerm('schilo_serie', $name, 0);
+            $term = $this->findOrCreateTerm('schilo_serie', $name, 0, $description);
             if (is_wp_error($term)) {
                 $summary['errors'][] = "schilo_serie / {$name} : " . $term->get_error_message();
                 continue;

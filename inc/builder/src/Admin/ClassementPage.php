@@ -26,6 +26,7 @@ class ClassementPage
         add_action('wp_ajax_schilo_classement_save_term',  [$this, 'ajaxSaveTerm']);
         add_action('wp_ajax_schilo_classement_delete_term', [$this, 'ajaxDeleteTerm']);
         add_action('wp_ajax_schilo_classement_save_term_order', [$this, 'ajaxSaveTermOrder']);
+        add_action('wp_ajax_schilo_classement_save_term_description', [$this, 'ajaxSaveTermDescription']);
         add_action('wp_ajax_schilo_classement_propose_terms',   [$this, 'ajaxProposeTermCuration']);
         add_action('wp_ajax_schilo_classement_apply_terms',     [$this, 'ajaxApplyTermCuration']);
     }
@@ -210,16 +211,17 @@ class ClassementPage
             wp_send_json_error(['message' => 'Acces refuse.'], 403);
         }
 
-        $taxonomy = sanitize_key($_POST['taxonomy'] ?? '');
-        $name     = sanitize_text_field($_POST['name'] ?? '');
-        $parent   = absint($_POST['parent'] ?? 0);
-        $ordre    = absint($_POST['ordre'] ?? 0);
+        $taxonomy    = sanitize_key($_POST['taxonomy'] ?? '');
+        $name        = sanitize_text_field($_POST['name'] ?? '');
+        $parent      = absint($_POST['parent'] ?? 0);
+        $ordre       = absint($_POST['ordre'] ?? 0);
+        $description = sanitize_textarea_field($_POST['description'] ?? '');
 
         if (!$this->service->isValidTaxonomy($taxonomy) || $name === '') {
             wp_send_json_error(['message' => 'Parametres invalides.']);
         }
 
-        $result = $this->service->createTerm($taxonomy, $name, $parent, $ordre);
+        $result = $this->service->createTerm($taxonomy, $name, $parent, $ordre, $description);
         if (is_wp_error($result)) {
             wp_send_json_error(['message' => $result->get_error_message()]);
         }
@@ -255,6 +257,24 @@ class ClassementPage
         $ordre   = absint($_POST['ordre'] ?? 0);
 
         if (!$term_id || !$this->service->updateTermOrder($term_id, $ordre)) {
+            wp_send_json_error(['message' => 'Mise a jour impossible.']);
+        }
+
+        wp_send_json_success();
+    }
+
+    public function ajaxSaveTermDescription(): void
+    {
+        check_ajax_referer('schilo_classement', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Acces refuse.'], 403);
+        }
+
+        $taxonomy    = sanitize_key($_POST['taxonomy'] ?? '');
+        $term_id     = absint($_POST['term_id'] ?? 0);
+        $description = sanitize_textarea_field($_POST['description'] ?? '');
+
+        if (!$term_id || !$this->service->updateTermDescription($term_id, $taxonomy, $description)) {
             wp_send_json_error(['message' => 'Mise a jour impossible.']);
         }
 

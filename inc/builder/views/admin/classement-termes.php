@@ -64,17 +64,19 @@ $base_url = admin_url('admin.php?page=schilo-builder-classement&tab=termes');
             <p class="scl-empty">Aucun terme pour cette taxonomie. Créez le premier ci-dessous.</p>
         <?php else : ?>
         <table class="widefat scl-table" id="scl-terms-table">
-            <thead><tr><th>Nom</th><th style="width:100px;">Ordre</th><th style="width:80px;">Actions</th></tr></thead>
+            <thead><tr><th style="width:22%;">Nom</th><th>Description</th><th style="width:80px;">Ordre</th><th style="width:80px;">Actions</th></tr></thead>
             <tbody>
                 <?php foreach ($tree as $term) : ?>
                 <tr data-term-id="<?php echo esc_attr((int) $term->term_id); ?>">
                     <td><strong><?php echo esc_html($term->name); ?></strong></td>
+                    <td><textarea class="scl-term-description" rows="2" placeholder="Description affichée sur la page publique..." data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>"><?php echo esc_textarea($term->description); ?></textarea></td>
                     <td><input type="number" min="0" class="scl-term-ordre" value="<?php echo esc_attr(get_term_meta((int) $term->term_id, 'schilo_ordre', true) ?: 0); ?>" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>"></td>
                     <td><button type="button" class="button button-small scl-btn-delete-term" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>">Supprimer</button></td>
                 </tr>
                 <?php foreach ($term->children as $child) : ?>
                 <tr data-term-id="<?php echo esc_attr((int) $child->term_id); ?>">
                     <td style="padding-left:28px;">— <?php echo esc_html($child->name); ?></td>
+                    <td><textarea class="scl-term-description" rows="2" placeholder="Description affichée sur la page publique..." data-term-id="<?php echo esc_attr((int) $child->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>"><?php echo esc_textarea($child->description); ?></textarea></td>
                     <td><input type="number" min="0" class="scl-term-ordre" value="<?php echo esc_attr(get_term_meta((int) $child->term_id, 'schilo_ordre', true) ?: 0); ?>" data-term-id="<?php echo esc_attr((int) $child->term_id); ?>"></td>
                     <td><button type="button" class="button button-small scl-btn-delete-term" data-term-id="<?php echo esc_attr((int) $child->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>">Supprimer</button></td>
                 </tr>
@@ -97,6 +99,8 @@ $base_url = admin_url('admin.php?page=schilo-builder-classement&tab=termes');
             <?php endif; ?>
             <button type="button" id="scl-btn-add-term" class="button button-primary" data-taxonomy="<?php echo esc_attr($current_tax); ?>">Ajouter</button>
         </div>
+        <textarea id="scl-new-term-description" rows="2" placeholder="Description (optionnelle, affichée sur la page publique)..." style="width:100%;max-width:520px;margin-top:8px;"></textarea>
+        <br>
         <span id="scl-terms-feedback" style="margin-left:8px;display:none;font-weight:600;"></span>
     </div>
 </div>

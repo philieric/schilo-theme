@@ -198,18 +198,25 @@ jQuery(function ($) {
 
     var taxLabels = { schilo_theme: 'Thèmes', schilo_parcours: 'Parcours', schilo_serie: 'Séries' };
 
+    function itemName(item) { return typeof item === 'object' && item ? (item.name || '') : String(item || ''); }
+    function itemDescription(item) { return typeof item === 'object' && item ? (item.description || '') : ''; }
+
     function renderCurationPreview(suggestion) {
         window.sclCurationSuggestion = suggestion;
         var html = '<p><strong>Suggestion IA</strong> — décochez ce que vous ne voulez pas créer, puis validez. '
-            + 'Les termes qui existent déjà (même nom) seront simplement réutilisés, jamais dupliqués.</p>';
+            + 'Les termes qui existent déjà (même nom) seront simplement réutilisés (leur description sera mise à jour si besoin), jamais dupliqués.</p>';
 
         ['schilo_theme', 'schilo_parcours'].forEach(function (tax) {
             var items = suggestion[tax] || [];
             html += '<div style="margin-top:10px;"><strong>' + taxLabels[tax] + '</strong>';
             items.forEach(function (item, pIndex) {
-                html += '<label class="scl-term-row"><input type="checkbox" class="scl-curation-parent" checked data-tax="' + tax + '" data-p="' + pIndex + '"> <strong>' + esc(item.name || '') + '</strong></label>';
+                var desc = itemDescription(item);
+                html += '<label class="scl-term-row"><input type="checkbox" class="scl-curation-parent" checked data-tax="' + tax + '" data-p="' + pIndex + '"> <strong>' + esc(itemName(item)) + '</strong></label>';
+                if (desc) html += '<p class="scl-curation-desc">' + esc(desc) + '</p>';
                 (item.children || []).forEach(function (child, cIndex) {
-                    html += '<label class="scl-term-row scl-term-child"><input type="checkbox" class="scl-curation-child" checked data-tax="' + tax + '" data-p="' + pIndex + '" data-c="' + cIndex + '"> ' + esc(child) + '</label>';
+                    var cDesc = itemDescription(child);
+                    html += '<label class="scl-term-row scl-term-child"><input type="checkbox" class="scl-curation-child" checked data-tax="' + tax + '" data-p="' + pIndex + '" data-c="' + cIndex + '"> ' + esc(itemName(child)) + '</label>';
+                    if (cDesc) html += '<p class="scl-curation-desc scl-curation-desc--child">' + esc(cDesc) + '</p>';
                 });
             });
             html += '</div>';
@@ -217,8 +224,10 @@ jQuery(function ($) {
 
         var series = suggestion.schilo_serie || [];
         html += '<div style="margin-top:10px;"><strong>' + taxLabels.schilo_serie + '</strong>';
-        series.forEach(function (name, pIndex) {
-            html += '<label class="scl-term-row"><input type="checkbox" class="scl-curation-serie" checked data-p="' + pIndex + '"> ' + esc(name) + '</label>';
+        series.forEach(function (item, pIndex) {
+            var desc = itemDescription(item);
+            html += '<label class="scl-term-row"><input type="checkbox" class="scl-curation-serie" checked data-p="' + pIndex + '"> ' + esc(itemName(item)) + '</label>';
+            if (desc) html += '<p class="scl-curation-desc">' + esc(desc) + '</p>';
         });
         html += '</div>';
 
@@ -238,15 +247,15 @@ jQuery(function ($) {
                 var children = [];
                 (item.children || []).forEach(function (child, cIndex) {
                     var cChecked = $('.scl-curation-child[data-tax="' + tax + '"][data-p="' + pIndex + '"][data-c="' + cIndex + '"]').prop('checked');
-                    if (cChecked) children.push(child);
+                    if (cChecked) children.push({ name: itemName(child), description: itemDescription(child) });
                 });
-                filtered[tax].push({ name: item.name, children: children });
+                filtered[tax].push({ name: itemName(item), description: itemDescription(item), children: children });
             });
         });
 
-        (suggestion.schilo_serie || []).forEach(function (name, pIndex) {
+        (suggestion.schilo_serie || []).forEach(function (item, pIndex) {
             var checked = $('.scl-curation-serie[data-p="' + pIndex + '"]').prop('checked');
-            if (checked) filtered.schilo_serie.push(name);
+            if (checked) filtered.schilo_serie.push({ name: itemName(item), description: itemDescription(item) });
         });
 
         var $btn = $(this);
@@ -287,6 +296,18 @@ jQuery(function ($) {
         });
     });
 
+    /* ---- Page termes : mise a jour de la description -------------- */
+    $(document).on('blur', '.scl-term-description', function () {
+        var $textarea = $(this);
+        $.post(ajaxUrl, {
+            action: 'schilo_classement_save_term_description',
+            nonce: nonce,
+            term_id: $textarea.data('term-id'),
+            taxonomy: $textarea.data('taxonomy'),
+            description: $textarea.val()
+        });
+    });
+
     /* ---- Page termes : supprimer un terme ------------------------ */
     $(document).on('click', '.scl-btn-delete-term', function () {
         if (!window.confirm('Supprimer ce terme ? Les articles qui y sont classés perdront cette association.')) return;
@@ -314,6 +335,7 @@ jQuery(function ($) {
         var taxonomy = $btn.data('taxonomy');
         var name = $('#scl-new-term-name').val();
         var parent = $('#scl-new-term-parent').length ? $('#scl-new-term-parent').val() : 0;
+        var description = $('#scl-new-term-description').val();
         var $feedback = $('#scl-terms-feedback');
 
         if (!name) {
@@ -328,6 +350,7 @@ jQuery(function ($) {
             taxonomy: taxonomy,
             name: name,
             parent: parent,
+            description: description,
             ordre: 0
         }).done(function (res) {
             $btn.prop('disabled', false);
