@@ -17,6 +17,18 @@ class ClassementService
         $this->table = $wpdb->prefix . 'schilo_indexation';
     }
 
+    /**
+     * Bornes (mots) configurables pour les descriptions de termes generees
+     * via IA — reglables dans Schilo Builder > Parcours & Themes > Configuration.
+     */
+    public function getDescriptionWordRange(): array
+    {
+        $option = get_option('schilo_classement_desc_words', []);
+        $min = isset($option['min']) ? max(20, (int) $option['min']) : 150;
+        $max = isset($option['max']) ? max($min, (int) $option['max']) : 250;
+        return ['min' => $min, 'max' => $max];
+    }
+
     /* =========================================================
        INSTALLATION / MISE A NIVEAU DE LA TABLE
     ========================================================= */
@@ -726,7 +738,8 @@ class ClassementService
     /**
      * Prompt de STRUCTURE seule (noms + hierarchie, sans description) pour
      * une taxonomie donnee. Reponse volontairement petite et rapide : les
-     * descriptions (150-250 mots/terme) sont demandees ensuite, par petits
+     * descriptions (longueur configurable, voir getDescriptionWordRange())
+     * sont demandees ensuite, par petits
      * lots sequentiels via buildTermDescriptionsPrompt() — les demander toutes
      * en un seul appel (60+ termes) saturait la reponse (JSON tronque) ou
      * depassait le temps d'attente d'un appel HTTP non-streame.
@@ -846,11 +859,12 @@ class ClassementService
         ];
 
         $namesList = implode("\n", array_map(fn($n) => '- "' . $n . '"', $names));
+        $words     = $this->getDescriptionWordRange();
 
         return $this->curationIntro()
              . ($taxContext[$taxonomy] ?? '')
-             . "Pour CHACUN des termes suivants, redige une description developpee (entre 150 et 250 mots, "
-             . "plusieurs phrases formant un ou deux paragraphes, destinee a etre affichee publiquement en haut "
+             . "Pour CHACUN des termes suivants, redige une description developpee (entre {$words['min']} et {$words['max']} mots, "
+             . "plusieurs phrases formant un ou plusieurs paragraphes, destinee a etre affichee publiquement en haut "
              . "de la page de ce terme). Donne au lecteur une vraie mise en contexte : de quoi parle ce theme/"
              . "parcours/etape/serie, quels evenements ou enseignements bibliques il couvre, pourquoi il est "
              . "interessant a lire, en t'appuyant sur les valeurs indexees ci-dessus.\n\n"
@@ -873,7 +887,13 @@ class ClassementService
         if (empty($names)) return [];
 
         $prompt = $this->buildTermDescriptionsPrompt($taxonomy, $names);
-        $raw    = $this->callIaRaw($provider, $prompt, 4000);
+        // max_tokens proportionnel au nombre de termes du lot x la longueur
+        // maximale configuree (~2 tokens/mot en francais + marge JSON), pour
+        // ne pas retomber dans la reponse tronquee corrigee precedemment si
+        // la longueur configuree est augmentee.
+        $words      = $this->getDescriptionWordRange();
+        $max_tokens = max(4000, count($names) * $words['max'] * 2 + 500);
+        $raw        = $this->callIaRaw($provider, $prompt, $max_tokens);
         if (is_wp_error($raw)) return $raw;
 
         $parsed = $this->parseIaJson($raw);

@@ -17,6 +17,8 @@ $current_tax = isset($_GET['taxonomy']) && array_key_exists($_GET['taxonomy'], $
 
 $tree = $service->getTermsTree($current_tax);
 $base_url = admin_url('admin.php?page=schilo-builder-classement&tab=termes');
+$word_range = $service->getDescriptionWordRange();
+$desc_placeholder = "Description affichée sur la page publique ({$word_range['min']}-{$word_range['max']} mots conseillés)...";
 ?>
 <div class="wrap schilo-builder-settings">
     <h1 class="scl-page-title">
@@ -67,7 +69,7 @@ $base_url = admin_url('admin.php?page=schilo-builder-classement&tab=termes');
             <thead><tr><th style="width:22%;">Nom</th><th>Description</th><th style="width:80px;">Ordre</th><th style="width:80px;">Actions</th></tr></thead>
             <tbody>
                 <?php
-                $render_term_row = function ($term, bool $isChild) use ($current_tax) {
+                $render_term_row = function ($term, bool $isChild) use ($current_tax, $desc_placeholder) {
                     $generatedAt = $term->term_id ? get_term_meta((int) $term->term_id, ClassementService::DESC_GENERATED_META, true) : '';
                     ?>
                 <tr data-term-id="<?php echo esc_attr((int) $term->term_id); ?>">
@@ -78,7 +80,7 @@ $base_url = admin_url('admin.php?page=schilo-builder-classement&tab=termes');
                         </button>
                     </td>
                     <td>
-                        <textarea class="scl-term-description" rows="6" placeholder="Description affichée sur la page publique (150-250 mots conseillés)..." data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>"><?php echo esc_textarea($term->description); ?></textarea>
+                        <textarea class="scl-term-description" rows="6" placeholder="<?php echo esc_attr($desc_placeholder); ?>" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>"><?php echo esc_textarea($term->description); ?></textarea>
                         <div class="scl-term-gen-status" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" style="margin-top:4px;">
                             <small style="color:<?php echo $generatedAt ? '#64748b' : '#b91c1c'; ?>;">
                                 <?php echo $generatedAt
@@ -117,7 +119,7 @@ $base_url = admin_url('admin.php?page=schilo-builder-classement&tab=termes');
             <?php endif; ?>
             <button type="button" id="scl-btn-add-term" class="button button-primary" data-taxonomy="<?php echo esc_attr($current_tax); ?>">Ajouter</button>
         </div>
-        <textarea id="scl-new-term-description" rows="6" placeholder="Description (optionnelle, affichée sur la page publique, 150-250 mots conseillés)..." style="width:100%;max-width:520px;margin-top:8px;"></textarea>
+        <textarea id="scl-new-term-description" rows="6" placeholder="<?php echo esc_attr("Description (optionnelle, affichée sur la page publique, {$word_range['min']}-{$word_range['max']} mots conseillés)..."); ?>" style="width:100%;max-width:520px;margin-top:8px;"></textarea>
         <br>
         <span id="scl-terms-feedback" style="margin-left:8px;display:none;font-weight:600;"></span>
     </div>

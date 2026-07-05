@@ -1,7 +1,10 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-$saved = false;
+use Schilo\Builder\Service\ClassementService;
+
+$service = new ClassementService();
+$saved   = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['scl_config_nonce'])) {
     if (wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['scl_config_nonce'])), 'schilo_classement_config')
@@ -10,11 +13,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['scl_config_nonce'])) 
         $validation_mode = sanitize_key($_POST['scl_validation_mode'] ?? 'manuel');
         update_option('schilo_classement_validation_mode', in_array($validation_mode, ['manuel', 'auto'], true) ? $validation_mode : 'manuel', false);
 
+        $words_min = max(20, absint($_POST['scl_desc_words_min'] ?? 150));
+        $words_max = max($words_min, absint($_POST['scl_desc_words_max'] ?? 250));
+        update_option('schilo_classement_desc_words', ['min' => $words_min, 'max' => $words_max], false);
+
         $saved = true;
     }
 }
 
 $validation_mode = get_option('schilo_classement_validation_mode', 'manuel');
+$word_range = $service->getDescriptionWordRange();
 $back_url = admin_url('admin.php?page=schilo-builder-classement');
 ?>
 <div class="wrap schilo-builder-settings">
@@ -56,6 +64,24 @@ $back_url = admin_url('admin.php?page=schilo-builder-classement');
                     <strong>Automatique</strong><br>
                     <span style="color:#dc2626;font-size:13px;">Réservé à un futur traitement en lot — non utilisé par l'écran de classement actuel.</span>
                 </span>
+            </label>
+        </div>
+
+        <div class="scl-val-bloc" style="display:block;margin-top:16px;">
+            <div class="scl-val-bloc-title">Longueur des descriptions générées via IA</div>
+            <p style="color:#64748b;font-size:13px;">
+                S'applique à la fois à la suggestion en lot (« Suggérer via IA ») et au bouton individuel
+                « Générer via IA » de l'écran Termes.
+            </p>
+            <label style="display:inline-flex;align-items:center;gap:6px;margin-right:20px;font-size:14px;">
+                De
+                <input type="number" name="scl_desc_words_min" min="20" step="10" value="<?php echo esc_attr($word_range['min']); ?>" style="width:80px;">
+                mots
+            </label>
+            <label style="display:inline-flex;align-items:center;gap:6px;font-size:14px;">
+                à
+                <input type="number" name="scl_desc_words_max" min="20" step="10" value="<?php echo esc_attr($word_range['max']); ?>" style="width:80px;">
+                mots
             </label>
         </div>
 
