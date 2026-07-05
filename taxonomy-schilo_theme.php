@@ -67,6 +67,30 @@ get_header();
 	</div>
 </div>
 
+<?php if ( ! empty( $children ) ) : ?>
+<nav class="schilo-parcours-tabnav" id="schilo-parcours-tabnav" aria-label="Sous-thèmes">
+	<div class="schilo-container schilo-parcours-tabnav__inner">
+		<ul class="schilo-tabnav-list" role="list">
+			<li>
+				<a class="schilo-tabnav-link" href="#sec-<?php echo esc_attr( $term->term_id ); ?>" data-anchor="sec-<?php echo esc_attr( $term->term_id ); ?>">
+					<i class="ti ti-category" aria-hidden="true"></i> <?php echo esc_html( $term->name ); ?>
+				</a>
+			</li>
+			<?php foreach ( $children as $child_id ) :
+				$child = get_term( $child_id, $taxonomy );
+				if ( is_wp_error( $child ) || ! $child ) continue;
+			?>
+			<li>
+				<a class="schilo-tabnav-link" href="#sec-<?php echo esc_attr( $child->term_id ); ?>" data-anchor="sec-<?php echo esc_attr( $child->term_id ); ?>">
+					<i class="ti ti-subtask" aria-hidden="true"></i> <?php echo esc_html( $child->name ); ?>
+				</a>
+			</li>
+			<?php endforeach; ?>
+		</ul>
+	</div>
+</nav>
+<?php endif; ?>
+
 <main id="schilo-main" role="main">
 <div class="schilo-container schilo-parcours-layout">
 
@@ -75,7 +99,7 @@ get_header();
 			<p><a href="<?php echo esc_url( get_term_link( $parent, $taxonomy ) ); ?>">&larr; <?php echo esc_html( $parent->name ); ?></a></p>
 		<?php endif; ?>
 
-		<div class="schilo-card" style="margin-bottom:1.25rem">
+		<div class="schilo-card" id="sec-<?php echo esc_attr( $term->term_id ); ?>" style="margin-bottom:1.25rem">
 			<div class="schilo-card__head">
 				<div class="schilo-card__head-left">
 					<div class="schilo-card__icon schilo-card__icon--dark"><i class="ti ti-category"></i></div>
@@ -91,7 +115,7 @@ get_header();
 			$child = get_term( $child_id, $taxonomy );
 			if ( is_wp_error( $child ) || ! $child ) continue;
 		?>
-		<div class="schilo-card" style="margin-bottom:1.25rem">
+		<div class="schilo-card" id="sec-<?php echo esc_attr( $child->term_id ); ?>" style="margin-bottom:1.25rem">
 			<div class="schilo-card__head">
 				<div class="schilo-card__head-left">
 					<div class="schilo-card__icon schilo-card__icon--dark"><i class="ti ti-subtask"></i></div>

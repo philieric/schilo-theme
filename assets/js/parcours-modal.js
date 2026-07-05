@@ -37,3 +37,49 @@
         if (e.key === 'Escape') close();
     });
 })();
+
+/**
+ * Barre d'onglets des étapes/sous-thèmes (taxonomy-schilo_parcours.php et
+ * taxonomy-schilo_theme.php) — sticky après le hero + surbrillance de
+ * l'onglet actif au scroll, calque simplifié de schilo-single.js (les
+ * ancres sec-{term_id} sont déjà posées côté PHP, pas besoin de les assigner en JS).
+ */
+(function () {
+    'use strict';
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var tabnav = document.getElementById('schilo-parcours-tabnav');
+        if (!tabnav) return;
+
+        var hero = document.querySelector('.schilo-hero');
+        if (hero) {
+            if (typeof IntersectionObserver !== 'undefined') {
+                var heroObs = new IntersectionObserver(function (entries) {
+                    tabnav.classList.toggle('is-sticky', !entries[0].isIntersecting);
+                }, { threshold: 0 });
+                heroObs.observe(hero);
+            } else {
+                window.addEventListener('scroll', function () {
+                    tabnav.classList.toggle('is-sticky', hero.getBoundingClientRect().bottom <= 0);
+                }, { passive: true });
+            }
+        }
+
+        var links = tabnav.querySelectorAll('.schilo-tabnav-link');
+        var sections = Array.prototype.slice.call(document.querySelectorAll('[id^="sec-"]'));
+        if (!sections.length || !links.length || typeof IntersectionObserver === 'undefined') return;
+
+        var navH = tabnav.offsetHeight;
+        var spy = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    links.forEach(function (l) { l.classList.remove('is-active'); });
+                    var active = tabnav.querySelector('[data-anchor="' + entry.target.id + '"]');
+                    if (active) active.classList.add('is-active');
+                }
+            });
+        }, { rootMargin: '-' + (navH + 8) + 'px 0px -60% 0px', threshold: 0 });
+
+        sections.forEach(function (s) { spy.observe(s); });
+    });
+})();
