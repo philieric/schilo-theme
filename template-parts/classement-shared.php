@@ -166,7 +166,7 @@ function schilo_classement_render_article_item( int $post_id ): void {
 		</div>
 
 		<?php if ( $resume ) : ?>
-			<p class="schilo-parcours-article__excerpt"><?php echo esc_html( wp_trim_words( $resume, 28 ) ); ?></p>
+			<p class="schilo-parcours-article__excerpt"><?php echo esc_html( $resume ); ?></p>
 		<?php endif; ?>
 
 		<?php if ( $verse_html ) : ?>
