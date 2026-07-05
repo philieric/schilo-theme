@@ -152,6 +152,32 @@
 </div>
 <?php endif; ?>
 
+<div class="schilo-search-modal" id="schilo-search-modal" aria-hidden="true">
+  <div class="schilo-search-modal__overlay" data-schilo-search-close></div>
+  <div class="schilo-search-modal__panel" role="dialog" aria-modal="true" aria-labelledby="schilo-search-modal-title">
+    <div class="schilo-search-modal__header">
+      <i class="ti ti-search schilo-search-modal__icon" aria-hidden="true"></i>
+      <label for="schilo-search-modal-input" class="schilo-sr-only" id="schilo-search-modal-title">
+        <?php esc_html_e( 'Rechercher', 'schilo' ); ?>
+      </label>
+      <input type="text"
+             id="schilo-search-modal-input"
+             class="schilo-search-modal__input"
+             autocomplete="off"
+             placeholder="<?php esc_attr_e( 'Un personnage, un lieu, un thème, une référence…', 'schilo' ); ?>">
+      <button type="button" class="schilo-search-modal__close" data-schilo-search-close
+              aria-label="<?php esc_attr_e( 'Fermer la recherche', 'schilo' ); ?>">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="schilo-search-modal__body" id="schilo-search-modal-body">
+      <p class="schilo-search-modal__hint">
+        <?php esc_html_e( 'Tapez au moins 2 lettres pour découvrir des suggestions issues de nos articles.', 'schilo' ); ?>
+      </p>
+    </div>
+  </div>
+</div>
+
 <?php wp_footer(); ?>
 </body>
 </html>
