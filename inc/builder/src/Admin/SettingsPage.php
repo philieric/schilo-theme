@@ -27,6 +27,10 @@ class SettingsPage
         // Indexation
         $indexationPage = new IndexationPage();
         $indexationPage->register();
+
+        // Classement (parcours, themes, series)
+        $classementPage = new ClassementPage();
+        $classementPage->register();
     }
 
     public function addMenu()
@@ -130,6 +134,15 @@ class SettingsPage
             'schilo-builder-indexation',
             array($this, 'renderIndexationPage')
         );
+
+        add_submenu_page(
+            'schilo-builder',
+            'Parcours & Thèmes',
+            'Parcours & Thèmes',
+            'manage_options',
+            'schilo-builder-classement',
+            array($this, 'renderClassementPage')
+        );
     }
 
     public function enqueueAssets($hook)
@@ -158,6 +171,7 @@ class SettingsPage
             'loadToolNonce'     => wp_create_nonce('schilo_load_tool'),
             'iaNonce'           => wp_create_nonce('schilo_test_ia'),
             'indexationNonce'   => wp_create_nonce('schilo_indexation'),
+            'classementNonce'   => wp_create_nonce('schilo_classement'),
         ));
 
         // Assets specifiques a la page Indexation
@@ -171,6 +185,23 @@ class SettingsPage
             wp_enqueue_script(
                 'schilo-indexation-admin',
                 SCHILO_BUILDER_URL . 'assets/admin/indexation-admin.js',
+                array('jquery'),
+                SCHILO_BUILDER_VERSION,
+                true
+            );
+        }
+
+        // Assets specifiques a la page Classement
+        if (strpos((string) $hook, 'schilo-builder-classement') !== false) {
+            wp_enqueue_style(
+                'schilo-classement-admin',
+                SCHILO_BUILDER_URL . 'assets/admin/classement-admin.css',
+                array(),
+                SCHILO_BUILDER_VERSION
+            );
+            wp_enqueue_script(
+                'schilo-classement-admin',
+                SCHILO_BUILDER_URL . 'assets/admin/classement-admin.js',
                 array('jquery'),
                 SCHILO_BUILDER_VERSION,
                 true
@@ -585,6 +616,12 @@ class SettingsPage
     {
         $indexationPage = new IndexationPage();
         $indexationPage->renderPage();
+    }
+
+    public function renderClassementPage(): void
+    {
+        $classementPage = new ClassementPage();
+        $classementPage->renderPage();
     }
 
     public function renderComingSoonPage()

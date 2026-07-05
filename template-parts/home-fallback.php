@@ -67,7 +67,9 @@ $category_count = count( $main_categories ) + count( $other_categories );
 
 $featured = Schilo_Featured::get();
 
-$paths = [
+// Parcours codés en dur, utilisés tant qu'aucun parcours n'a été classé
+// via Schilo Builder > Parcours & Thèmes (voir plus bas pour la version dynamique).
+$paths_fallback = [
     [
         'ev'          => 'luc',
         'letter'      => 'L',
@@ -96,6 +98,56 @@ $paths = [
         'url'         => get_search_link( 'Je suis Évangile de Jean' ),
     ],
 ];
+
+// Parcours dynamiques : termes de premier niveau de la taxonomie schilo_parcours
+// (Schilo Builder > Parcours & Thèmes), triés par ordre défini, limités à 3 pour l'accueil.
+$paths = [];
+if ( taxonomy_exists( 'schilo_parcours' ) ) {
+    $parcours_terms = get_terms( [
+        'taxonomy'   => 'schilo_parcours',
+        'parent'     => 0,
+        'hide_empty' => true,
+        'orderby'    => 'meta_value_num',
+        'meta_key'   => 'schilo_ordre',
+        'order'      => 'ASC',
+        'number'     => 3,
+    ] );
+
+    if ( ! is_wp_error( $parcours_terms ) && ! empty( $parcours_terms ) ) {
+        // Reutilise les 3 variantes visuelles (degrades) deja definies dans home.css
+        // pour .schilo-home-path--luc/--mat/--jean, independamment du contenu reel.
+        $path_icons = [ 'ti-route', 'ti-mountain', 'ti-sun' ];
+        $path_evs   = [ 'luc', 'mat', 'jean' ];
+
+        foreach ( $parcours_terms as $index => $parcours_term ) {
+            $children_ids  = get_term_children( $parcours_term->term_id, 'schilo_parcours' );
+            $tax_query_ids = array_merge( [ $parcours_term->term_id ], is_array( $children_ids ) ? $children_ids : [] );
+
+            $fiche_count = ( new WP_Query( [
+                'post_type'      => 'post',
+                'post_status'    => 'publish',
+                'posts_per_page' => 1,
+                'fields'         => 'ids',
+                'no_found_rows'  => false,
+                'tax_query'      => [ [ 'taxonomy' => 'schilo_parcours', 'field' => 'term_id', 'terms' => $tax_query_ids ] ],
+            ] ) )->found_posts;
+
+            $paths[] = [
+                'ev'          => $path_evs[ $index % count( $path_evs ) ],
+                'letter'      => mb_strtoupper( mb_substr( $parcours_term->name, 0, 1 ) ),
+                'icon'        => $path_icons[ $index % count( $path_icons ) ],
+                'count'       => sprintf( _n( '%d fiche', '%d fiches', $fiche_count, 'schilo' ), $fiche_count ),
+                'title'       => $parcours_term->name,
+                'description' => $parcours_term->description ?: __( 'Un parcours de lecture guidé, étape par étape.', 'schilo' ),
+                'url'         => get_term_link( $parcours_term, 'schilo_parcours' ),
+            ];
+        }
+    }
+}
+
+if ( empty( $paths ) ) {
+    $paths = $paths_fallback;
+}
 
 $resources = [
     [ 'ev' => 'marc', 'title' => __( "Marc — l'Évangile de l'action", 'schilo' ), 'meta' => __( '16 fiches', 'schilo' ), 'url' => get_search_link( 'Évangile de Marc' ) ],

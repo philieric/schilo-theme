@@ -1,0 +1,677 @@
+<?php
+
+namespace Schilo\Builder\Service;
+
+class ClassementService
+{
+    private string $table;
+
+    public const TAXONOMIES = ['schilo_parcours', 'schilo_theme', 'schilo_serie'];
+
+    public function __construct()
+    {
+        global $wpdb;
+        $this->table = $wpdb->prefix . 'schilo_indexation';
+    }
+
+    /* =========================================================
+       INSTALLATION / MISE A NIVEAU DE LA TABLE
+    ========================================================= */
+
+    public function maybeUpgradeTable(): void
+    {
+        global $wpdb;
+
+        if ($wpdb->get_var("SHOW TABLES LIKE '{$this->table}'") !== $this->table) {
+            return;
+        }
+
+        $columns = [
+            'statut_classement' => "ALTER TABLE {$this->table} ADD COLUMN statut_classement ENUM('non_classe','classe') NOT NULL DEFAULT 'non_classe' AFTER statut_indexation",
+            'date_classement'   => "ALTER TABLE {$this->table} ADD COLUMN date_classement DATETIME DEFAULT NULL AFTER statut_classement",
+            'classe_par'        => "ALTER TABLE {$this->table} ADD COLUMN classe_par INT UNSIGNED DEFAULT NULL AFTER date_classement",
+        ];
+
+        foreach ($columns as $col => $sql) {
+            $exists = $wpdb->get_var("SHOW COLUMNS FROM {$this->table} LIKE '{$col}'");
+            if (!$exists) {
+                $wpdb->query($sql);
+            }
+        }
+    }
+
+    /* =========================================================
+       TAXONOMIES - enregistrees sur 'init', y compris cote front
+    ========================================================= */
+
+    public function registerTaxonomies(): void
+    {
+        register_taxonomy('schilo_parcours', 'post', [
+            'labels' => [
+                'name'          => 'Parcours',
+                'singular_name' => 'Parcours',
+                'menu_name'     => 'Parcours',
+                'add_new_item'  => 'Ajouter un parcours',
+                'edit_item'     => 'Modifier le parcours',
+                'search_items'  => 'Rechercher un parcours',
+            ],
+            'hierarchical'      => true,
+            'public'            => true,
+            'show_ui'           => false,
+            'show_in_menu'      => false,
+            'show_in_nav_menus' => false,
+            'show_admin_column' => false,
+            'show_in_rest'      => false,
+            'query_var'         => true,
+            'rewrite'           => ['slug' => 'parcours', 'with_front' => false],
+        ]);
+
+        register_taxonomy('schilo_theme', 'post', [
+            'labels' => [
+                'name'          => 'Themes',
+                'singular_name' => 'Theme',
+                'menu_name'     => 'Themes',
+                'add_new_item'  => 'Ajouter un theme',
+                'edit_item'     => 'Modifier le theme',
+                'search_items'  => 'Rechercher un theme',
+            ],
+            'hierarchical'      => true,
+            'public'            => true,
+            'show_ui'           => false,
+            'show_in_menu'      => false,
+            'show_in_nav_menus' => false,
+            'show_admin_column' => false,
+            'show_in_rest'      => false,
+            'query_var'         => true,
+            'rewrite'           => ['slug' => 'theme', 'with_front' => false],
+        ]);
+
+        register_taxonomy('schilo_serie', 'post', [
+            'labels' => [
+                'name'          => 'Series',
+                'singular_name' => 'Serie',
+                'menu_name'     => 'Series',
+                'add_new_item'  => 'Ajouter une serie',
+                'edit_item'     => 'Modifier la serie',
+                'search_items'  => 'Rechercher une serie',
+            ],
+            'hierarchical'      => false,
+            'public'            => true,
+            'show_ui'           => false,
+            'show_in_menu'      => false,
+            'show_in_nav_menus' => false,
+            'show_admin_column' => false,
+            'show_in_rest'      => false,
+            'query_var'         => true,
+            'rewrite'           => ['slug' => 'serie', 'with_front' => false],
+        ]);
+    }
+
+    public function isValidTaxonomy(string $taxonomy): bool
+    {
+        return in_array($taxonomy, self::TAXONOMIES, true);
+    }
+
+    /* =========================================================
+       TERMES CONTROLES - CRUD + ordre
+    ========================================================= */
+
+    public function getTerms(string $taxonomy, int $parent = -1): array
+    {
+        if (!$this->isValidTaxonomy($taxonomy)) return [];
+
+        $args = [
+            'taxonomy'   => $taxonomy,
+            'hide_empty' => false,
+            'orderby'    => 'meta_value_num',
+            'meta_key'   => 'schilo_ordre',
+            'order'      => 'ASC',
+        ];
+        if ($parent >= 0) $args['parent'] = $parent;
+
+        $terms = get_terms($args);
+        return is_wp_error($terms) ? [] : $terms;
+    }
+
+    /**
+     * Renvoie les termes d'une taxonomie sous forme d'arbre (parent > enfants),
+     * tries par meta 'schilo_ordre'.
+     */
+    public function getTermsTree(string $taxonomy): array
+    {
+        $all = $this->getTerms($taxonomy);
+        $tree = [];
+        foreach ($all as $term) {
+            if ((int) $term->parent === 0) {
+                $term->children = array_values(array_filter($all, fn($t) => (int) $t->parent === (int) $term->term_id));
+                $tree[] = $term;
+            }
+        }
+        return $tree;
+    }
+
+    public function createTerm(string $taxonomy, string $name, int $parent = 0, int $ordre = 0): array|\WP_Error
+    {
+        if (!$this->isValidTaxonomy($taxonomy)) {
+            return new \WP_Error('bad_taxonomy', 'Taxonomie inconnue.');
+        }
+
+        $result = wp_insert_term($name, $taxonomy, ['parent' => $parent]);
+        if (is_wp_error($result)) return $result;
+
+        update_term_meta((int) $result['term_id'], 'schilo_ordre', $ordre);
+        return $result;
+    }
+
+    public function updateTermOrder(int $term_id, int $ordre): bool
+    {
+        return (bool) update_term_meta($term_id, 'schilo_ordre', $ordre);
+    }
+
+    public function deleteTerm(int $term_id, string $taxonomy): bool
+    {
+        if (!$this->isValidTaxonomy($taxonomy)) return false;
+        $result = wp_delete_term($term_id, $taxonomy);
+        return $result === true;
+    }
+
+    /**
+     * Cree un terme s'il n'existe pas deja (recherche par nom exact), sinon renvoie l'existant.
+     */
+    public function findOrCreateTerm(string $taxonomy, string $name, int $parent = 0): array|\WP_Error
+    {
+        $name = trim($name);
+        if ($name === '') return new \WP_Error('empty_name', 'Nom de terme vide.');
+
+        $existing = get_term_by('name', $name, $taxonomy);
+        if ($existing) {
+            return ['term_id' => (int) $existing->term_id, 'term_taxonomy_id' => (int) $existing->term_taxonomy_id];
+        }
+
+        return $this->createTerm($taxonomy, $name, $parent);
+    }
+
+    /* =========================================================
+       ORDRE DES ARTICLES AU SEIN D'UN TERME (parcours / serie)
+    ========================================================= */
+
+    public function setPostOrderInTerm(int $post_id, int $term_id, int $ordre): void
+    {
+        update_post_meta($post_id, '_schilo_ordre_' . $term_id, $ordre);
+    }
+
+    public function getPostOrderInTerm(int $post_id, int $term_id): int
+    {
+        $val = get_post_meta($post_id, '_schilo_ordre_' . $term_id, true);
+        return $val === '' ? 0 : (int) $val;
+    }
+
+    /* =========================================================
+       LECTURE STATUT CLASSEMENT
+    ========================================================= */
+
+    public function getByPostId(int $post_id): ?array
+    {
+        global $wpdb;
+        $row = $wpdb->get_row(
+            $wpdb->prepare("SELECT * FROM {$this->table} WHERE post_id = %d", $post_id),
+            ARRAY_A
+        );
+        return $row ?: null;
+    }
+
+    public function getIndexedTermsForPost(int $post_id): array
+    {
+        $out = [];
+        foreach (self::TAXONOMIES as $tax) {
+            $terms = wp_get_object_terms($post_id, $tax);
+            $out[$tax] = is_wp_error($terms) ? [] : $terms;
+        }
+        return $out;
+    }
+
+    public function getList(int $per_page = 20, int $paged = 1, string $statut_classement = '', string $prefix = ''): array
+    {
+        global $wpdb;
+        $offset = ($paged - 1) * $per_page;
+
+        $where = " AND i.statut_indexation = 'valide'";
+        if ($statut_classement !== '') {
+            $where .= $wpdb->prepare(" AND i.statut_classement = %s", $statut_classement);
+        }
+        if ($prefix !== '') {
+            $where .= $wpdb->prepare(" AND i.titre LIKE %s", $wpdb->esc_like($prefix) . '%');
+        }
+
+        $rows = $wpdb->get_results(
+            "SELECT i.post_id, i.titre, i.theme_principal, i.sous_theme, i.parcours, i.serie,
+                    i.ordre_serie, i.statut_classement, i.date_classement
+             FROM {$this->table} i
+             JOIN {$wpdb->posts} p ON p.ID = i.post_id
+             WHERE 1=1 {$where}
+             ORDER BY i.titre ASC
+             LIMIT {$per_page} OFFSET {$offset}",
+            ARRAY_A
+        );
+
+        $total = (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$this->table} i JOIN {$wpdb->posts} p ON p.ID = i.post_id WHERE 1=1 {$where}"
+        );
+
+        return ['rows' => $rows ?: [], 'total' => $total];
+    }
+
+    /**
+     * Prefixes distincts (3 lettres majuscules en tete de titre) parmi les
+     * articles indexes valides, avec leur nombre d'articles.
+     */
+    public function getPrefixCounts(): array
+    {
+        global $wpdb;
+        $rows = $wpdb->get_results(
+            "SELECT LEFT(titre, 3) as pfx, COUNT(*) as n
+             FROM {$this->table}
+             WHERE statut_indexation = 'valide' AND titre REGEXP '^[A-Z]{3}'
+             GROUP BY pfx
+             ORDER BY pfx ASC",
+            ARRAY_A
+        );
+
+        $prefixes = [];
+        foreach ($rows as $row) {
+            $prefixes[$row['pfx']] = (int) $row['n'];
+        }
+        return $prefixes;
+    }
+
+    public function getCounts(): array
+    {
+        global $wpdb;
+        $total   = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$this->table} WHERE statut_indexation = 'valide'");
+        $classes = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$this->table} WHERE statut_indexation = 'valide' AND statut_classement = 'classe'");
+        return ['total' => $total, 'classes' => $classes, 'non_classes' => $total - $classes];
+    }
+
+    /* =========================================================
+       SUGGESTION IA STOCKEE (classement en lot, revue differee)
+    ========================================================= */
+
+    private const SUGGESTION_META_KEY = '_schilo_classement_suggestion';
+
+    /**
+     * Resout une suggestion IA (noms de termes) en term_id reels, en creant
+     * les termes manquants (premier niveau) si aucun terme existant ne correspond.
+     */
+    public function resolveSuggestionTermIds(array $suggestion): array
+    {
+        $theme_ids = [];
+        if (!empty($suggestion['theme'])) {
+            $theme = $this->findOrCreateTerm('schilo_theme', (string) $suggestion['theme'], 0);
+            if (!is_wp_error($theme)) {
+                $theme_ids[] = (int) $theme['term_id'];
+                if (!empty($suggestion['sous_theme'])) {
+                    $sous_theme = $this->findOrCreateTerm('schilo_theme', (string) $suggestion['sous_theme'], (int) $theme['term_id']);
+                    if (!is_wp_error($sous_theme)) $theme_ids[] = (int) $sous_theme['term_id'];
+                }
+            }
+        }
+
+        $parcours_ids = [];
+        foreach ((array) ($suggestion['parcours'] ?? []) as $name) {
+            if (!is_string($name) || trim($name) === '') continue;
+            $term = $this->findOrCreateTerm('schilo_parcours', $name, 0);
+            if (!is_wp_error($term)) $parcours_ids[] = (int) $term['term_id'];
+        }
+
+        $serie_ids = [];
+        if (!empty($suggestion['serie'])) {
+            $serie = $this->findOrCreateTerm('schilo_serie', (string) $suggestion['serie'], 0);
+            if (!is_wp_error($serie)) $serie_ids[] = (int) $serie['term_id'];
+        }
+
+        $ordre  = absint($suggestion['ordre'] ?? 0);
+        $ordres = [];
+        foreach (array_merge($parcours_ids, $serie_ids) as $term_id) {
+            $ordres[$term_id] = $ordre;
+        }
+
+        return [
+            'theme_term_ids'    => $theme_ids,
+            'parcours_term_ids' => $parcours_ids,
+            'serie_term_ids'    => $serie_ids,
+            'ordres'            => $ordres,
+        ];
+    }
+
+    public function storeSuggestion(int $post_id, array $resolved): void
+    {
+        update_post_meta($post_id, self::SUGGESTION_META_KEY, wp_json_encode($resolved));
+    }
+
+    public function getSuggestion(int $post_id): ?array
+    {
+        $raw = get_post_meta($post_id, self::SUGGESTION_META_KEY, true);
+        if (!$raw) return null;
+        $decoded = json_decode($raw, true);
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    public function clearSuggestion(int $post_id): void
+    {
+        delete_post_meta($post_id, self::SUGGESTION_META_KEY);
+    }
+
+    /* =========================================================
+       ENREGISTREMENT DU CLASSEMENT (validation humaine)
+    ========================================================= */
+
+    public function saveClassement(int $post_id, array $data, int $user_id): bool
+    {
+        global $wpdb;
+
+        $theme_ids    = array_map('absint', (array) ($data['theme_term_ids'] ?? []));
+        $parcours_ids = array_map('absint', (array) ($data['parcours_term_ids'] ?? []));
+        $serie_ids    = array_map('absint', (array) ($data['serie_term_ids'] ?? []));
+        $ordres       = (array) ($data['ordres'] ?? []); // [term_id => ordre]
+
+        wp_set_object_terms($post_id, array_values(array_filter($theme_ids)), 'schilo_theme');
+        wp_set_object_terms($post_id, array_values(array_filter($parcours_ids)), 'schilo_parcours');
+        wp_set_object_terms($post_id, array_values(array_filter($serie_ids)), 'schilo_serie');
+
+        foreach (array_merge($parcours_ids, $serie_ids) as $term_id) {
+            if (!$term_id) continue;
+            $ordre = isset($ordres[$term_id]) ? absint($ordres[$term_id]) : 0;
+            $this->setPostOrderInTerm($post_id, $term_id, $ordre);
+        }
+
+        $existing = (int) $wpdb->get_var(
+            $wpdb->prepare("SELECT id FROM {$this->table} WHERE post_id = %d", $post_id)
+        );
+        if (!$existing) return false;
+
+        $saved = (bool) $wpdb->update($this->table, [
+            'statut_classement' => 'classe',
+            'date_classement'   => current_time('mysql'),
+            'classe_par'        => $user_id,
+        ], ['post_id' => $post_id]);
+
+        if ($saved) {
+            $this->clearSuggestion($post_id);
+        }
+
+        return $saved;
+    }
+
+    /* =========================================================
+       CONNEXION IA - classement sur liste fermee de termes
+    ========================================================= */
+
+    public function classifyArticleViaIA(int $post_id, string $provider): array|\WP_Error
+    {
+        $prompt = $this->buildClassementPrompt($post_id);
+        $raw    = $this->callIaRaw($provider, $prompt, 1024);
+        if (is_wp_error($raw)) return $raw;
+        return $this->parseIaJson($raw);
+    }
+
+    /**
+     * Appelle Claude ou OpenAI avec le prompt donne et renvoie le texte brut de la reponse.
+     */
+    private function callIaRaw(string $provider, string $prompt, int $max_tokens = 1024): string|\WP_Error
+    {
+        $config = get_option('schilo_ia_config', []);
+
+        if ($provider === 'claude') {
+            $key = $config['claude']['api_key'] ?? '';
+            if (!$key) return new \WP_Error('no_key', "Cle API Claude manquante dans la configuration IA.");
+
+            $response = wp_remote_post('https://api.anthropic.com/v1/messages', [
+                'timeout' => 120,
+                'headers' => [
+                    'x-api-key'         => $key,
+                    'anthropic-version' => '2023-06-01',
+                    'content-type'      => 'application/json',
+                ],
+                'body' => wp_json_encode([
+                    'model'      => $config['claude']['model'] ?? 'claude-sonnet-4-6',
+                    'max_tokens' => $max_tokens,
+                    'messages'   => [['role' => 'user', 'content' => $prompt]],
+                ]),
+            ]);
+        } elseif ($provider === 'openai') {
+            $key = $config['openai']['api_key'] ?? '';
+            if (!$key) return new \WP_Error('no_key', "Cle API OpenAI manquante dans la configuration IA.");
+
+            $response = wp_remote_post('https://api.openai.com/v1/chat/completions', [
+                'timeout' => 120,
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $key,
+                    'Content-Type'  => 'application/json',
+                ],
+                'body' => wp_json_encode([
+                    'model'      => $config['openai']['model'] ?? 'gpt-4o',
+                    'max_tokens' => $max_tokens,
+                    'messages'   => [['role' => 'user', 'content' => $prompt]],
+                ]),
+            ]);
+        } else {
+            return new \WP_Error('bad_provider', 'Provider inconnu : ' . $provider);
+        }
+
+        if (is_wp_error($response)) return $response;
+
+        $code = wp_remote_retrieve_response_code($response);
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+
+        if ($code !== 200) {
+            $msg = $body['error']['message'] ?? ('Erreur HTTP ' . $code);
+            return new \WP_Error('api_error', $msg);
+        }
+
+        return ($provider === 'claude')
+            ? ($body['content'][0]['text'] ?? '')
+            : ($body['choices'][0]['message']['content'] ?? '');
+    }
+
+    private function parseIaJson(string $raw): array|\WP_Error
+    {
+        $raw_clean = trim($raw);
+        if (str_starts_with($raw_clean, '```')) {
+            $raw_clean = preg_replace('/^```(?:json)?\s*/i', '', $raw_clean);
+            $raw_clean = rtrim($raw_clean, '` ');
+        }
+
+        $parsed = json_decode($raw_clean, true);
+        if (!is_array($parsed)) {
+            return new \WP_Error('parse_error', "La reponse IA n'est pas un JSON valide.");
+        }
+
+        return $parsed;
+    }
+
+    private function buildClassementPrompt(int $post_id): string
+    {
+        $indexed = $this->getByPostId($post_id);
+        $post    = get_post($post_id);
+        $titre   = $post ? $post->post_title : ($indexed['titre'] ?? '');
+
+        $lister = function (string $taxonomy): string {
+            $tree = $this->getTermsTree($taxonomy);
+            $lines = [];
+            foreach ($tree as $term) {
+                $lines[] = '- ' . $term->name;
+                foreach ($term->children as $child) {
+                    $lines[] = '  - ' . $child->name;
+                }
+            }
+            return $lines ? implode("\n", $lines) : '(aucun terme existant pour le moment)';
+        };
+
+        return "Tu dois classer un article biblique dans des listes FERMEES de termes deja existants.\n"
+             . "N'invente un nouveau terme QUE si aucun terme existant ne convient vraiment.\n\n"
+             . "Article a classer :\n"
+             . "- Titre : {$titre}\n"
+             . "- Theme principal indexe (indice) : " . ($indexed['theme_principal'] ?? '') . "\n"
+             . "- Sous-theme indexe (indice) : " . ($indexed['sous_theme'] ?? '') . "\n"
+             . "- Parcours indexe (indice) : " . ($indexed['parcours'] ?? '') . "\n"
+             . "- Serie indexee (indice) : " . ($indexed['serie'] ?? '') . "\n"
+             . "- Ordre serie indexe (indice) : " . ($indexed['ordre_serie'] ?? 0) . "\n\n"
+             . "Parcours existants (parent > etape) :\n" . $lister('schilo_parcours') . "\n\n"
+             . "Themes existants (theme > sous-theme) :\n" . $lister('schilo_theme') . "\n\n"
+             . "Series existantes :\n" . $lister('schilo_serie') . "\n\n"
+             . "Retourne UNIQUEMENT un JSON avec exactement ces champs :\n"
+             . "{\n"
+             . "  \"theme\": \"nom exact d'un theme existant, ou nouveau nom si aucun ne convient, ou vide\",\n"
+             . "  \"sous_theme\": \"nom exact d'un sous-theme existant sous ce theme, ou nouveau nom, ou vide\",\n"
+             . "  \"parcours\": [\"nom exact d'un ou plusieurs parcours/etapes existants, ou nouveaux noms\"],\n"
+             . "  \"serie\": \"nom exact d'une serie existante, ou nouveau nom, ou vide\",\n"
+             . "  \"ordre\": 0\n"
+             . "}\n"
+             . "Retourne UNIQUEMENT le JSON, sans texte avant ou apres, sans backticks.";
+    }
+
+    /* =========================================================
+       CURATION IA DU VOCABULAIRE CONTROLE (parcours/theme/serie)
+       Analyse les valeurs indexees en texte libre et propose une
+       hierarchie de termes propre. Ne modifie rien : la creation
+       reelle passe par applyTermCuration(), apres validation humaine.
+    ========================================================= */
+
+    /**
+     * Valeurs distinctes indexees (texte libre) avec leur nombre d'occurrences,
+     * pour une colonne donnee de la table d'indexation.
+     */
+    private function getDistinctIndexedValues(string $column): array
+    {
+        global $wpdb;
+        $allowed = ['theme_principal', 'sous_theme', 'parcours', 'serie'];
+        if (!in_array($column, $allowed, true)) return [];
+
+        $rows = $wpdb->get_results(
+            "SELECT {$column} as val, COUNT(*) as n
+             FROM {$this->table}
+             WHERE {$column} != '' AND statut_indexation = 'valide'
+             GROUP BY {$column}
+             ORDER BY n DESC",
+            ARRAY_A
+        );
+
+        $out = [];
+        foreach ($rows as $row) {
+            $out[$row['val']] = (int) $row['n'];
+        }
+        return $out;
+    }
+
+    public function buildTermCurationPrompt(): string
+    {
+        $format_values = function (array $values): string {
+            $lines = [];
+            foreach ($values as $val => $n) {
+                $lines[] = "- \"{$val}\" ({$n} article(s))";
+            }
+            return $lines ? implode("\n", $lines) : '(aucune valeur indexee)';
+        };
+
+        $lister = function (string $taxonomy): string {
+            $tree = $this->getTermsTree($taxonomy);
+            $lines = [];
+            foreach ($tree as $term) {
+                $lines[] = '- ' . $term->name;
+                foreach ($term->children as $child) {
+                    $lines[] = '  - ' . $child->name;
+                }
+            }
+            return $lines ? implode("\n", $lines) : '(aucun terme existant pour le moment)';
+        };
+
+        return "Tu es un bibliothecaire expert en analyse de contenu biblique. Ton objectif : construire un "
+             . "vocabulaire controle propre (peu de termes, sans doublons ni quasi-doublons) a partir de "
+             . "valeurs indexees en texte libre par une IA sur des articles individuels — ces valeurs sont "
+             . "souvent tres proches les unes des autres (variantes de formulation d'un meme sujet).\n\n"
+             . "=== Valeurs de \"theme_principal\" deja indexees ===\n" . $format_values($this->getDistinctIndexedValues('theme_principal')) . "\n\n"
+             . "=== Valeurs de \"sous_theme\" deja indexees ===\n" . $format_values($this->getDistinctIndexedValues('sous_theme')) . "\n\n"
+             . "=== Valeurs de \"parcours\" deja indexees (ignore \"non defini\"/\"non applicable\") ===\n" . $format_values($this->getDistinctIndexedValues('parcours')) . "\n\n"
+             . "=== Valeurs de \"serie\" deja indexees (ignore \"non defini\"/\"non applicable\") ===\n" . $format_values($this->getDistinctIndexedValues('serie')) . "\n\n"
+             . "=== Termes deja crees (a conserver/completer, ne pas dupliquer un sens deja couvert) ===\n"
+             . "Themes (theme > sous-theme) :\n" . $lister('schilo_theme') . "\n\n"
+             . "Parcours (parcours > etape) :\n" . $lister('schilo_parcours') . "\n\n"
+             . "Series :\n" . $lister('schilo_serie') . "\n\n"
+             . "Consignes :\n"
+             . "- Fusionne les valeurs qui designent clairement la meme chose (ex: \"Vie de Jesus\" / \"Vies de Jesus\" / \"La vie de Jesus\").\n"
+             . "- Les valeurs isolees (1 seule occurrence) tres specifiques peuvent etre ignorees si elles ne meritent pas un terme dedie.\n"
+             . "- Les parcours et etapes representent un ordre de lecture (un parcours peut avoir des etapes enfants).\n"
+             . "- Les themes peuvent avoir des sous-themes enfants.\n"
+             . "- Les series sont a plat (pas de hierarchie).\n"
+             . "- Conserve les termes existants listes ci-dessus s'ils restent pertinents (ne les recree pas, ils seront reutilises automatiquement si le nom correspond exactement).\n\n"
+             . "Retourne UNIQUEMENT un JSON avec cette structure exacte (aucun texte avant/apres, sans backticks) :\n"
+             . "{\n"
+             . "  \"schilo_theme\": [ { \"name\": \"Nom du theme\", \"children\": [\"Sous-theme 1\", \"Sous-theme 2\"] } ],\n"
+             . "  \"schilo_parcours\": [ { \"name\": \"Nom du parcours\", \"children\": [\"Etape 1\", \"Etape 2\"] } ],\n"
+             . "  \"schilo_serie\": [\"Nom de serie 1\", \"Nom de serie 2\"]\n"
+             . "}";
+    }
+
+    public function proposeTermCuration(string $provider): array|\WP_Error
+    {
+        $prompt = $this->buildTermCurationPrompt();
+        $raw    = $this->callIaRaw($provider, $prompt, 4096);
+        if (is_wp_error($raw)) return $raw;
+        return $this->parseIaJson($raw);
+    }
+
+    /**
+     * Applique une suggestion de curation (issue de proposeTermCuration(), potentiellement
+     * editee par l'humain) : cree les termes manquants via findOrCreateTerm (les termes
+     * existants sont reutilises, jamais renommes ni supprimes), assigne un ordre croissant.
+     */
+    public function applyTermCuration(array $suggestion): array
+    {
+        $summary = ['schilo_theme' => 0, 'schilo_parcours' => 0, 'schilo_serie' => 0, 'errors' => []];
+
+        foreach (['schilo_theme', 'schilo_parcours'] as $taxonomy) {
+            $order = 1;
+            foreach ((array) ($suggestion[$taxonomy] ?? []) as $item) {
+                $name = is_array($item) ? (string) ($item['name'] ?? '') : (string) $item;
+                if (trim($name) === '') continue;
+
+                $parent = $this->findOrCreateTerm($taxonomy, $name, 0);
+                if (is_wp_error($parent)) {
+                    $summary['errors'][] = "{$taxonomy} / {$name} : " . $parent->get_error_message();
+                    continue;
+                }
+                $this->updateTermOrder((int) $parent['term_id'], $order++);
+                $summary[$taxonomy]++;
+
+                $childOrder = 1;
+                $children = is_array($item) ? (array) ($item['children'] ?? []) : [];
+                foreach ($children as $childName) {
+                    $childName = trim((string) $childName);
+                    if ($childName === '') continue;
+                    $child = $this->findOrCreateTerm($taxonomy, $childName, (int) $parent['term_id']);
+                    if (is_wp_error($child)) {
+                        $summary['errors'][] = "{$taxonomy} / {$name} > {$childName} : " . $child->get_error_message();
+                        continue;
+                    }
+                    $this->updateTermOrder((int) $child['term_id'], $childOrder++);
+                    $summary[$taxonomy]++;
+                }
+            }
+        }
+
+        $order = 1;
+        foreach ((array) ($suggestion['schilo_serie'] ?? []) as $name) {
+            $name = trim((string) $name);
+            if ($name === '') continue;
+            $term = $this->findOrCreateTerm('schilo_serie', $name, 0);
+            if (is_wp_error($term)) {
+                $summary['errors'][] = "schilo_serie / {$name} : " . $term->get_error_message();
+                continue;
+            }
+            $this->updateTermOrder((int) $term['term_id'], $order++);
+            $summary['schilo_serie']++;
+        }
+
+        return $summary;
+    }
+}
