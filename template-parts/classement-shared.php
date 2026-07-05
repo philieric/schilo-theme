@@ -194,12 +194,26 @@ function schilo_classement_split_into_chapters( string $text, int $target_chapte
 }
 
 /**
- * Rend le bouton declencheur + la fenetre modale (masquee par defaut, geree
- * en JS) presentant le resume complet de l'article decoupe en "chapitres"
- * separes par des versets bibliques tires au hasard parmi ceux indexes.
- * N'affecte pas l'affichage de la carte elle-meme (voir parcours-modal.js).
+ * Rend le bouton declencheur de la modale "Resume detaille" (seul, sans le
+ * markup de la modale elle-meme — voir schilo_classement_render_resume_modal_markup()).
+ * Permet de placer le bouton a cote de "Lire la suite" tandis que la modale
+ * (masquee) peut etre rendue ailleurs dans le DOM.
  */
-function schilo_classement_render_resume_modal( int $post_id, string $prefix, string $title, array $row ): void {
+function schilo_classement_render_resume_trigger( string $modal_id ): void {
+	?>
+	<button type="button" class="schilo-parcours-article__detail-btn" data-modal-trigger="<?php echo esc_attr( $modal_id ); ?>">
+		<i class="ti ti-book-2" aria-hidden="true"></i> <?php esc_html_e( 'Résumé détaillé', 'schilo' ); ?>
+	</button>
+	<?php
+}
+
+/**
+ * Rend la fenetre modale (masquee par defaut, geree en JS) presentant le
+ * resume complet de l'article decoupe en "chapitres" separes par des
+ * versets bibliques tires au hasard parmi ceux indexes. N'affecte pas
+ * l'affichage de la carte elle-meme (voir parcours-modal.js).
+ */
+function schilo_classement_render_resume_modal_markup( int $post_id, string $prefix, string $title, array $row, string $modal_id ): void {
 	$resume = $row['resume'] ?? '';
 	if ( $resume === '' ) return;
 
@@ -208,13 +222,8 @@ function schilo_classement_render_resume_modal( int $post_id, string $prefix, st
 
 	$chapters   = schilo_classement_split_into_chapters( $resume, 3 );
 	$verses     = schilo_classement_pick_distinct_bible_verses( $references, max( 0, count( $chapters ) - 1 ) );
-	$modal_id   = 'schilo-resume-modal-' . $post_id;
 	$romans     = [ '', 'I', 'II', 'III', 'IV', 'V', 'VI' ];
 	?>
-	<button type="button" class="schilo-parcours-article__detail-btn" data-modal-trigger="<?php echo esc_attr( $modal_id ); ?>">
-		<i class="ti ti-book-2" aria-hidden="true"></i> <?php esc_html_e( 'Résumé détaillé', 'schilo' ); ?>
-	</button>
-
 	<div class="schilo-resume-modal" id="<?php echo esc_attr( $modal_id ); ?>" aria-hidden="true">
 		<div class="schilo-resume-modal__overlay" data-modal-close></div>
 		<div class="schilo-resume-modal__panel" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( $title ); ?>">
@@ -283,6 +292,8 @@ function schilo_classement_render_article_item( int $post_id ): void {
 	$verse        = is_array( $references ) ? schilo_classement_pick_bible_verse( $references ) : [ 'html' => '', 'gospel' => '' ];
 	$gospel_class = $verse['gospel'] ? 'schilo-parcours-article--' . $verse['gospel'] : '';
 	$permalink    = get_permalink( $post_id );
+	$has_long_resume = ( $row['resume'] ?? '' ) !== '';
+	$modal_id     = 'schilo-resume-modal-' . $post_id;
 	?>
 	<li class="schilo-parcours-article <?php echo esc_attr( $gospel_class ); ?>">
 		<?php if ( $prefix ) : ?>
@@ -301,9 +312,14 @@ function schilo_classement_render_article_item( int $post_id ): void {
 			<div class="schilo-parcours-article__verse"><?php echo $verse['html']; ?></div>
 		<?php endif; ?>
 
-		<a href="<?php echo esc_url( $permalink ); ?>" class="schilo-parcours-article__more">
-			<?php esc_html_e( 'Lire la suite', 'schilo' ); ?> <i class="ti ti-arrow-right" aria-hidden="true"></i>
-		</a>
+		<div class="schilo-parcours-article__actions">
+			<a href="<?php echo esc_url( $permalink ); ?>" class="schilo-parcours-article__more">
+				<?php esc_html_e( 'Lire la suite', 'schilo' ); ?> <i class="ti ti-arrow-right" aria-hidden="true"></i>
+			</a>
+			<?php if ( $has_long_resume ) : ?>
+				<?php schilo_classement_render_resume_trigger( $modal_id ); ?>
+			<?php endif; ?>
+		</div>
 
 		<?php if ( $temps || $niveau || $public_cible ) : ?>
 			<p class="schilo-parcours-article__meta">
@@ -313,7 +329,9 @@ function schilo_classement_render_article_item( int $post_id ): void {
 			</p>
 		<?php endif; ?>
 
-		<?php schilo_classement_render_resume_modal( $post_id, $prefix, $title, $row ); ?>
+		<?php if ( $has_long_resume ) : ?>
+			<?php schilo_classement_render_resume_modal_markup( $post_id, $prefix, $title, $row, $modal_id ); ?>
+		<?php endif; ?>
 	</li>
 	<?php
 }

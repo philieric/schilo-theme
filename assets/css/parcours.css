@@ -191,6 +191,14 @@
   overflow: hidden;
 }
 
+.schilo-parcours-article__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .9rem;
+}
+
 .schilo-parcours-article__more {
   display: inline-flex;
   align-items: center;
@@ -202,7 +210,6 @@
   font-weight: 700;
   color: var(--spa-accent-dark);
   text-decoration: none;
-  margin-bottom: .9rem;
   transition: background .15s, transform .15s;
 }
 
@@ -242,7 +249,6 @@
   display: inline-flex;
   align-items: center;
   gap: .4rem;
-  margin: 0 .6rem .9rem 0;
   padding: .45rem 1rem;
   border-radius: 99px;
   border: 1.5px dashed var(--spa-accent, var(--schilo-accent, #2872d4));

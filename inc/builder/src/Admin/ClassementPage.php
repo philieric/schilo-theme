@@ -161,11 +161,12 @@ class ClassementPage
         $serie_ids    = array_map('absint', (array) ($_POST['serie_term_ids'] ?? []));
 
         // Creation a la volee de nouveaux termes tapes en texte libre
-        $new_theme    = sanitize_text_field($_POST['new_theme'] ?? '');
+        // wp_unslash obligatoire : WordPress ajoute des antislashs devant apostrophes/guillemets sur tout $_POST.
+        $new_theme    = sanitize_text_field(wp_unslash($_POST['new_theme'] ?? ''));
         $new_theme_parent = absint($_POST['new_theme_parent'] ?? 0);
-        $new_parcours = sanitize_text_field($_POST['new_parcours'] ?? '');
+        $new_parcours = sanitize_text_field(wp_unslash($_POST['new_parcours'] ?? ''));
         $new_parcours_parent = absint($_POST['new_parcours_parent'] ?? 0);
-        $new_serie    = sanitize_text_field($_POST['new_serie'] ?? '');
+        $new_serie    = sanitize_text_field(wp_unslash($_POST['new_serie'] ?? ''));
 
         if ($new_theme !== '') {
             $term = $this->service->findOrCreateTerm('schilo_theme', $new_theme, $new_theme_parent);
@@ -212,10 +213,10 @@ class ClassementPage
         }
 
         $taxonomy    = sanitize_key($_POST['taxonomy'] ?? '');
-        $name        = sanitize_text_field($_POST['name'] ?? '');
+        $name        = sanitize_text_field(wp_unslash($_POST['name'] ?? ''));
         $parent      = absint($_POST['parent'] ?? 0);
         $ordre       = absint($_POST['ordre'] ?? 0);
-        $description = sanitize_textarea_field($_POST['description'] ?? '');
+        $description = sanitize_textarea_field(wp_unslash($_POST['description'] ?? ''));
 
         if (!$this->service->isValidTaxonomy($taxonomy) || $name === '') {
             wp_send_json_error(['message' => 'Parametres invalides.']);
@@ -272,7 +273,7 @@ class ClassementPage
 
         $taxonomy    = sanitize_key($_POST['taxonomy'] ?? '');
         $term_id     = absint($_POST['term_id'] ?? 0);
-        $description = sanitize_textarea_field($_POST['description'] ?? '');
+        $description = sanitize_textarea_field(wp_unslash($_POST['description'] ?? ''));
 
         if (!$term_id || !$this->service->updateTermDescription($term_id, $taxonomy, $description)) {
             wp_send_json_error(['message' => 'Mise a jour impossible.']);
