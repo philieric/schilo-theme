@@ -102,24 +102,58 @@
   padding-bottom: 0;
 }
 
-.schilo-parcours-article__title {
-  display: inline-block;
-  font-weight: 600;
-  text-decoration: none;
-  color: var(--schilo-text-primary, #1e293b);
-  margin-bottom: .3rem;
+.schilo-parcours-article__eyebrow {
+  margin-bottom: .5rem;
+  font-size: .74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--schilo-text-muted, #8a96a8);
 }
 
-.schilo-parcours-article__title:hover {
+.schilo-parcours-article__eyebrow a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.schilo-parcours-article__eyebrow a:hover {
   color: var(--schilo-accent, #2872d4);
   text-decoration: underline;
 }
 
+.schilo-parcours-article__verse {
+  margin: 0 0 .7rem;
+}
+
 .schilo-parcours-article__excerpt {
-  margin: .2rem 0 .4rem;
-  font-size: .88rem;
-  line-height: 1.5;
-  color: var(--schilo-text-secondary, #64748b);
+  margin: 0 0 .5rem;
+  font-size: .95rem;
+  line-height: 1.6;
+  color: var(--schilo-text-primary, #1e293b);
+}
+
+.schilo-parcours-article__more {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--schilo-accent, #2872d4);
+  text-decoration: none;
+  margin-bottom: .5rem;
+}
+
+.schilo-parcours-article__more:hover {
+  text-decoration: underline;
+}
+
+.schilo-parcours-article__more .ti {
+  font-size: .8rem;
+  transition: transform .15s;
+}
+
+.schilo-parcours-article__more:hover .ti {
+  transform: translateX(3px);
 }
 
 .schilo-parcours-article__meta {

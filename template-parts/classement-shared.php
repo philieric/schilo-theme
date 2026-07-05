@@ -116,8 +116,36 @@ function schilo_classement_render_sidebar( array $agg, int $article_count ): voi
 }
 
 /**
- * Rendu enrichi d'un article dans une liste (titre + resume court + meta),
- * a partir de sa fiche d'indexation.
+ * Choisit une reference biblique au hasard parmi celles indexees pour un
+ * article et rend la carte de verset via le shortcode [bvc] (Usx-import).
+ * Essaie plusieurs references si la premiere n'est pas reconnue par le
+ * shortcode (format libre issu de l'IA), sans jamais afficher d'erreur
+ * publiquement.
+ */
+function schilo_classement_pick_bible_verse_html( array $references ): string {
+	if ( empty( $references ) || ! shortcode_exists( 'bvc' ) ) return '';
+
+	$refs = $references;
+	shuffle( $refs );
+
+	foreach ( array_slice( $refs, 0, 4 ) as $ref ) {
+		$ref = trim( str_replace( ',', '.', (string) $ref ) );
+		if ( $ref === '' ) continue;
+
+		$html = do_shortcode( '[bvc]' . $ref . '[/bvc]' );
+		if ( $html && strpos( $html, 'usx-error' ) === false ) {
+			return $html;
+		}
+	}
+
+	return '';
+}
+
+/**
+ * Rendu enrichi d'un article dans une liste : verset biblique au hasard,
+ * resume court, lien "En savoir plus", puis meta (niveau/public/temps).
+ * Le titre reste present mais en retrait (repere visuel discret), a
+ * partir de la fiche d'indexation de l'article.
  */
 function schilo_classement_render_article_item( int $post_id ): void {
 	$service = new \Schilo\Builder\Service\IndexationService();
@@ -127,14 +155,27 @@ function schilo_classement_render_article_item( int $post_id ): void {
 	$temps        = (int) ( $row['temps_lecture_min'] ?? 0 );
 	$niveau       = $row['niveau_lecture'] ?? '';
 	$public_cible = $row['public_cible'] ?? '';
+
+	$references = json_decode( $row['references_bibliques'] ?? '[]', true );
+	$verse_html = is_array( $references ) ? schilo_classement_pick_bible_verse_html( $references ) : '';
 	?>
 	<li class="schilo-parcours-article">
-		<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" class="schilo-parcours-article__title">
-			<?php echo esc_html( get_the_title( $post_id ) ); ?>
-		</a>
+		<div class="schilo-parcours-article__eyebrow">
+			<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"><?php echo esc_html( get_the_title( $post_id ) ); ?></a>
+		</div>
+
+		<?php if ( $verse_html ) : ?>
+			<div class="schilo-parcours-article__verse"><?php echo $verse_html; ?></div>
+		<?php endif; ?>
+
 		<?php if ( $resume ) : ?>
 			<p class="schilo-parcours-article__excerpt"><?php echo esc_html( wp_trim_words( $resume, 28 ) ); ?></p>
 		<?php endif; ?>
+
+		<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" class="schilo-parcours-article__more">
+			<?php esc_html_e( 'En savoir plus', 'schilo' ); ?> <i class="ti ti-arrow-right" aria-hidden="true"></i>
+		</a>
+
 		<?php if ( $temps || $niveau || $public_cible ) : ?>
 			<p class="schilo-parcours-article__meta">
 				<?php if ( $temps ) : ?><span><i class="ti ti-clock" aria-hidden="true"></i> <?php echo (int) $temps; ?> min</span><?php endif; ?>
