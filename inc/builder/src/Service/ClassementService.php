@@ -534,7 +534,7 @@ class ClassementService
             if (!$key) return new \WP_Error('no_key', "Cle API Claude manquante dans la configuration IA.");
 
             $response = wp_remote_post('https://api.anthropic.com/v1/messages', [
-                'timeout' => 120,
+                'timeout' => 240,
                 'headers' => [
                     'x-api-key'         => $key,
                     'anthropic-version' => '2023-06-01',
@@ -551,7 +551,7 @@ class ClassementService
             if (!$key) return new \WP_Error('no_key', "Cle API OpenAI manquante dans la configuration IA.");
 
             $response = wp_remote_post('https://api.openai.com/v1/chat/completions', [
-                'timeout' => 120,
+                'timeout' => 240,
                 'headers' => [
                     'Authorization' => 'Bearer ' . $key,
                     'Content-Type'  => 'application/json',
@@ -591,7 +591,11 @@ class ClassementService
 
         $parsed = json_decode($raw_clean, true);
         if (!is_array($parsed)) {
-            return new \WP_Error('parse_error', "La reponse IA n'est pas un JSON valide.");
+            $looks_truncated = $raw_clean !== '' && !in_array(substr($raw_clean, -1), ['}', ']'], true);
+            $hint = $looks_truncated
+                ? " La reponse semble coupee avant la fin (limite de longueur atteinte) : reessayez, ou si cela persiste, reduisez le nombre de termes traites en une fois."
+                : '';
+            return new \WP_Error('parse_error', "La reponse IA n'est pas un JSON valide." . $hint);
         }
 
         return $parsed;
@@ -671,76 +675,155 @@ class ClassementService
         return $out;
     }
 
-    public function buildTermCurationPrompt(): string
+    private function formatIndexedValues(array $values): string
     {
-        $format_values = function (array $values): string {
-            $lines = [];
-            foreach ($values as $val => $n) {
-                $lines[] = "- \"{$val}\" ({$n} article(s))";
-            }
-            return $lines ? implode("\n", $lines) : '(aucune valeur indexee)';
-        };
+        $lines = [];
+        foreach ($values as $val => $n) {
+            $lines[] = "- \"{$val}\" ({$n} article(s))";
+        }
+        return $lines ? implode("\n", $lines) : '(aucune valeur indexee)';
+    }
 
-        $lister = function (string $taxonomy): string {
-            $tree = $this->getTermsTree($taxonomy);
-            $lines = [];
-            foreach ($tree as $term) {
-                $lines[] = '- ' . $term->name . ($term->description ? ' (description actuelle : "' . $term->description . '")' : ' (SANS DESCRIPTION)');
-                foreach ($term->children as $child) {
-                    $lines[] = '  - ' . $child->name . ($child->description ? ' (description actuelle : "' . $child->description . '")' : ' (SANS DESCRIPTION)');
-                }
+    private function listExistingTerms(string $taxonomy): string
+    {
+        $tree  = $this->getTermsTree($taxonomy);
+        $lines = [];
+        foreach ($tree as $term) {
+            $lines[] = '- ' . $term->name . ($term->description ? ' (description actuelle : "' . $term->description . '")' : ' (SANS DESCRIPTION)');
+            foreach ($term->children as $child) {
+                $lines[] = '  - ' . $child->name . ($child->description ? ' (description actuelle : "' . $child->description . '")' : ' (SANS DESCRIPTION)');
             }
-            return $lines ? implode("\n", $lines) : '(aucun terme existant pour le moment)';
-        };
+        }
+        return $lines ? implode("\n", $lines) : '(aucun terme existant pour le moment)';
+    }
 
+    private function curationIntro(): string
+    {
         return "Tu es un bibliothecaire expert en analyse de contenu biblique. Ton objectif : construire un "
              . "vocabulaire controle propre (peu de termes, sans doublons ni quasi-doublons) a partir de "
              . "valeurs indexees en texte libre par une IA sur des articles individuels — ces valeurs sont "
-             . "souvent tres proches les unes des autres (variantes de formulation d'un meme sujet).\n\n"
-             . "=== Valeurs de \"theme_principal\" deja indexees ===\n" . $format_values($this->getDistinctIndexedValues('theme_principal')) . "\n\n"
-             . "=== Valeurs de \"sous_theme\" deja indexees ===\n" . $format_values($this->getDistinctIndexedValues('sous_theme')) . "\n\n"
-             . "=== Valeurs de \"parcours\" deja indexees (ignore \"non defini\"/\"non applicable\") ===\n" . $format_values($this->getDistinctIndexedValues('parcours')) . "\n\n"
-             . "=== Valeurs de \"serie\" deja indexees (ignore \"non defini\"/\"non applicable\") ===\n" . $format_values($this->getDistinctIndexedValues('serie')) . "\n\n"
-             . "=== Termes deja crees (a conserver/completer, ne pas dupliquer un sens deja couvert) ===\n"
-             . "Themes (theme > sous-theme) :\n" . $lister('schilo_theme') . "\n\n"
-             . "Parcours (parcours > etape) :\n" . $lister('schilo_parcours') . "\n\n"
-             . "Series :\n" . $lister('schilo_serie') . "\n\n"
-             . "Consignes :\n"
-             . "- Fusionne les valeurs qui designent clairement la meme chose (ex: \"Vie de Jesus\" / \"Vies de Jesus\" / \"La vie de Jesus\").\n"
-             . "- Les valeurs isolees (1 seule occurrence) tres specifiques peuvent etre ignorees si elles ne meritent pas un terme dedie.\n"
-             . "- Les parcours et etapes representent un ordre de lecture (un parcours peut avoir des etapes enfants).\n"
-             . "- Les themes peuvent avoir des sous-themes enfants.\n"
-             . "- Les series sont a plat (pas de hierarchie).\n"
-             . "- Conserve les termes existants listes ci-dessus s'ils restent pertinents (ne les recree pas, ils seront reutilises automatiquement si le nom correspond exactement).\n"
-             . "- IMPORTANT : fournis une \"description\" developpee (entre 150 et 250 mots, plusieurs phrases "
-             . "formant un ou deux paragraphes, destinee a etre affichee publiquement en haut de la page de ce "
-             . "terme) pour CHAQUE terme (parents, etapes/sous-themes compris), y compris pour les termes deja "
-             . "existants marques \"(SANS DESCRIPTION)\" ci-dessus. Cette description doit donner au lecteur une "
-             . "vraie mise en contexte : de quoi parle ce theme/parcours/etape, quels evenements ou enseignements "
-             . "bibliques il couvre, pourquoi il est interessant a lire, en t'appuyant sur les valeurs indexees "
-             . "listees plus haut. Pour un terme qui a deja une description COURTE (1-2 phrases), developpe-la "
-             . "pour atteindre 150-250 mots plutot que de la garder telle quelle. Pour un terme qui a deja une "
-             . "description longue et satisfaisante, ne la reecris que si elle peut etre amelioree.\n\n"
-             . "Retourne UNIQUEMENT un JSON avec cette structure exacte (aucun texte avant/apres, sans backticks) :\n"
-             . "{\n"
-             . "  \"schilo_theme\": [ { \"name\": \"Nom du theme\", \"description\": \"...\", \"children\": [ { \"name\": \"Sous-theme\", \"description\": \"...\" } ] } ],\n"
-             . "  \"schilo_parcours\": [ { \"name\": \"Nom du parcours\", \"description\": \"...\", \"children\": [ { \"name\": \"Etape\", \"description\": \"...\" } ] } ],\n"
-             . "  \"schilo_serie\": [ { \"name\": \"Nom de serie\", \"description\": \"...\" } ]\n"
-             . "}";
-    }
-
-    public function proposeTermCuration(string $provider): array|\WP_Error
-    {
-        $prompt = $this->buildTermCurationPrompt();
-        $raw    = $this->callIaRaw($provider, $prompt, 4096);
-        if (is_wp_error($raw)) return $raw;
-        return $this->parseIaJson($raw);
+             . "souvent tres proches les unes des autres (variantes de formulation d'un meme sujet).\n\n";
     }
 
     /**
-     * Applique une suggestion de curation (issue de proposeTermCuration(), potentiellement
-     * editee par l'humain) : cree les termes manquants via findOrCreateTerm (les termes
-     * existants sont reutilises, jamais renommes ni supprimes), assigne un ordre croissant.
+     * Prompt de STRUCTURE seule (noms + hierarchie, sans description) pour
+     * une taxonomie donnee. Reponse volontairement petite et rapide : les
+     * descriptions (150-250 mots/terme) sont demandees ensuite, par petits
+     * lots sequentiels via buildTermDescriptionsPrompt() — les demander toutes
+     * en un seul appel (60+ termes) saturait la reponse (JSON tronque) ou
+     * depassait le temps d'attente d'un appel HTTP non-streame.
+     */
+    private function buildTermStructurePrompt(string $taxonomy): string
+    {
+        $intro = $this->curationIntro();
+        $common = "Consignes :\n"
+             . "- Fusionne les valeurs qui designent clairement la meme chose (ex: \"Vie de Jesus\" / \"Vies de Jesus\" / \"La vie de Jesus\").\n"
+             . "- Les valeurs isolees (1 seule occurrence) tres specifiques peuvent etre ignorees si elles ne meritent pas un terme dedie.\n"
+             . "- Conserve les termes existants listes ci-dessus s'ils restent pertinents (ne les recree pas, ils seront reutilises automatiquement si le nom correspond exactement).\n"
+             . "- Ne fournis PAS de description ici, seulement les noms et la hierarchie : les descriptions seront demandees separement.\n\n";
+
+        if ($taxonomy === 'schilo_theme') {
+            return $intro
+                 . "=== Valeurs de \"theme_principal\" deja indexees ===\n" . $this->formatIndexedValues($this->getDistinctIndexedValues('theme_principal')) . "\n\n"
+                 . "=== Valeurs de \"sous_theme\" deja indexees ===\n" . $this->formatIndexedValues($this->getDistinctIndexedValues('sous_theme')) . "\n\n"
+                 . "=== Themes deja crees (theme > sous-theme) ===\n" . $this->listExistingTerms('schilo_theme') . "\n\n"
+                 . $common
+                 . "- Les themes peuvent avoir des sous-themes enfants.\n\n"
+                 . "Retourne UNIQUEMENT un JSON avec cette structure exacte (aucun texte avant/apres, sans backticks) :\n"
+                 . "{ \"schilo_theme\": [ { \"name\": \"Nom du theme\", \"children\": [ { \"name\": \"Sous-theme\" } ] } ] }";
+        }
+
+        if ($taxonomy === 'schilo_parcours') {
+            return $intro
+                 . "=== Valeurs de \"parcours\" deja indexees (ignore \"non defini\"/\"non applicable\") ===\n" . $this->formatIndexedValues($this->getDistinctIndexedValues('parcours')) . "\n\n"
+                 . "=== Parcours deja crees (parcours > etape) ===\n" . $this->listExistingTerms('schilo_parcours') . "\n\n"
+                 . $common
+                 . "- Les parcours et etapes representent un ordre de lecture (un parcours peut avoir des etapes enfants).\n\n"
+                 . "Retourne UNIQUEMENT un JSON avec cette structure exacte (aucun texte avant/apres, sans backticks) :\n"
+                 . "{ \"schilo_parcours\": [ { \"name\": \"Nom du parcours\", \"children\": [ { \"name\": \"Etape\" } ] } ] }";
+        }
+
+        // schilo_serie
+        return $intro
+             . "=== Valeurs de \"serie\" deja indexees (ignore \"non defini\"/\"non applicable\") ===\n" . $this->formatIndexedValues($this->getDistinctIndexedValues('serie')) . "\n\n"
+             . "=== Series deja creees ===\n" . $this->listExistingTerms('schilo_serie') . "\n\n"
+             . $common
+             . "- Les series sont a plat (pas de hierarchie, pas de \"children\").\n\n"
+             . "Retourne UNIQUEMENT un JSON avec cette structure exacte (aucun texte avant/apres, sans backticks) :\n"
+             . "{ \"schilo_serie\": [ { \"name\": \"Nom de serie\" } ] }";
+    }
+
+    /**
+     * Un appel IA rapide par taxonomie (noms + hierarchie seulement).
+     */
+    public function proposeTermStructure(string $provider): array|\WP_Error
+    {
+        $result = [];
+        foreach (self::TAXONOMIES as $taxonomy) {
+            $prompt = $this->buildTermStructurePrompt($taxonomy);
+            $raw    = $this->callIaRaw($provider, $prompt, 3000);
+            if (is_wp_error($raw)) return $raw;
+
+            $parsed = $this->parseIaJson($raw);
+            if (is_wp_error($parsed)) return $parsed;
+
+            $result[$taxonomy] = $parsed[$taxonomy] ?? [];
+        }
+        return $result;
+    }
+
+    /**
+     * Prompt de DESCRIPTION pour un petit lot de termes deja nommes (voir
+     * proposeTermStructure). Garder les lots petits (5-6 noms) est ce qui
+     * rend chaque appel rapide et fiable (pas de reponse saturee ni
+     * d'attente trop longue sur un appel HTTP non-streame).
+     */
+    private function buildTermDescriptionsPrompt(string $taxonomy, array $names): string
+    {
+        $taxContext = [
+            'schilo_theme'    => "=== Valeurs de \"theme_principal\"/\"sous_theme\" indexees ===\n" . $this->formatIndexedValues($this->getDistinctIndexedValues('theme_principal')) . "\n" . $this->formatIndexedValues($this->getDistinctIndexedValues('sous_theme')) . "\n\n",
+            'schilo_parcours' => "=== Valeurs de \"parcours\" indexees ===\n" . $this->formatIndexedValues($this->getDistinctIndexedValues('parcours')) . "\n\n",
+            'schilo_serie'    => "=== Valeurs de \"serie\" indexees ===\n" . $this->formatIndexedValues($this->getDistinctIndexedValues('serie')) . "\n\n",
+        ];
+
+        $namesList = implode("\n", array_map(fn($n) => '- "' . $n . '"', $names));
+
+        return $this->curationIntro()
+             . ($taxContext[$taxonomy] ?? '')
+             . "Pour CHACUN des termes suivants, redige une description developpee (entre 150 et 250 mots, "
+             . "plusieurs phrases formant un ou deux paragraphes, destinee a etre affichee publiquement en haut "
+             . "de la page de ce terme). Donne au lecteur une vraie mise en contexte : de quoi parle ce theme/"
+             . "parcours/etape/serie, quels evenements ou enseignements bibliques il couvre, pourquoi il est "
+             . "interessant a lire, en t'appuyant sur les valeurs indexees ci-dessus.\n\n"
+             . "Termes a decrire :\n" . $namesList . "\n\n"
+             . "Retourne UNIQUEMENT un JSON avec cette structure exacte (aucun texte avant/apres, sans backticks), "
+             . "une entree par terme demande, avec le nom exact en cle :\n"
+             . "{ \"descriptions\": { \"Nom exact du terme\": \"...\" } }";
+    }
+
+    /**
+     * Decrit un petit lot de termes (voir buildTermDescriptionsPrompt).
+     * Renvoie une map nom => description.
+     */
+    public function proposeTermDescriptions(string $provider, string $taxonomy, array $names): array|\WP_Error
+    {
+        if (empty($names)) return [];
+
+        $prompt = $this->buildTermDescriptionsPrompt($taxonomy, $names);
+        $raw    = $this->callIaRaw($provider, $prompt, 4000);
+        if (is_wp_error($raw)) return $raw;
+
+        $parsed = $this->parseIaJson($raw);
+        if (is_wp_error($parsed)) return $parsed;
+
+        return is_array($parsed['descriptions'] ?? null) ? $parsed['descriptions'] : [];
+    }
+
+    /**
+     * Applique une suggestion de curation (structure + descriptions fusionnees
+     * cote JS, potentiellement editee par l'humain) : cree les termes manquants
+     * via findOrCreateTerm (les termes existants sont reutilises, jamais
+     * renommes ni supprimes), assigne un ordre croissant.
      */
     /**
      * Extrait {name, description} d'un element de suggestion, qu'il soit un

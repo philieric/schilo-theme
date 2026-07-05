@@ -166,7 +166,99 @@ jQuery(function ($) {
         });
     });
 
-    /* ---- Page termes : suggestion de vocabulaire via IA ------------ */
+    /* ---- Page termes : suggestion de vocabulaire via IA ------------
+       En 2 temps pour rester rapide/fiable : 1) structure seule (noms +
+       hierarchie, un appel rapide par taxonomie), 2) descriptions par
+       petits lots sequentiels (5-6 termes/appel) avec progression visible.
+       Un seul appel demandant tout (60+ termes x 150-250 mots) saturait
+       la reponse ou depassait le temps d'attente d'un appel HTTP bloquant. */
+    var taxLabels = { schilo_theme: 'Thèmes', schilo_parcours: 'Parcours', schilo_serie: 'Séries' };
+    var DESC_BATCH_SIZE = 6;
+
+    function itemName(item) { return typeof item === 'object' && item ? (item.name || '') : String(item || ''); }
+    function itemDescription(item) { return typeof item === 'object' && item ? (item.description || '') : ''; }
+
+    function buildDescriptionQueue(structure) {
+        var queue = [];
+        ['schilo_theme', 'schilo_parcours'].forEach(function (tax) {
+            var names = [];
+            (structure[tax] || []).forEach(function (item) {
+                names.push(itemName(item));
+                (item.children || []).forEach(function (child) { names.push(itemName(child)); });
+            });
+            for (var i = 0; i < names.length; i += DESC_BATCH_SIZE) {
+                queue.push({ tax: tax, names: names.slice(i, i + DESC_BATCH_SIZE) });
+            }
+        });
+        var serieNames = (structure.schilo_serie || []).map(itemName);
+        for (var j = 0; j < serieNames.length; j += DESC_BATCH_SIZE) {
+            queue.push({ tax: 'schilo_serie', names: serieNames.slice(j, j + DESC_BATCH_SIZE) });
+        }
+        return queue;
+    }
+
+    function applyDescriptionMap(structure, descMap) {
+        ['schilo_theme', 'schilo_parcours'].forEach(function (tax) {
+            (structure[tax] || []).forEach(function (item) {
+                item.description = descMap[tax + '::' + itemName(item)] || '';
+                (item.children || []).forEach(function (child) {
+                    child.description = descMap[tax + '::' + itemName(child)] || '';
+                });
+            });
+        });
+        (structure.schilo_serie || []).forEach(function (item) {
+            item.description = descMap['schilo_serie::' + itemName(item)] || '';
+        });
+    }
+
+    function runDescriptionBatches(structure, provider, $btn, $feedback) {
+        var queue = buildDescriptionQueue(structure);
+        var total = queue.length;
+        var descMap = {};
+
+        function next(index) {
+            if (index >= total) {
+                applyDescriptionMap(structure, descMap);
+                $feedback.hide();
+                renderCurationPreview(structure);
+                $btn.prop('disabled', false);
+                return;
+            }
+
+            var batch = queue[index];
+            showFeedback($feedback, 'Génération des descriptions… lot ' + (index + 1) + '/' + total + ' (' + (taxLabels[batch.tax] || batch.tax) + ')', false);
+
+            $.ajax({
+                url: ajaxUrl,
+                type: 'POST',
+                timeout: 90000,
+                data: {
+                    action: 'schilo_classement_propose_term_descriptions',
+                    nonce: nonce,
+                    provider: provider,
+                    taxonomy: batch.tax,
+                    names: JSON.stringify(batch.names)
+                }
+            }).done(function (res) {
+                if (!res.success) {
+                    $btn.prop('disabled', false);
+                    showFeedback($feedback, 'Lot ' + (index + 1) + '/' + total + ' échoué : ' + ((res.data && res.data.message) || 'Erreur IA.'), true);
+                    return;
+                }
+                var descs = (res.data && res.data.descriptions) || {};
+                Object.keys(descs).forEach(function (name) {
+                    descMap[batch.tax + '::' + name] = descs[name];
+                });
+                next(index + 1);
+            }).fail(function () {
+                $btn.prop('disabled', false);
+                showFeedback($feedback, 'Erreur réseau au lot ' + (index + 1) + '/' + total + '.', true);
+            });
+        }
+
+        next(0);
+    }
+
     $('#scl-btn-propose-terms').on('click', function () {
         var $btn = $(this);
         var provider = $('#scl-curation-provider').val() || 'claude';
@@ -174,32 +266,26 @@ jQuery(function ($) {
         var $preview = $('#scl-curation-preview');
 
         $btn.prop('disabled', true);
-        showFeedback($feedback, 'Analyse en cours (peut prendre 1 à 2 minutes)...', false);
+        showFeedback($feedback, 'Récupération de la structure (parcours/thèmes/séries)...', false);
         $preview.hide().empty();
 
         $.ajax({
             url: ajaxUrl,
             type: 'POST',
             timeout: 180000,
-            data: { action: 'schilo_classement_propose_terms', nonce: nonce, provider: provider }
+            data: { action: 'schilo_classement_propose_term_structure', nonce: nonce, provider: provider }
         }).done(function (res) {
-            $btn.prop('disabled', false);
             if (!res.success) {
+                $btn.prop('disabled', false);
                 showFeedback($feedback, (res.data && res.data.message) || 'Erreur IA.', true);
                 return;
             }
-            $feedback.hide();
-            renderCurationPreview(res.data.suggestion || {});
+            runDescriptionBatches(res.data.structure || {}, provider, $btn, $feedback);
         }).fail(function () {
             $btn.prop('disabled', false);
-            showFeedback($feedback, 'Erreur réseau.', true);
+            showFeedback($feedback, 'Erreur réseau (structure).', true);
         });
     });
-
-    var taxLabels = { schilo_theme: 'Thèmes', schilo_parcours: 'Parcours', schilo_serie: 'Séries' };
-
-    function itemName(item) { return typeof item === 'object' && item ? (item.name || '') : String(item || ''); }
-    function itemDescription(item) { return typeof item === 'object' && item ? (item.description || '') : ''; }
 
     function renderCurationPreview(suggestion) {
         window.sclCurationSuggestion = suggestion;

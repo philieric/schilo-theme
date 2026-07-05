@@ -27,7 +27,8 @@ class ClassementPage
         add_action('wp_ajax_schilo_classement_delete_term', [$this, 'ajaxDeleteTerm']);
         add_action('wp_ajax_schilo_classement_save_term_order', [$this, 'ajaxSaveTermOrder']);
         add_action('wp_ajax_schilo_classement_save_term_description', [$this, 'ajaxSaveTermDescription']);
-        add_action('wp_ajax_schilo_classement_propose_terms',   [$this, 'ajaxProposeTermCuration']);
+        add_action('wp_ajax_schilo_classement_propose_term_structure',    [$this, 'ajaxProposeTermStructure']);
+        add_action('wp_ajax_schilo_classement_propose_term_descriptions', [$this, 'ajaxProposeTermDescriptions']);
         add_action('wp_ajax_schilo_classement_apply_terms',     [$this, 'ajaxApplyTermCuration']);
     }
 
@@ -288,7 +289,14 @@ class ClassementPage
        humaine, applique la selection retenue.
     ========================================================= */
 
-    public function ajaxProposeTermCuration(): void
+    /**
+     * Phase 1/2 : structure seule (noms + hierarchie, sans description),
+     * un appel IA rapide par taxonomie. Les descriptions sont demandees
+     * ensuite par petits lots via ajaxProposeTermDescriptions() — voir
+     * ClassementService::proposeTermStructure() pour le pourquoi de la
+     * separation (une reponse combinee avec descriptions saturait/timeoutait).
+     */
+    public function ajaxProposeTermStructure(): void
     {
         @set_time_limit(180);
 
@@ -303,12 +311,51 @@ class ClassementPage
             wp_send_json_error(['message' => 'Cle API ' . $provider . ' non configuree. Allez dans Schilo Builder > IA.']);
         }
 
-        $suggestion = $this->service->proposeTermCuration($provider);
-        if (is_wp_error($suggestion)) {
-            wp_send_json_error(['message' => $suggestion->get_error_message()]);
+        $structure = $this->service->proposeTermStructure($provider);
+        if (is_wp_error($structure)) {
+            wp_send_json_error(['message' => $structure->get_error_message()]);
         }
 
-        wp_send_json_success(['suggestion' => $suggestion]);
+        wp_send_json_success(['structure' => $structure]);
+    }
+
+    /**
+     * Phase 2/2 : decrit un petit lot de termes deja nommes (voir
+     * ajaxProposeTermStructure). Appelee plusieurs fois de suite par le JS,
+     * un lot a la fois, avec affichage de la progression.
+     */
+    public function ajaxProposeTermDescriptions(): void
+    {
+        @set_time_limit(120);
+
+        check_ajax_referer('schilo_classement', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Acces refuse.'], 403);
+        }
+
+        $provider  = sanitize_key($_POST['provider'] ?? 'claude');
+        $ia_config = get_option('schilo_ia_config', []);
+        if (empty($ia_config[$provider]['api_key'] ?? '')) {
+            wp_send_json_error(['message' => 'Cle API ' . $provider . ' non configuree. Allez dans Schilo Builder > IA.']);
+        }
+
+        $taxonomy = sanitize_key($_POST['taxonomy'] ?? '');
+        if (!$this->service->isValidTaxonomy($taxonomy)) {
+            wp_send_json_error(['message' => 'Taxonomie invalide.']);
+        }
+
+        $names_raw = json_decode(stripslashes((string) ($_POST['names'] ?? '[]')), true);
+        $names = array_values(array_filter(array_map(fn($n) => sanitize_text_field((string) $n), (array) $names_raw)));
+        if (empty($names)) {
+            wp_send_json_error(['message' => 'Aucun terme a decrire.']);
+        }
+
+        $descriptions = $this->service->proposeTermDescriptions($provider, $taxonomy, $names);
+        if (is_wp_error($descriptions)) {
+            wp_send_json_error(['message' => $descriptions->get_error_message()]);
+        }
+
+        wp_send_json_success(['descriptions' => $descriptions]);
     }
 
     public function ajaxApplyTermCuration(): void
