@@ -113,6 +113,90 @@ class ClassementService
     }
 
     /* =========================================================
+       PAGES D'INDEX PAR PERSONNAGE / LIEU / MOT-CLE / REFERENCE
+       Ces 4 champs sont du texte libre indexe par IA (pas des
+       taxonomies WP) : on leur donne une page d'archive "virtuelle"
+       via des rewrite rules + template_include, plutot qu'un
+       register_taxonomy (qui imposerait un vocabulaire ferme).
+    ========================================================= */
+
+    public const INDEX_FIELDS = [
+        'personnages'          => ['slug' => 'personnage',         'label' => 'Personnage',          'icon' => 'ti-users'],
+        'lieux'                => ['slug' => 'lieu',                'label' => 'Lieu',                 'icon' => 'ti-map-pin'],
+        'mots_cles'            => ['slug' => 'mot-cle',             'label' => 'Mot-clé',              'icon' => 'ti-tags'],
+        'references_bibliques' => ['slug' => 'reference-biblique',  'label' => 'Référence biblique',   'icon' => 'ti-bible'],
+    ];
+
+    private const INDEX_REWRITES_VERSION = '1';
+
+    /**
+     * Construit l'URL de la page d'index pour une valeur donnee d'un des 4
+     * champs libres ci-dessus (utilise par la sidebar pour rendre les tags
+     * cliquables).
+     */
+    public static function getIndexUrl(string $field, string $value): string
+    {
+        if (!isset(self::INDEX_FIELDS[$field])) return '';
+        return home_url('/' . self::INDEX_FIELDS[$field]['slug'] . '/' . rawurlencode($value) . '/');
+    }
+
+    /**
+     * Rewrite rules + query vars pour les 4 pages d'index. Hookee sur
+     * 'init' comme registerTaxonomies(), en dehors du bloc is_admin().
+     */
+    public function registerIndexRewrites(): void
+    {
+        add_filter('query_vars', function (array $vars): array {
+            $vars[] = 'schilo_index_field';
+            $vars[] = 'schilo_index_value';
+            return $vars;
+        });
+
+        foreach (self::INDEX_FIELDS as $field => $meta) {
+            add_rewrite_rule(
+                '^' . $meta['slug'] . '/([^/]+)/?$',
+                'index.php?schilo_index_field=' . $field . '&schilo_index_value=$matches[1]',
+                'top'
+            );
+        }
+
+        if (get_option('schilo_index_rewrites_version') !== self::INDEX_REWRITES_VERSION) {
+            flush_rewrite_rules();
+            update_option('schilo_index_rewrites_version', self::INDEX_REWRITES_VERSION);
+        }
+    }
+
+    /**
+     * Articles (post_id) dont le champ indexe $field contient exactement
+     * $value. Prefiltre par une valeur non vide, puis comparaison exacte
+     * apres decodage JSON (evite les faux positifs d'un LIKE brut sur la
+     * chaine JSON).
+     */
+    public function getPostIdsByIndexedValue(string $field, string $value): array
+    {
+        if (!isset(self::INDEX_FIELDS[$field])) return [];
+
+        global $wpdb;
+        $rows = $wpdb->get_results(
+            "SELECT post_id, {$field} AS val FROM {$this->table} WHERE {$field} != '' AND statut_indexation = 'valide'",
+            ARRAY_A
+        );
+
+        $post_ids = [];
+        foreach ($rows as $row) {
+            $decoded = json_decode($row['val'] ?? '[]', true);
+            if (!is_array($decoded)) continue;
+            foreach ($decoded as $v) {
+                if (trim((string) $v) === $value) {
+                    $post_ids[] = (int) $row['post_id'];
+                    break;
+                }
+            }
+        }
+        return $post_ids;
+    }
+
+    /* =========================================================
        TERMES CONTROLES - CRUD + ordre
     ========================================================= */
 

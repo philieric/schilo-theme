@@ -81,7 +81,7 @@ function schilo_classement_render_sidebar( array $agg, int $article_count ): voi
 			</div>
 			<div class="schilo-sidebar-themes">
 				<?php foreach ( array_slice( $agg['personnages'], 0, 10 ) as $name ) : ?>
-					<span class="schilo-sidebar-theme-tag"><?php echo esc_html( $name ); ?></span>
+					<a class="schilo-sidebar-theme-tag" href="<?php echo esc_url( \Schilo\Builder\Service\ClassementService::getIndexUrl( 'personnages', $name ) ); ?>"><?php echo esc_html( $name ); ?></a>
 				<?php endforeach; ?>
 			</div>
 		</div>
@@ -95,7 +95,7 @@ function schilo_classement_render_sidebar( array $agg, int $article_count ): voi
 			</div>
 			<div class="schilo-sidebar-themes">
 				<?php foreach ( array_slice( $agg['lieux'], 0, 10 ) as $name ) : ?>
-					<span class="schilo-sidebar-theme-tag"><?php echo esc_html( $name ); ?></span>
+					<a class="schilo-sidebar-theme-tag" href="<?php echo esc_url( \Schilo\Builder\Service\ClassementService::getIndexUrl( 'lieux', $name ) ); ?>"><?php echo esc_html( $name ); ?></a>
 				<?php endforeach; ?>
 			</div>
 		</div>
@@ -111,7 +111,7 @@ function schilo_classement_render_sidebar( array $agg, int $article_count ): voi
 				<?php foreach ( array_slice( $agg['mots_cles'], 0, 12 ) as $i => $name ) :
 					$rank = $i < 3 ? 'lg' : ( $i < 7 ? 'md' : 'sm' );
 				?>
-					<span class="schilo-sidebar-theme-tag schilo-sidebar-theme-tag--<?php echo esc_attr( $rank ); ?>"><?php echo esc_html( $name ); ?></span>
+					<a class="schilo-sidebar-theme-tag schilo-sidebar-theme-tag--<?php echo esc_attr( $rank ); ?>" href="<?php echo esc_url( \Schilo\Builder\Service\ClassementService::getIndexUrl( 'mots_cles', $name ) ); ?>"><?php echo esc_html( $name ); ?></a>
 				<?php endforeach; ?>
 			</div>
 		</div>
@@ -127,7 +127,7 @@ function schilo_classement_render_sidebar( array $agg, int $article_count ): voi
 				<?php foreach ( array_slice( $agg['references_bibliques'], 0, 10 ) as $ref ) :
 					$gospel = schilo_classement_detect_gospel_from_ref( (string) $ref );
 				?>
-					<span class="schilo-sidebar-theme-tag schilo-sidebar-theme-tag--<?php echo esc_attr( $gospel ); ?>"><?php echo esc_html( $ref ); ?></span>
+					<a class="schilo-sidebar-theme-tag schilo-sidebar-theme-tag--<?php echo esc_attr( $gospel ); ?>" href="<?php echo esc_url( \Schilo\Builder\Service\ClassementService::getIndexUrl( 'references_bibliques', $ref ) ); ?>"><?php echo esc_html( $ref ); ?></a>
 				<?php endforeach; ?>
 			</div>
 		</div>

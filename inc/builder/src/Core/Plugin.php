@@ -20,6 +20,32 @@ class Plugin
             (new \Schilo\Builder\Service\ClassementService())->registerTaxonomies();
         });
 
+        // Pages d'index par personnage/lieu/mot-cle/reference biblique (texte
+        // libre indexe par IA, pas une taxonomie) : rewrite rules + template
+        // virtuel, doivent aussi exister sur le front, en dehors de is_admin().
+        add_action('init', function (): void {
+            (new \Schilo\Builder\Service\ClassementService())->registerIndexRewrites();
+        });
+
+        add_filter('template_include', function (string $template): string {
+            if (get_query_var('schilo_index_field') !== '') {
+                $custom = SCHILO_DIR . '/template-schilo-index.php';
+                if (file_exists($custom)) {
+                    return $custom;
+                }
+            }
+            return $template;
+        });
+
+        add_filter('document_title_parts', function (array $parts): array {
+            $field = get_query_var('schilo_index_field');
+            $value = get_query_var('schilo_index_value');
+            if ($field !== '' && $value !== '') {
+                $parts['title'] = rawurldecode((string) $value);
+            }
+            return $parts;
+        });
+
         if (is_admin()) {
             $admin = new BuilderMetabox();
             $admin->register();
