@@ -2,6 +2,15 @@
    Schilo — Parcours, thèmes & séries (front)
    ===================================================== */
 
+/* Les descriptions de termes sont desormais des paragraphes developpes
+   (150-250 mots) : la largeur reduite de .schilo-hero__desc (calibree pour
+   1-2 phrases sur les autres heros du site) les rendrait trop etroites et
+   hautes. Feuille chargee apres schilo-main : la surcharge s'applique donc
+   uniquement sur ces pages (voir class-schilo-assets.php). */
+.schilo-hero__desc {
+  max-width: 760px;
+}
+
 /* ── Barre d'onglets (étapes / sous-thèmes) — calque de .schilo-single-tabnav ── */
 .schilo-parcours-tabnav {
   background: var(--schilo-bg-card, #fff);

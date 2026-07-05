@@ -85,7 +85,7 @@ get_header();
 					<a href="<?php echo esc_url( get_term_link( $term, $section['taxonomy'] ) ); ?>" class="schilo-parcours-grid__item">
 						<h3><?php echo esc_html( $term->name ); ?></h3>
 						<?php if ( $term->description ) : ?>
-							<p><?php echo esc_html( $term->description ); ?></p>
+							<p><?php echo esc_html( wp_trim_words( $term->description, 22, '…' ) ); ?></p>
 						<?php endif; ?>
 						<span class="schilo-parcours-grid__meta">
 							<?php
