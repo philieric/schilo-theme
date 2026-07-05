@@ -862,7 +862,11 @@ class ClassementService
 
     /**
      * Decrit un petit lot de termes (voir buildTermDescriptionsPrompt).
-     * Renvoie une map nom => description.
+     * Renvoie une map RE-CLEE sur les noms exacts demandes (pas les cles
+     * brutes de l'IA) : le modele reformule parfois legerement une cle,
+     * notamment sur des noms contenant des caracteres inhabituels comme
+     * ">" — sans cette normalisation, la description existe mais reste
+     * introuvable par une recherche exacte cote consommateur.
      */
     public function proposeTermDescriptions(string $provider, string $taxonomy, array $names): array|\WP_Error
     {
@@ -875,7 +879,40 @@ class ClassementService
         $parsed = $this->parseIaJson($raw);
         if (is_wp_error($parsed)) return $parsed;
 
-        return is_array($parsed['descriptions'] ?? null) ? $parsed['descriptions'] : [];
+        $raw_descriptions = is_array($parsed['descriptions'] ?? null) ? $parsed['descriptions'] : [];
+
+        $result = [];
+        foreach ($names as $name) {
+            $desc = $this->matchDescriptionByName($raw_descriptions, $name);
+            if ($desc !== '') {
+                $result[$name] = $desc;
+            }
+        }
+        // Un seul terme demande et une seule description revenue, mais sous
+        // une cle qui ne correspond ni exactement ni a la casse/espaces pres :
+        // on la prend quand meme (cas observe avec des noms contenant ">").
+        if (empty($result) && count($names) === 1 && count($raw_descriptions) === 1) {
+            $result[$names[0]] = trim((string) reset($raw_descriptions));
+        }
+        return $result;
+    }
+
+    /**
+     * Correspondance exacte puis insensible a la casse/aux espaces entre un
+     * nom de terme demande et les cles renvoyees par l'IA.
+     */
+    private function matchDescriptionByName(array $descriptions, string $name): string
+    {
+        if (isset($descriptions[$name])) {
+            return trim((string) $descriptions[$name]);
+        }
+        $needle = mb_strtolower(trim($name));
+        foreach ($descriptions as $key => $value) {
+            if (mb_strtolower(trim((string) $key)) === $needle) {
+                return trim((string) $value);
+            }
+        }
+        return '';
     }
 
     /**
