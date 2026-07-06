@@ -149,16 +149,30 @@ if ( empty( $paths ) ) {
     $paths = $paths_fallback;
 }
 
-$resources = [
-    [ 'ev' => 'marc', 'title' => __( "Marc — l'Évangile de l'action", 'schilo' ), 'meta' => __( '16 fiches', 'schilo' ), 'url' => get_search_link( 'Évangile de Marc' ) ],
-    [ 'ev' => 'luc', 'title' => __( 'Les paraboles de Luc', 'schilo' ), 'meta' => __( '10 fiches', 'schilo' ), 'url' => get_search_link( 'Paraboles de Luc' ) ],
-    [ 'ev' => 'mat', 'title' => __( 'La généalogie de Jésus', 'schilo' ), 'meta' => __( '5 fiches', 'schilo' ), 'url' => get_search_link( 'Généalogie de Jésus' ) ],
-    [ 'ev' => 'jean', 'title' => __( 'Les signes de Jean', 'schilo' ), 'meta' => __( '7 fiches', 'schilo' ), 'url' => get_search_link( 'Signes de Jean' ) ],
-    [ 'ev' => 'mat', 'title' => __( 'Prophéties messianiques', 'schilo' ), 'meta' => __( '14 fiches', 'schilo' ), 'url' => get_search_link( 'Prophéties messianiques' ) ],
-    [ 'ev' => 'marc', 'title' => __( 'La Passion de Jésus', 'schilo' ), 'meta' => __( '20 fiches', 'schilo' ), 'url' => get_search_link( 'Passion de Jésus' ) ],
-    [ 'ev' => 'luc', 'title' => __( 'Les femmes dans les Évangiles', 'schilo' ), 'meta' => __( '8 fiches', 'schilo' ), 'url' => get_search_link( 'Femmes dans les Évangiles' ) ],
-    [ 'ev' => 'jean', 'title' => __( 'La résurrection', 'schilo' ), 'meta' => __( '11 fiches', 'schilo' ), 'url' => get_search_link( 'Résurrection de Jésus' ) ],
-];
+// Séries thématiques dynamiques : termes de la taxonomie schilo_serie
+// (Schilo Builder > Parcours & Thèmes), triées par nombre d'articles, limitées à 8.
+$resources = [];
+if ( taxonomy_exists( 'schilo_serie' ) ) {
+    $serie_terms = get_terms( [
+        'taxonomy'   => 'schilo_serie',
+        'hide_empty' => true,
+        'orderby'    => 'count',
+        'order'      => 'DESC',
+        'number'     => 8,
+    ] );
+
+    if ( ! is_wp_error( $serie_terms ) ) {
+        $serie_evs = [ 'mat', 'marc', 'luc', 'jean' ];
+        foreach ( $serie_terms as $index => $serie_term ) {
+            $resources[] = [
+                'ev'    => $serie_evs[ $index % count( $serie_evs ) ],
+                'title' => $serie_term->name,
+                'meta'  => sprintf( _n( '%d fiche', '%d fiches', $serie_term->count, 'schilo' ), $serie_term->count ),
+                'url'   => get_term_link( $serie_term, 'schilo_serie' ),
+            ];
+        }
+    }
+}
 
 $category_tones = [ 'blue', 'orange', 'green', 'violet', 'gold', 'orange', 'violet', 'blue' ];
 $category_icons = [ 'ti-book-2', 'ti-baby-carriage', 'ti-users', 'ti-building', 'ti-heart-handshake', 'ti-cross', 'ti-sparkles', 'ti-shield-check' ];
@@ -301,7 +315,7 @@ $category_description_fallbacks = [
                     </div>
                     <div class="schilo-home-path__body">
                         <h3><?php echo esc_html( $path['title'] ); ?></h3>
-                        <p><?php echo esc_html( $path['description'] ); ?></p>
+                        <p><?php echo esc_html( wp_trim_words( $path['description'], 18, '…' ) ); ?></p>
                         <span class="schilo-home-path__link">
                             <?php esc_html_e( 'Commencer le parcours', 'schilo' ); ?>
                             <i class="ti ti-arrow-right" aria-hidden="true"></i>
@@ -311,17 +325,30 @@ $category_description_fallbacks = [
             <?php endforeach; ?>
         </div>
 
-        <div class="schilo-home-resources">
-            <?php foreach ( $resources as $resource ) : ?>
-                <a href="<?php echo esc_url( $resource['url'] ); ?>" class="schilo-home-resource">
-                    <span class="schilo-home-resource__dot schilo-home-resource__dot--<?php echo esc_attr( $resource['ev'] ); ?>" aria-hidden="true"></span>
-                    <span>
+        <?php if ( ! empty( $resources ) ) : ?>
+        <div class="schilo-home-series">
+            <div class="schilo-home-series__heading">
+                <span><?php esc_html_e( 'Bibliothèque Schilo', 'schilo' ); ?></span>
+                <h3><?php esc_html_e( 'Séries thématiques', 'schilo' ); ?></h3>
+            </div>
+            <div class="schilo-home-resources">
+                <?php foreach ( $resources as $resource ) :
+                    $resource_letter = mb_strtoupper( mb_substr( $resource['title'], 0, 1 ) );
+                ?>
+                    <a href="<?php echo esc_url( $resource['url'] ); ?>"
+                       class="schilo-home-resource schilo-home-resource--<?php echo esc_attr( $resource['ev'] ); ?>"
+                       data-letter="<?php echo esc_attr( $resource_letter ); ?>">
                         <strong><?php echo esc_html( $resource['title'] ); ?></strong>
-                        <small><?php echo esc_html( $resource['meta'] ); ?></small>
-                    </span>
-                </a>
-            <?php endforeach; ?>
+                        <span class="schilo-home-resource__meta"><?php echo esc_html( $resource['meta'] ); ?></span>
+                        <span class="schilo-home-resource__link">
+                            <?php esc_html_e( 'Découvrir', 'schilo' ); ?>
+                            <i class="ti ti-arrow-right" aria-hidden="true"></i>
+                        </span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
         </div>
+        <?php endif; ?>
     </div>
 </section>
 
@@ -380,7 +407,7 @@ $category_description_fallbacks = [
                 <div class="schilo-home-lib__heading">
                     <div>
                         <span><?php esc_html_e( 'Bibliothèque Schilo', 'schilo' ); ?></span>
-                        <h3><?php esc_html_e( 'Ressources et séries thématiques', 'schilo' ); ?></h3>
+                        <h3><?php esc_html_e( 'Ressources et catégories éditoriales', 'schilo' ); ?></h3>
                     </div>
                 </div>
                 <div class="schilo-home-lib__grid">
