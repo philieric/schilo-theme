@@ -356,7 +356,7 @@ blockquote {
   font-size: 22px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .schilo-nav__links { display: none; }
   .schilo-nav__toggle { display: flex; }
   .schilo-nav__links.is-open {
