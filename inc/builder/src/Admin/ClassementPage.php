@@ -128,6 +128,16 @@ class ClassementPage
             $this->service->storeSuggestion($post_id, $resolved);
 
             if ($auto_mode) {
+                $rule_issue = null;
+                foreach (ClassementService::TAXONOMY_FIELD_MAP as $taxonomy => $field) {
+                    $rule_issue = $this->service->checkPrefixRulesForTaxonomy($post_id, $resolved[$field] ?? [], $taxonomy);
+                    if ($rule_issue !== null) break;
+                }
+                if ($rule_issue !== null) {
+                    $results['error'][] = ['id' => $post_id, 'msg' => $rule_issue];
+                    continue;
+                }
+
                 $saved = $this->service->saveClassement($post_id, $resolved, $user_id);
                 if (!$saved) {
                     $results['error'][] = ['id' => $post_id, 'msg' => 'Echec enregistrement DB.'];
@@ -187,6 +197,14 @@ class ClassementPage
         $ordres = [];
         foreach ($ordres_raw as $term_id => $ordre) {
             $ordres[absint($term_id)] = absint($ordre);
+        }
+
+        $ids_by_taxonomy = ['schilo_theme' => $theme_ids, 'schilo_parcours' => $parcours_ids, 'schilo_serie' => $serie_ids];
+        foreach (ClassementService::TAXONOMY_FIELD_MAP as $taxonomy => $field) {
+            $rule_issue = $this->service->checkPrefixRulesForTaxonomy($post_id, $ids_by_taxonomy[$taxonomy], $taxonomy);
+            if ($rule_issue !== null) {
+                wp_send_json_error(['message' => $rule_issue]);
+            }
         }
 
         $saved = $this->service->saveClassement($post_id, [

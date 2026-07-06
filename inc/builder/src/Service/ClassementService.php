@@ -11,6 +11,29 @@ class ClassementService
     /** Term meta : date/heure de la derniere generation de description via IA. */
     public const DESC_GENERATED_META = 'schilo_ia_desc_generated_at';
 
+    /** Option : regles de classement par prefixe d'article (role/poids/limite). */
+    public const PREFIX_RULES_OPTION = 'schilo_classement_prefix_rules';
+    private const PREFIX_ROLES = ['principal', 'complement', 'exclu'];
+
+    /** Mapping taxonomie -> cle de champ *_term_ids (resolveSuggestionTermIds/AJAX). */
+    public const TAXONOMY_FIELD_MAP = [
+        'schilo_theme'    => 'theme_term_ids',
+        'schilo_parcours' => 'parcours_term_ids',
+        'schilo_serie'    => 'serie_term_ids',
+    ];
+
+    /** Libelles pour les messages d'erreur de checkPrefixRulesForTaxonomy(). */
+    private const TAXONOMY_ARTICLE_LABELS = [
+        'schilo_parcours' => 'le parcours',
+        'schilo_theme'    => 'le theme',
+        'schilo_serie'    => 'la serie',
+    ];
+
+    private function taxonomyArticleLabel(string $taxonomy): string
+    {
+        return self::TAXONOMY_ARTICLE_LABELS[$taxonomy] ?? $taxonomy;
+    }
+
     public function __construct()
     {
         global $wpdb;
@@ -412,6 +435,166 @@ class ClassementService
         return $prefixes;
     }
 
+    /* =========================================================
+       REGLES DE CLASSEMENT PAR PREFIXE (role / poids / limite)
+       Tous les articles n'ont pas la meme vocation editoriale (ex: une
+       Annexe complete un PER, elle ne devrait jamais devenir une etape
+       numerotee au meme titre). Regles configurables dans Parcours &
+       Themes > Configuration, appliquees pour l'instant a schilo_parcours
+       uniquement (voir plan feature/reglages-parcours-themes-series).
+    ========================================================= */
+
+    private function normalizePrefixRule($raw): array
+    {
+        $raw  = is_array($raw) ? $raw : [];
+        $role = in_array($raw['role'] ?? '', self::PREFIX_ROLES, true) ? $raw['role'] : 'principal';
+        return [
+            'role'   => $role,
+            'poids'  => isset($raw['poids']) ? max(0, min(100, (int) $raw['poids'])) : 50,
+            'limite' => isset($raw['limite']) ? max(0, (int) $raw['limite']) : 0,
+        ];
+    }
+
+    /**
+     * Regles pour tous les prefixes reellement presents (indexes ou deja
+     * mappes a une categorie WP dans Prefixes & categories), avec des
+     * valeurs par defaut (principal, poids 50, illimite) pour tout prefixe
+     * non configure — retrocompatible : rien ne change tant que l'utilisateur
+     * n'a rien regle.
+     */
+    public function getPrefixRules(): array
+    {
+        $saved = get_option(self::PREFIX_RULES_OPTION, []);
+        if (!is_array($saved)) $saved = [];
+
+        $known = array_unique(array_merge(
+            array_keys($this->getPrefixCounts()),
+            array_keys((array) get_option(\Schilo\Builder\Admin\SettingsPage::OPTION_PREFIX_CATEGORIES, []))
+        ));
+        sort($known);
+
+        $rules = [];
+        foreach ($known as $prefix) {
+            $rules[$prefix] = $this->normalizePrefixRule($saved[$prefix] ?? []);
+        }
+        return $rules;
+    }
+
+    public function getPrefixRule(string $prefix): array
+    {
+        $saved = get_option(self::PREFIX_RULES_OPTION, []);
+        return $this->normalizePrefixRule(is_array($saved) ? ($saved[$prefix] ?? []) : []);
+    }
+
+    public function savePrefixRules(array $rules): void
+    {
+        $clean = [];
+        foreach ($rules as $prefix => $rule) {
+            $prefix = strtoupper(sanitize_key($prefix));
+            if ($prefix === '') continue;
+            $clean[$prefix] = $this->normalizePrefixRule($rule);
+        }
+        update_option(self::PREFIX_RULES_OPTION, $clean, false);
+    }
+
+    /**
+     * Nombre d'articles d'un prefixe donne deja classes dans un terme precis
+     * d'une taxonomie donnee (pour l'enforcement de la limite, partagee entre
+     * parcours/theme/serie). $exclude_post_id permet de ne pas se compter
+     * soi-meme lors d'une re-sauvegarde.
+     */
+    public function countPrefixInTerm(string $prefix, int $term_id, string $taxonomy, int $exclude_post_id = 0): int
+    {
+        $post_ids = get_objects_in_term($term_id, $taxonomy);
+        if (is_wp_error($post_ids) || empty($post_ids)) return 0;
+
+        $post_ids = array_map('intval', $post_ids);
+        if ($exclude_post_id) {
+            $post_ids = array_values(array_diff($post_ids, [$exclude_post_id]));
+        }
+        if (empty($post_ids)) return 0;
+
+        global $wpdb;
+        $placeholders = implode(',', array_fill(0, count($post_ids), '%d'));
+        return (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$this->table} WHERE prefix = %s AND post_id IN ({$placeholders})",
+            $prefix,
+            ...$post_ids
+        ));
+    }
+
+    /**
+     * Verifie les regles de prefixe (exclusion + limite) pour un post et une
+     * liste de term_ids cibles d'une taxonomie donnee (schilo_parcours,
+     * schilo_theme ou schilo_serie — la regle est partagee entre les 3).
+     * Renvoie null si tout est OK, ou un message d'erreur explicite sinon.
+     * A appeler AVANT saveClassement().
+     */
+    public function checkPrefixRulesForTaxonomy(int $post_id, array $term_ids, string $taxonomy): ?string
+    {
+        $term_ids = array_values(array_filter(array_map('absint', $term_ids)));
+        if (empty($term_ids)) return null;
+
+        $indexed = $this->getByPostId($post_id);
+        $prefix  = $indexed['prefix'] ?? '';
+        if ($prefix === '') return null;
+
+        $rule = $this->getPrefixRule($prefix);
+
+        if ($rule['role'] === 'exclu') {
+            return "Le prefixe {$prefix} est exclu du classement (regle definie dans Parcours & Themes > Configuration).";
+        }
+
+        if ($rule['limite'] > 0) {
+            foreach ($term_ids as $term_id) {
+                $count = $this->countPrefixInTerm($prefix, $term_id, $taxonomy, $post_id);
+                if ($count >= $rule['limite']) {
+                    $term = get_term($term_id, $taxonomy);
+                    $term_name = ($term && !is_wp_error($term)) ? $term->name : ('#' . $term_id);
+                    return "Limite atteinte pour le prefixe {$prefix} dans {$this->taxonomyArticleLabel($taxonomy)} \"{$term_name}\" ({$rule['limite']} max, regle definie dans Parcours & Themes > Configuration).";
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Tente de rattacher un article "Complement" (ex: une Annexe) a l'article
+     * "Principal" du meme terme de parcours qui le reference, via le champ
+     * deja indexe articles_lies (texte libre, parfois bruite). Compare les
+     * tokens PREFIXNNN extraits des entrees de articles_lies aux titres reels
+     * des principaux candidats. Renvoie null si aucune correspondance fiable
+     * (l'appelant bascule alors sur une section "Complements" generique).
+     */
+    public function resolveComplementPrincipal(int $complementPostId, array $principalPostIds): ?int
+    {
+        if (empty($principalPostIds)) return null;
+
+        $indexed = $this->getByPostId($complementPostId);
+        $liesRaw = json_decode($indexed['articles_lies'] ?? '[]', true);
+        if (!is_array($liesRaw) || empty($liesRaw)) return null;
+
+        $referencedTokens = [];
+        foreach ($liesRaw as $entry) {
+            if (preg_match('/^([A-Za-z]{2,5}\d{2,4})/u', trim((string) $entry), $m)) {
+                $referencedTokens[] = strtoupper($m[1]);
+            }
+        }
+        if (empty($referencedTokens)) return null;
+
+        foreach ($principalPostIds as $pid) {
+            $prow  = $this->getByPostId((int) $pid);
+            $titre = $prow['titre'] ?? get_the_title((int) $pid);
+            if (preg_match('/^([A-Za-z]{2,5}\d{2,4})/u', trim((string) $titre), $m)) {
+                if (in_array(strtoupper($m[1]), $referencedTokens, true)) {
+                    return (int) $pid;
+                }
+            }
+        }
+        return null;
+    }
+
     public function getCounts(): array
     {
         global $wpdb;
@@ -637,6 +820,23 @@ class ClassementService
         $post    = get_post($post_id);
         $titre   = $post ? $post->post_title : ($indexed['titre'] ?? '');
 
+        $prefix      = $indexed['prefix'] ?? '';
+        $prefix_rule = $prefix !== '' ? $this->getPrefixRule($prefix) : null;
+        $role_note   = '';
+        if ($prefix_rule) {
+            $role_labels = ['principal' => 'Principal', 'complement' => 'Complement', 'exclu' => 'Exclu'];
+            $role_label  = $role_labels[$prefix_rule['role']] ?? $prefix_rule['role'];
+            $role_note   = "- Prefixe : {$prefix} — role editorial configure : {$role_label} (poids {$prefix_rule['poids']}/100)\n";
+            if ($prefix_rule['role'] === 'complement') {
+                $role_note .= "  Consigne : cet article est un COMPLEMENT (ex: une annexe qui apporte un supplement a "
+                            . "un article principal), il ne doit pas etre traite comme une etape numerotee de "
+                            . "premier plan d'un parcours. Mets \"ordre\": 0 pour lui.\n";
+            } elseif ($prefix_rule['role'] === 'exclu') {
+                $role_note .= "  Consigne : ce prefixe est EXCLU du classement en parcours. Retourne un tableau "
+                            . "\"parcours\" vide.\n";
+            }
+        }
+
         $lister = function (string $taxonomy): string {
             $tree = $this->getTermsTree($taxonomy);
             $lines = [];
@@ -653,6 +853,7 @@ class ClassementService
              . "N'invente un nouveau terme QUE si aucun terme existant ne convient vraiment.\n\n"
              . "Article a classer :\n"
              . "- Titre : {$titre}\n"
+             . $role_note
              . "- Theme principal indexe (indice) : " . ($indexed['theme_principal'] ?? '') . "\n"
              . "- Sous-theme indexe (indice) : " . ($indexed['sous_theme'] ?? '') . "\n"
              . "- Parcours indexe (indice) : " . ($indexed['parcours'] ?? '') . "\n"

@@ -17,13 +17,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['scl_config_nonce'])) 
         $words_max = max($words_min, absint($_POST['scl_desc_words_max'] ?? 250));
         update_option('schilo_classement_desc_words', ['min' => $words_min, 'max' => $words_max], false);
 
+        $prefix_rules_raw = (array) ($_POST['scl_prefix_rules'] ?? []);
+        $prefix_rules = [];
+        foreach ($prefix_rules_raw as $prefix => $rule) {
+            $prefix_rules[$prefix] = [
+                'role'   => sanitize_key($rule['role'] ?? 'principal'),
+                'poids'  => absint($rule['poids'] ?? 50),
+                'limite' => absint($rule['limite'] ?? 0),
+            ];
+        }
+        $service->savePrefixRules($prefix_rules);
+
         $saved = true;
     }
 }
 
 $validation_mode = get_option('schilo_classement_validation_mode', 'manuel');
 $word_range = $service->getDescriptionWordRange();
+$prefix_rules = $service->getPrefixRules();
+$prefix_categories = (array) get_option(\Schilo\Builder\Admin\SettingsPage::OPTION_PREFIX_CATEGORIES, []);
 $back_url = admin_url('admin.php?page=schilo-builder-classement');
+
+$role_labels = [
+    'principal'  => 'Principal',
+    'complement' => 'Complément',
+    'exclu'      => 'Exclu',
+];
 ?>
 <div class="wrap schilo-builder-settings">
     <h1 class="scl-page-title">
@@ -83,6 +102,54 @@ $back_url = admin_url('admin.php?page=schilo-builder-classement');
                 <input type="number" name="scl_desc_words_max" min="20" step="10" value="<?php echo esc_attr($word_range['max']); ?>" style="width:80px;">
                 mots
             </label>
+        </div>
+
+        <div class="scl-val-bloc" style="display:block;margin-top:16px;">
+            <div class="scl-val-bloc-title">Règles de classement par préfixe d'article</div>
+            <p style="color:#64748b;font-size:13px;">
+                Tous les préfixes n'ont pas la même vocation : une Annexe (ANN) complète un PER,
+                elle ne devrait pas devenir un élément de premier plan au même titre. <strong>Rôle</strong> :
+                Principal (peut être un élément de premier plan), Complément (classable mais jamais en premier plan —
+                s'affiche rattaché à l'article qui le référence, via les articles liés déjà indexés),
+                ou Exclu (non classable). <strong>Poids</strong> : départage l'ordre entre
+                plusieurs compléments d'un même article. <strong>Limite</strong> : nombre max de ce
+                préfixe autorisé dans un même terme (0 = illimité). S'applique aux
+                <strong>parcours, thèmes et séries</strong>.
+            </p>
+            <?php if (empty($prefix_rules)) : ?>
+                <p style="color:#94a3b8;">Aucun préfixe détecté pour le moment (aucun article indexé ou mappé dans Préfixes &amp; catégories).</p>
+            <?php else : ?>
+            <table class="widefat scl-table">
+                <thead><tr>
+                    <th style="width:90px;">Préfixe</th>
+                    <th>Catégorie WP</th>
+                    <th style="width:160px;">Rôle</th>
+                    <th style="width:110px;">Poids</th>
+                    <th style="width:110px;">Limite/terme</th>
+                </tr></thead>
+                <tbody>
+                    <?php foreach ($prefix_rules as $prefix => $rule) :
+                        $cat_id   = (int) ($prefix_categories[$prefix] ?? 0);
+                        $cat_term = $cat_id ? get_term($cat_id, 'category') : null;
+                        $cat_name = ($cat_term && !is_wp_error($cat_term)) ? $cat_term->name : '—';
+                    ?>
+                    <tr>
+                        <td><strong><?php echo esc_html($prefix); ?></strong></td>
+                        <td><?php echo esc_html($cat_name); ?></td>
+                        <td>
+                            <select name="scl_prefix_rules[<?php echo esc_attr($prefix); ?>][role]">
+                                <?php foreach ($role_labels as $val => $label) : ?>
+                                    <option value="<?php echo esc_attr($val); ?>" <?php selected($rule['role'], $val); ?>><?php echo esc_html($label); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td>
+                        <td><input type="number" min="0" max="100" name="scl_prefix_rules[<?php echo esc_attr($prefix); ?>][poids]" value="<?php echo esc_attr($rule['poids']); ?>" style="width:70px;"></td>
+                        <td><input type="number" min="0" name="scl_prefix_rules[<?php echo esc_attr($prefix); ?>][limite]" value="<?php echo esc_attr($rule['limite']); ?>" style="width:70px;" placeholder="0 = illimité"></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+            <?php endif; ?>
         </div>
 
         <div class="scl-val-bloc" style="display:block;margin-top:16px;">

@@ -27,6 +27,7 @@ $query = new WP_Query( [
 ] );
 $post_ids  = $query->posts;
 $aggregate = schilo_classement_aggregate_indexation( $post_ids );
+$grouped   = schilo_classement_group_articles_with_complements( $post_ids );
 
 get_header();
 ?>
@@ -51,10 +52,26 @@ get_header();
 					<p style="color:var(--schilo-text-secondary,#64748b);"><?php esc_html_e( 'Aucun article classé ici pour le moment.', 'schilo' ); ?></p>
 				<?php else : ?>
 					<ol class="schilo-parcours-articles">
-						<?php foreach ( $post_ids as $post_id ) : ?>
-							<?php schilo_classement_render_article_item( (int) $post_id ); ?>
+						<?php foreach ( $grouped['groups'] as $group ) : ?>
+							<?php schilo_classement_render_article_item( (int) $group['principal'] ); ?>
+							<?php if ( ! empty( $group['complements'] ) ) : ?>
+								<li class="schilo-parcours-complements-block">
+									<div class="schilo-parcours-complements-label"><i class="ti ti-paperclip" aria-hidden="true"></i> <?php esc_html_e( 'En complément', 'schilo' ); ?></div>
+									<ul class="schilo-parcours-complements">
+										<?php foreach ( $group['complements'] as $cid ) : schilo_classement_render_complement_item( (int) $cid ); endforeach; ?>
+									</ul>
+								</li>
+							<?php endif; ?>
 						<?php endforeach; ?>
 					</ol>
+					<?php if ( ! empty( $grouped['orphans'] ) ) : ?>
+						<div class="schilo-parcours-complements-block schilo-parcours-complements-block--orphans">
+							<div class="schilo-parcours-complements-label"><i class="ti ti-paperclip" aria-hidden="true"></i> <?php esc_html_e( 'Compléments', 'schilo' ); ?></div>
+							<ul class="schilo-parcours-complements">
+								<?php foreach ( $grouped['orphans'] as $cid ) : schilo_classement_render_complement_item( (int) $cid ); endforeach; ?>
+							</ul>
+						</div>
+					<?php endif; ?>
 				<?php endif; ?>
 			</div>
 		</div>

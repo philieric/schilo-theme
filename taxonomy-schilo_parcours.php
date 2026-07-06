@@ -37,11 +37,34 @@ $render_ordered_posts = function ( int $term_id ) use ( $get_ordered_post_ids ):
 		return;
 	}
 
+	// Les articles "complement" (ex: une Annexe, voir Parcours & Themes >
+	// Configuration) ne doivent pas apparaitre comme une etape numerotee au
+	// meme titre qu'un article "principal" : ils sont rattaches sous
+	// l'article qui les reference, ou regroupes en fin de page sinon.
+	$grouped = schilo_classement_group_articles_with_complements( $post_ids );
+
 	echo '<ol class="schilo-parcours-articles">';
-	foreach ( $post_ids as $post_id ) {
-		schilo_classement_render_article_item( (int) $post_id );
+	foreach ( $grouped['groups'] as $group ) {
+		schilo_classement_render_article_item( (int) $group['principal'] );
+		if ( ! empty( $group['complements'] ) ) : ?>
+			<li class="schilo-parcours-complements-block">
+				<div class="schilo-parcours-complements-label"><i class="ti ti-paperclip" aria-hidden="true"></i> <?php esc_html_e( 'En complément', 'schilo' ); ?></div>
+				<ul class="schilo-parcours-complements">
+					<?php foreach ( $group['complements'] as $cid ) : schilo_classement_render_complement_item( (int) $cid ); endforeach; ?>
+				</ul>
+			</li>
+		<?php endif;
 	}
 	echo '</ol>';
+
+	if ( ! empty( $grouped['orphans'] ) ) : ?>
+		<div class="schilo-parcours-complements-block schilo-parcours-complements-block--orphans">
+			<div class="schilo-parcours-complements-label"><i class="ti ti-paperclip" aria-hidden="true"></i> <?php esc_html_e( 'Compléments', 'schilo' ); ?></div>
+			<ul class="schilo-parcours-complements">
+				<?php foreach ( $grouped['orphans'] as $cid ) : schilo_classement_render_complement_item( (int) $cid ); endforeach; ?>
+			</ul>
+		</div>
+	<?php endif;
 };
 
 $children = get_term_children( $term->term_id, $taxonomy );

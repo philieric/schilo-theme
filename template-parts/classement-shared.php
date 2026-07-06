@@ -383,4 +383,97 @@ function schilo_classement_render_article_item( int $post_id ): void {
 	<?php
 }
 
+/**
+ * Rendu compact d'un article "Complement" (ex: une Annexe) rattache a
+ * l'etape principale qui le reference dans un parcours — volontairement
+ * plus discret que schilo_classement_render_article_item() (pas de
+ * numero decoratif, pas de verset, pas de lettrine). Voir
+ * schilo_classement_group_articles_with_complements().
+ */
+function schilo_classement_render_complement_item( int $post_id ): void {
+	$service = new \Schilo\Builder\Service\IndexationService();
+	$row     = $service->getByPostId( $post_id );
+	$resume  = $row['resume_court'] ?? '';
+
+	[ $prefix, $title ] = schilo_classement_split_title_prefix( get_the_title( $post_id ) );
+	$permalink = get_permalink( $post_id );
+	?>
+	<li class="schilo-parcours-complement">
+		<?php if ( $prefix ) : ?><span class="schilo-parcours-complement__tag"><?php echo esc_html( $prefix ); ?></span><?php endif; ?>
+		<a href="<?php echo esc_url( $permalink ); ?>" class="schilo-parcours-complement__title"><?php echo esc_html( $title ); ?></a>
+		<?php if ( $resume ) : ?>
+			<p class="schilo-parcours-complement__excerpt"><?php echo esc_html( wp_trim_words( $resume, 24, '…' ) ); ?></p>
+		<?php endif; ?>
+	</li>
+	<?php
+}
+
+/**
+ * Regroupe une liste ordonnee de post_ids d'un terme de parcours en
+ * articles "principaux" + leurs "complements" rattaches (voir
+ * ClassementService::resolveComplementPrincipal() et la config des roles
+ * par prefixe dans Parcours & Themes > Configuration). Objectif : qu'une
+ * Annexe classee dans un parcours n'apparaisse jamais comme une etape
+ * numerotee au meme titre qu'un PER, mais rattachee sous l'article qui la
+ * reference (ou dans une section "Complements" generique si aucun match).
+ *
+ * Retourne :
+ *   [ 'groups'  => [ ['principal' => post_id, 'complements' => [post_id, ...]], ... ],
+ *     'orphans' => [ post_id, ... ] ]  // compements sans principal resolu dans ce terme
+ */
+function schilo_classement_group_articles_with_complements( array $post_ids ): array {
+	if ( empty( $post_ids ) ) return [ 'groups' => [], 'orphans' => [] ];
+
+	$service = new \Schilo\Builder\Service\ClassementService();
+	$rules   = $service->getPrefixRules();
+
+	$principals  = [];
+	$complements = [];
+	foreach ( $post_ids as $post_id ) {
+		$post_id = (int) $post_id;
+		$row     = $service->getByPostId( $post_id );
+		$prefix  = $row['prefix'] ?? '';
+		$role    = ( $prefix !== '' && isset( $rules[ $prefix ] ) ) ? $rules[ $prefix ]['role'] : 'principal';
+		if ( $role === 'complement' ) {
+			$complements[] = $post_id;
+		} else {
+			$principals[] = $post_id;
+		}
+	}
+
+	$groups = [];
+	$index_by_principal = [];
+	foreach ( $principals as $pid ) {
+		$groups[] = [ 'principal' => $pid, 'complements' => [] ];
+		$index_by_principal[ $pid ] = count( $groups ) - 1;
+	}
+
+	$orphans_weighted = [];
+	foreach ( $complements as $cid ) {
+		$crow   = $service->getByPostId( $cid );
+		$prefix = $crow['prefix'] ?? '';
+		$poids  = ( $prefix !== '' && isset( $rules[ $prefix ] ) ) ? $rules[ $prefix ]['poids'] : 50;
+
+		$match = $service->resolveComplementPrincipal( $cid, $principals );
+		if ( $match !== null && isset( $index_by_principal[ $match ] ) ) {
+			$groups[ $index_by_principal[ $match ] ]['complements'][] = [ 'id' => $cid, 'poids' => $poids ];
+		} else {
+			$orphans_weighted[] = [ 'id' => $cid, 'poids' => $poids ];
+		}
+	}
+
+	foreach ( $groups as &$group ) {
+		usort( $group['complements'], fn( $a, $b ) => $b['poids'] <=> $a['poids'] );
+		$group['complements'] = array_column( $group['complements'], 'id' );
+	}
+	unset( $group );
+
+	usort( $orphans_weighted, fn( $a, $b ) => $b['poids'] <=> $a['poids'] );
+
+	return [
+		'groups'  => $groups,
+		'orphans' => array_column( $orphans_weighted, 'id' ),
+	];
+}
+
 endif;
