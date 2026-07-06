@@ -719,7 +719,7 @@ class SettingsPage
         }
 
         $tool    = isset($_POST['tool']) ? sanitize_key($_POST['tool']) : '';
-        $allowed = array('inherit_cat', 'delete_cats', 'delete_media', 'raccourcis', 'ia_config');
+        $allowed = array('inherit_cat', 'delete_cats', 'delete_media', 'raccourcis', 'ia_config', 'doublons_prefixe');
         if (!in_array($tool, $allowed, true)) {
             wp_die('Outil inconnu.', '', 400);
         }
@@ -749,12 +749,13 @@ class SettingsPage
 
     public function renderOutilsPage()
     {
-        $result              = null;
-        $result_empty_cats   = null;
-        $result_orphan_media = null;
-        $result_raccourcis   = null;
-        $selected_parent_id  = 0;
-        $active_tool         = '';
+        $result                  = null;
+        $result_empty_cats       = null;
+        $result_orphan_media     = null;
+        $result_raccourcis       = null;
+        $result_doublons_prefixe = null;
+        $selected_parent_id      = 0;
+        $active_tool             = '';
 
         $action = isset($_POST['schilo_tool_action']) ? sanitize_key($_POST['schilo_tool_action']) : '';
 
@@ -799,6 +800,16 @@ class SettingsPage
             ) {
                 $active_tool       = 'raccourcis';
                 $result_raccourcis = $this->runSaveRaccourcis();
+            }
+
+            if (
+                $action === 'fix_duplicate_prefixes'
+                && isset($_POST['schilo_doublons_prefixe_nonce'])
+                && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['schilo_doublons_prefixe_nonce'])), 'schilo_fix_duplicate_prefixes')
+            ) {
+                $active_tool             = 'doublons_prefixe';
+                $dry                     = (int) ($_POST['schilo_doublons_prefixe_dry'] ?? 1) === 1;
+                $result_doublons_prefixe = $this->runFixDuplicatePrefixes($dry);
             }
         }
 
@@ -1105,6 +1116,254 @@ class SettingsPage
 
         return ['message' => $msg, 'items' => $to_delete];
     }
+
+    /**
+     * Detecte les articles partageant le meme couple prefixe+numero
+     * (ex: deux articles "INF144 - ...") et renumerote les doublons
+     * en cascade : le post publie garde son numero en priorite (jamais
+     * un brouillon ne doit faire changer l'URL d'un article publie) ;
+     * a defaut de publie dans le groupe, le plus ancien (ID le plus bas)
+     * le conserve. Les autres recoivent le prochain numero disponible
+     * pour ce prefixe, en incrementant a chaque assignation pour eviter
+     * toute nouvelle collision entre doublons traites dans le meme lot.
+     * Meme convention de format que ArticleTitleNumberer (PREFIX+3 chiffres).
+     */
+    private function runFixDuplicatePrefixes($dry)
+    {
+        global $wpdb;
+
+        $rows = $wpdb->get_results("
+            SELECT ID, post_title, post_status, post_name
+            FROM {$wpdb->posts}
+            WHERE post_type = 'post'
+              AND post_status NOT IN ('trash', 'auto-draft')
+            ORDER BY ID ASC
+        ");
+
+        $groups      = array(); // prefixe => numero => [ {id, title, rest, status}, ... ]
+        $maxByPrefix = array(); // prefixe => plus grand numero observe
+
+        foreach ($rows as $row) {
+            $title = html_entity_decode((string) $row->post_title, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $title = trim($title);
+
+            if (!preg_match('/^([A-Za-z]{3})(\d+)(.*)$/u', $title, $m)) {
+                continue;
+            }
+
+            $prefix = strtoupper($m[1]);
+            $number = (int) $m[2];
+            $rest   = $this->cleanTitleSuffix($m[3]);
+
+            $groups[$prefix][$number][] = array(
+                'id'     => (int) $row->ID,
+                'title'  => $title,
+                'rest'   => $rest,
+                'status' => (string) $row->post_status,
+                'slug'   => (string) $row->post_name,
+            );
+
+            if (!isset($maxByPrefix[$prefix]) || $number > $maxByPrefix[$prefix]) {
+                $maxByPrefix[$prefix] = $number;
+            }
+        }
+
+        $duplicates = array();
+
+        foreach ($groups as $prefix => $numbers) {
+            ksort($numbers);
+            foreach ($numbers as $number => $posts) {
+                if (count($posts) < 2) {
+                    continue;
+                }
+
+                // Priorite : un post publie garde toujours son numero avant un brouillon,
+                // sinon le plus ancien (ID le plus bas) le conserve.
+                usort($posts, function ($a, $b) {
+                    $aPub = $a['status'] === 'publish' ? 0 : 1;
+                    $bPub = $b['status'] === 'publish' ? 0 : 1;
+                    if ($aPub !== $bPub) {
+                        return $aPub <=> $bPub;
+                    }
+                    return $a['id'] <=> $b['id'];
+                });
+
+                $keep = array_shift($posts);
+
+                foreach ($posts as $dup) {
+                    $maxByPrefix[$prefix]++;
+                    $newNumber = $maxByPrefix[$prefix];
+
+                    $suffix   = $dup['rest'] !== '' ? $dup['rest'] : $dup['title'];
+                    $newTitle = sprintf('%s%03d - %s', $prefix, $newNumber, $suffix);
+
+                    $duplicates[] = array(
+                        'prefix'      => $prefix,
+                        'number'      => $number,
+                        'kept_id'     => $keep['id'],
+                        'kept_title'  => $keep['title'],
+                        'kept_status' => $keep['status'],
+                        'dup_id'      => $dup['id'],
+                        'old_title'   => $dup['title'],
+                        'dup_status'  => $dup['status'],
+                        'old_slug'    => $dup['slug'],
+                        'new_title'   => $newTitle,
+                    );
+                }
+            }
+        }
+
+        $totalLinksFixed = 0;
+
+        foreach ($duplicates as &$d) {
+            if (!$dry) {
+                wp_update_post(array(
+                    'ID'         => $d['dup_id'],
+                    'post_title' => $d['new_title'],
+                    'post_name'  => sanitize_title($d['new_title']),
+                ));
+
+                // WP peut suffixer le slug en cas de collision residuelle : on relit la valeur reelle.
+                $actualSlug = (string) $wpdb->get_var($wpdb->prepare(
+                    "SELECT post_name FROM {$wpdb->posts} WHERE ID = %d",
+                    $d['dup_id']
+                ));
+            } else {
+                $actualSlug = sanitize_title($d['new_title']);
+            }
+
+            $d['new_slug'] = $actualSlug;
+            $d['dry']      = $dry;
+
+            $linked = ($d['old_slug'] !== '' && $d['old_slug'] !== $actualSlug)
+                ? $this->findPostsLinkingToSlug($d['old_slug'], $d['dup_id'])
+                : array();
+
+            $d['linked_from'] = $linked;
+
+            if (!$dry && !empty($linked)) {
+                $fixed = $this->replaceSlugInLinkedPosts($linked, $d['old_slug'], $actualSlug);
+                $d['links_fixed'] = $fixed;
+                $totalLinksFixed += $fixed;
+            } else {
+                $d['links_fixed'] = 0;
+            }
+        }
+        unset($d);
+
+        $count = count($duplicates);
+        $mode  = $dry ? 'Simulation' : 'Corrigés';
+
+        $linksMsg = $dry
+            ? ''
+            : ($totalLinksFixed > 0 ? " {$totalLinksFixed} lien(s) interne(s) mis à jour en cascade." : '');
+
+        return array(
+            'message'    => "{$mode} : {$count} doublon(s) de préfixe" . ($dry ? ' seraient renumérotés en cascade.' : ' renumérotés en cascade.') . $linksMsg,
+            'duplicates' => $duplicates,
+        );
+    }
+
+    /**
+     * Cherche les articles/pages (hors $excludePostId) dont le post_content
+     * contient le slug donne, ex: un lien WPBakery ".../per117-xxx/" (souvent
+     * url-encode : "%2Fper117-xxx%2F") ou un href classique. Remplacement en
+     * sous-chaine simple (pas de bornes regex) : un slug complet genere par
+     * sanitize_title() est deja suffisamment specifique (prefixe+numero+texte
+     * descriptif complet) pour que le risque de faux positif soit negligeable,
+     * et une bordure regex se fait piquer par les caracteres d'encodage URL
+     * (ex: "%2F" se termine par "F", confondu avec un caractere de slug).
+     */
+    private function findPostsLinkingToSlug($slug, $excludePostId)
+    {
+        global $wpdb;
+
+        if ($slug === '') {
+            return array();
+        }
+
+        $like = '%' . $wpdb->esc_like($slug) . '%';
+
+        $candidates = $wpdb->get_results($wpdb->prepare(
+            "SELECT ID, post_title, post_content
+             FROM {$wpdb->posts}
+             WHERE post_type IN ('post','page')
+               AND post_status NOT IN ('trash','auto-draft')
+               AND ID != %d
+               AND post_content LIKE %s",
+            (int) $excludePostId,
+            $like
+        ));
+
+        $found = array();
+        foreach ($candidates as $c) {
+            $hits = substr_count($c->post_content, $slug);
+            if ($hits > 0) {
+                $found[] = array(
+                    'id'    => (int) $c->ID,
+                    'title' => html_entity_decode((string) $c->post_title, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                    'hits'  => $hits,
+                );
+            }
+        }
+
+        return $found;
+    }
+
+    /**
+     * Remplace le slug dans le post_content des articles listes par
+     * findPostsLinkingToSlug(), et sauvegarde. Retourne le nombre total
+     * d'occurrences remplacees.
+     */
+    private function replaceSlugInLinkedPosts(array $linked, $oldSlug, $newSlug)
+    {
+        global $wpdb;
+
+        $total = 0;
+
+        foreach ($linked as $item) {
+            $content = $wpdb->get_var($wpdb->prepare(
+                "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d",
+                $item['id']
+            ));
+
+            $replacedCount = substr_count($content, $oldSlug);
+            $newContent    = str_replace($oldSlug, $newSlug, $content);
+
+            if ($replacedCount > 0 && $newContent !== $content) {
+                wp_update_post(array(
+                    'ID'           => $item['id'],
+                    'post_content' => $newContent,
+                ));
+                $total += $replacedCount;
+            }
+        }
+
+        return $total;
+    }
+
+    private function cleanTitleSuffix($text)
+    {
+        $text = html_entity_decode((string) $text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = trim($text);
+        $text = preg_replace('/^[\s\-\–\—\:\/\\\\|]+/u', '', $text);
+        $text = preg_replace('/[\s\-\–\—\:\/\\\\|]+$/u', '', $text);
+        $text = preg_replace('/\s+/u', ' ', $text);
+        $text = trim((string) $text);
+
+        if ($text === '') {
+            return '';
+        }
+
+        if (function_exists('mb_substr') && function_exists('mb_strtoupper')) {
+            $first = mb_substr($text, 0, 1, 'UTF-8');
+            $rest  = mb_substr($text, 1, null, 'UTF-8');
+            return mb_strtoupper($first, 'UTF-8') . $rest;
+        }
+
+        return strtoupper(substr($text, 0, 1)) . substr($text, 1);
+    }
+
     public function renderIaPage()
     {
         $saved      = false;
