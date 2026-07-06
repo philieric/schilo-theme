@@ -719,7 +719,7 @@ class SettingsPage
         }
 
         $tool    = isset($_POST['tool']) ? sanitize_key($_POST['tool']) : '';
-        $allowed = array('inherit_cat', 'delete_cats', 'delete_media', 'raccourcis', 'ia_config');
+        $allowed = array('inherit_cat', 'delete_cats', 'delete_media', 'raccourcis', 'ia_config', 'doublons_prefixe');
         if (!in_array($tool, $allowed, true)) {
             wp_die('Outil inconnu.', '', 400);
         }
@@ -749,12 +749,13 @@ class SettingsPage
 
     public function renderOutilsPage()
     {
-        $result              = null;
-        $result_empty_cats   = null;
-        $result_orphan_media = null;
-        $result_raccourcis   = null;
-        $selected_parent_id  = 0;
-        $active_tool         = '';
+        $result                  = null;
+        $result_empty_cats       = null;
+        $result_orphan_media     = null;
+        $result_raccourcis       = null;
+        $result_doublons_prefixe = null;
+        $selected_parent_id      = 0;
+        $active_tool             = '';
 
         $action = isset($_POST['schilo_tool_action']) ? sanitize_key($_POST['schilo_tool_action']) : '';
 
@@ -799,6 +800,16 @@ class SettingsPage
             ) {
                 $active_tool       = 'raccourcis';
                 $result_raccourcis = $this->runSaveRaccourcis();
+            }
+
+            if (
+                $action === 'fix_duplicate_prefixes'
+                && isset($_POST['schilo_doublons_prefixe_nonce'])
+                && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['schilo_doublons_prefixe_nonce'])), 'schilo_fix_duplicate_prefixes')
+            ) {
+                $active_tool             = 'doublons_prefixe';
+                $dry                     = (int) ($_POST['schilo_doublons_prefixe_dry'] ?? 1) === 1;
+                $result_doublons_prefixe = $this->runFixDuplicatePrefixes($dry);
             }
         }
 
@@ -1105,6 +1116,126 @@ class SettingsPage
 
         return ['message' => $msg, 'items' => $to_delete];
     }
+
+    /**
+     * Detecte les articles partageant le meme couple prefixe+numero
+     * (ex: deux articles "INF144 - ...") et renumerote les doublons
+     * en cascade : le plus ancien (ID le plus bas) garde son numero,
+     * les suivants recoivent le prochain numero disponible pour ce
+     * prefixe, en incrementant a chaque assignation pour eviter toute
+     * nouvelle collision entre doublons traites dans le meme lot.
+     * Meme convention de format que ArticleTitleNumberer (PREFIX+3 chiffres).
+     */
+    private function runFixDuplicatePrefixes($dry)
+    {
+        global $wpdb;
+
+        $rows = $wpdb->get_results("
+            SELECT ID, post_title
+            FROM {$wpdb->posts}
+            WHERE post_type = 'post'
+              AND post_status NOT IN ('trash', 'auto-draft')
+            ORDER BY ID ASC
+        ");
+
+        $groups      = array(); // prefixe => numero => [ {id, title, rest}, ... ]
+        $maxByPrefix = array(); // prefixe => plus grand numero observe
+
+        foreach ($rows as $row) {
+            $title = html_entity_decode((string) $row->post_title, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $title = trim($title);
+
+            if (!preg_match('/^([A-Za-z]{3})(\d+)(.*)$/u', $title, $m)) {
+                continue;
+            }
+
+            $prefix = strtoupper($m[1]);
+            $number = (int) $m[2];
+            $rest   = $this->cleanTitleSuffix($m[3]);
+
+            $groups[$prefix][$number][] = array(
+                'id'    => (int) $row->ID,
+                'title' => $title,
+                'rest'  => $rest,
+            );
+
+            if (!isset($maxByPrefix[$prefix]) || $number > $maxByPrefix[$prefix]) {
+                $maxByPrefix[$prefix] = $number;
+            }
+        }
+
+        $duplicates = array();
+
+        foreach ($groups as $prefix => $numbers) {
+            ksort($numbers);
+            foreach ($numbers as $number => $posts) {
+                if (count($posts) < 2) {
+                    continue;
+                }
+
+                $keep = array_shift($posts); // le plus ancien conserve son numero
+
+                foreach ($posts as $dup) {
+                    $maxByPrefix[$prefix]++;
+                    $newNumber = $maxByPrefix[$prefix];
+
+                    $suffix   = $dup['rest'] !== '' ? $dup['rest'] : $dup['title'];
+                    $newTitle = sprintf('%s%03d - %s', $prefix, $newNumber, $suffix);
+
+                    $duplicates[] = array(
+                        'prefix'     => $prefix,
+                        'number'     => $number,
+                        'kept_id'    => $keep['id'],
+                        'kept_title' => $keep['title'],
+                        'dup_id'     => $dup['id'],
+                        'old_title'  => $dup['title'],
+                        'new_title'  => $newTitle,
+                    );
+                }
+            }
+        }
+
+        if (!$dry) {
+            foreach ($duplicates as $d) {
+                wp_update_post(array(
+                    'ID'         => $d['dup_id'],
+                    'post_title' => $d['new_title'],
+                    'post_name'  => sanitize_title($d['new_title']),
+                ));
+            }
+        }
+
+        $count = count($duplicates);
+        $mode  = $dry ? 'Simulation' : 'Corrigés';
+
+        return array(
+            'message'    => "{$mode} : {$count} doublon(s) de préfixe" . ($dry ? ' seraient renumérotés en cascade.' : ' renumérotés en cascade.'),
+            'duplicates' => $duplicates,
+        );
+    }
+
+    private function cleanTitleSuffix($text)
+    {
+        $text = html_entity_decode((string) $text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = trim($text);
+        $text = preg_replace('/^[\s\-\–\—\:\/\\\\|]+/u', '', $text);
+        $text = preg_replace('/[\s\-\–\—\:\/\\\\|]+$/u', '', $text);
+        $text = preg_replace('/\s+/u', ' ', $text);
+        $text = trim((string) $text);
+
+        if ($text === '') {
+            return '';
+        }
+
+        if (function_exists('mb_substr') && function_exists('mb_strtoupper')) {
+            $first = mb_substr($text, 0, 1, 'UTF-8');
+            $rest  = mb_substr($text, 1, null, 'UTF-8');
+            return mb_strtoupper($first, 'UTF-8') . $rest;
+        }
+
+        return strtoupper(substr($text, 0, 1)) . substr($text, 1);
+    }
+
     public function renderIaPage()
     {
         $saved      = false;
