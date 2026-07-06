@@ -11,7 +11,9 @@
         de publié dans le groupe, le plus ancien (ID le plus bas) le conserve. Les autres sont
         renumérotés vers le prochain numéro disponible pour ce préfixe, <strong>en cascade</strong>
         (chaque renumérotation réserve immédiatement son numéro pour éviter de recréer un
-        doublon avec le suivant du même lot).
+        doublon avec le suivant du même lot). Les liens internes (ex: liens WPBakery) pointant
+        vers l'ancien slug d'un article renuméroté sont détectés et, en mode réel, corrigés
+        automatiquement dans les articles qui les contiennent.
     </p>
 
     <?php if (!empty($result_doublons_prefixe)) : ?>
@@ -60,13 +62,14 @@
                 );
             };
             ?>
-            <table class="widefat fixed striped" style="max-width:900px;">
+            <table class="widefat fixed striped" style="max-width:1000px;">
                 <thead>
                     <tr>
                         <th>Préfixe</th>
                         <th>Conservé (numéro d'origine)</th>
                         <th>Doublon renuméroté</th>
                         <th>Nouveau titre</th>
+                        <th>Liens internes</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -86,6 +89,30 @@
                             <?php $renderStatus($d['dup_status']); ?>
                         </td>
                         <td><?php echo esc_html($d['new_title']); ?></td>
+                        <td>
+                            <?php if (empty($d['linked_from'])) : ?>
+                                <span style="color:#94a3b8;">—</span>
+                            <?php else : ?>
+                                <?php if (!empty($d['dry']) || empty($d['links_fixed'])) : ?>
+                                    <span style="color:#92400e;font-weight:700;">
+                                        <?php echo count($d['linked_from']); ?> article(s) à corriger
+                                    </span>
+                                <?php else : ?>
+                                    <span style="color:#16a34a;font-weight:700;">
+                                        ✓ <?php echo (int) $d['links_fixed']; ?> lien(s) corrigé(s) dans <?php echo count($d['linked_from']); ?> article(s)
+                                    </span>
+                                <?php endif; ?>
+                                <ul style="margin:4px 0 0;padding-left:16px;font-size:11px;">
+                                    <?php foreach ($d['linked_from'] as $l) : ?>
+                                    <li>
+                                        <a href="<?php echo esc_url(admin_url('post.php?post=' . (int) $l['id'] . '&action=edit')); ?>" target="_blank">
+                                            <?php echo esc_html($l['title']); ?>
+                                        </a>
+                                    </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

@@ -1133,7 +1133,7 @@ class SettingsPage
         global $wpdb;
 
         $rows = $wpdb->get_results("
-            SELECT ID, post_title, post_status
+            SELECT ID, post_title, post_status, post_name
             FROM {$wpdb->posts}
             WHERE post_type = 'post'
               AND post_status NOT IN ('trash', 'auto-draft')
@@ -1160,6 +1160,7 @@ class SettingsPage
                 'title'  => $title,
                 'rest'   => $rest,
                 'status' => (string) $row->post_status,
+                'slug'   => (string) $row->post_name,
             );
 
             if (!isset($maxByPrefix[$prefix]) || $number > $maxByPrefix[$prefix]) {
@@ -1205,29 +1206,140 @@ class SettingsPage
                         'dup_id'      => $dup['id'],
                         'old_title'   => $dup['title'],
                         'dup_status'  => $dup['status'],
+                        'old_slug'    => $dup['slug'],
                         'new_title'   => $newTitle,
                     );
                 }
             }
         }
 
-        if (!$dry) {
-            foreach ($duplicates as $d) {
+        $totalLinksFixed = 0;
+
+        foreach ($duplicates as &$d) {
+            if (!$dry) {
                 wp_update_post(array(
                     'ID'         => $d['dup_id'],
                     'post_title' => $d['new_title'],
                     'post_name'  => sanitize_title($d['new_title']),
                 ));
+
+                // WP peut suffixer le slug en cas de collision residuelle : on relit la valeur reelle.
+                $actualSlug = (string) $wpdb->get_var($wpdb->prepare(
+                    "SELECT post_name FROM {$wpdb->posts} WHERE ID = %d",
+                    $d['dup_id']
+                ));
+            } else {
+                $actualSlug = sanitize_title($d['new_title']);
+            }
+
+            $d['new_slug'] = $actualSlug;
+            $d['dry']      = $dry;
+
+            $linked = ($d['old_slug'] !== '' && $d['old_slug'] !== $actualSlug)
+                ? $this->findPostsLinkingToSlug($d['old_slug'], $d['dup_id'])
+                : array();
+
+            $d['linked_from'] = $linked;
+
+            if (!$dry && !empty($linked)) {
+                $fixed = $this->replaceSlugInLinkedPosts($linked, $d['old_slug'], $actualSlug);
+                $d['links_fixed'] = $fixed;
+                $totalLinksFixed += $fixed;
+            } else {
+                $d['links_fixed'] = 0;
             }
         }
+        unset($d);
 
         $count = count($duplicates);
         $mode  = $dry ? 'Simulation' : 'Corrigés';
 
+        $linksMsg = $dry
+            ? ''
+            : ($totalLinksFixed > 0 ? " {$totalLinksFixed} lien(s) interne(s) mis à jour en cascade." : '');
+
         return array(
-            'message'    => "{$mode} : {$count} doublon(s) de préfixe" . ($dry ? ' seraient renumérotés en cascade.' : ' renumérotés en cascade.'),
+            'message'    => "{$mode} : {$count} doublon(s) de préfixe" . ($dry ? ' seraient renumérotés en cascade.' : ' renumérotés en cascade.') . $linksMsg,
             'duplicates' => $duplicates,
         );
+    }
+
+    /**
+     * Cherche les articles/pages (hors $excludePostId) dont le post_content
+     * contient le slug donne, ex: un lien WPBakery ".../per117-xxx/" (souvent
+     * url-encode : "%2Fper117-xxx%2F") ou un href classique. Remplacement en
+     * sous-chaine simple (pas de bornes regex) : un slug complet genere par
+     * sanitize_title() est deja suffisamment specifique (prefixe+numero+texte
+     * descriptif complet) pour que le risque de faux positif soit negligeable,
+     * et une bordure regex se fait piquer par les caracteres d'encodage URL
+     * (ex: "%2F" se termine par "F", confondu avec un caractere de slug).
+     */
+    private function findPostsLinkingToSlug($slug, $excludePostId)
+    {
+        global $wpdb;
+
+        if ($slug === '') {
+            return array();
+        }
+
+        $like = '%' . $wpdb->esc_like($slug) . '%';
+
+        $candidates = $wpdb->get_results($wpdb->prepare(
+            "SELECT ID, post_title, post_content
+             FROM {$wpdb->posts}
+             WHERE post_type IN ('post','page')
+               AND post_status NOT IN ('trash','auto-draft')
+               AND ID != %d
+               AND post_content LIKE %s",
+            (int) $excludePostId,
+            $like
+        ));
+
+        $found = array();
+        foreach ($candidates as $c) {
+            $hits = substr_count($c->post_content, $slug);
+            if ($hits > 0) {
+                $found[] = array(
+                    'id'    => (int) $c->ID,
+                    'title' => html_entity_decode((string) $c->post_title, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                    'hits'  => $hits,
+                );
+            }
+        }
+
+        return $found;
+    }
+
+    /**
+     * Remplace le slug dans le post_content des articles listes par
+     * findPostsLinkingToSlug(), et sauvegarde. Retourne le nombre total
+     * d'occurrences remplacees.
+     */
+    private function replaceSlugInLinkedPosts(array $linked, $oldSlug, $newSlug)
+    {
+        global $wpdb;
+
+        $total = 0;
+
+        foreach ($linked as $item) {
+            $content = $wpdb->get_var($wpdb->prepare(
+                "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d",
+                $item['id']
+            ));
+
+            $replacedCount = substr_count($content, $oldSlug);
+            $newContent    = str_replace($oldSlug, $newSlug, $content);
+
+            if ($replacedCount > 0 && $newContent !== $content) {
+                wp_update_post(array(
+                    'ID'           => $item['id'],
+                    'post_content' => $newContent,
+                ));
+                $total += $replacedCount;
+            }
+        }
+
+        return $total;
     }
 
     private function cleanTitleSuffix($text)
