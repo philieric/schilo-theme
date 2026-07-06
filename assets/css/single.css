@@ -252,12 +252,35 @@
 [id^="sec-"] { scroll-margin-top: 52px; }
 
 .schilo-section {
+  position: relative;
+  overflow: hidden;
   background: var(--schilo-bg-card);
   border: 1px solid var(--schilo-border);
-  border-radius: var(--schilo-radius-lg);
+  border-radius: var(--schilo-radius-xl);
   padding: 1.5rem 1.75rem;
   box-shadow: var(--schilo-shadow-sm);
 }
+
+/* Bandeau d'accent en tete de section, echo du design des cartes d'articles
+   des pages parcours (.schilo-parcours-article::after dans parcours.css).
+   Teinte selon l'evangile le plus cite dans la section (schilo-section--{ev}
+   ajoute par SectionRenderer::detectDominantGospel) ; bleu par defaut sinon. */
+.schilo-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--schilo-accent);
+  opacity: .85;
+}
+
+.schilo-section--matthieu::before { background: var(--schilo-mat); }
+.schilo-section--marc::before     { background: var(--schilo-marc); }
+.schilo-section--luc::before      { background: var(--schilo-luc); }
+.schilo-section--jean::before     { background: var(--schilo-jean); }
+.schilo-section--bible::before    { background: #6d3fc0; }
 
 .schilo-section-title {
   margin: 0 0 1rem;
@@ -460,13 +483,15 @@
   font-size: 14px;
   font-weight: 500;
   font-family: var(--schilo-font-sans);
-  transition: background .15s, border-color .15s, color .15s;
+  transition: background .15s, border-color .15s, color .15s, transform .15s, box-shadow .15s;
 }
 
 .schilo-links-link:hover {
   background: var(--schilo-accent-pale);
   border-color: rgba(40,114,212,.3);
   color: var(--schilo-accent-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px -6px rgba(40,114,212,.35);
 }
 
 .schilo-links-arrow { flex-shrink: 0; color: var(--schilo-text-muted); font-size: 13px; }
@@ -600,7 +625,7 @@
   font-weight: 500;
 }
 
-.schilo-sidebar-navlink--next:hover { background: var(--schilo-accent-dark); }
+.schilo-sidebar-navlink--next:hover { background: var(--schilo-accent-dark); color: #fff; }
 
 .schilo-sidebar-navlink__dir {
   display: block;

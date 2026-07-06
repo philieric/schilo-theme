@@ -8,6 +8,7 @@
  *   $result_empty_cats   : array|null
  *   $result_orphan_media : array|null
  *   $result_raccourcis   : array|null
+ *   $result_doublons_prefixe : array|null
  *   $selected_parent_id  : int
  *   $parent_categories   : WP_Term[]
  *   $raccourcis_map      : array
@@ -40,6 +41,11 @@ $tools = array(
         'label' => 'Intelligence Artificielle',
         'desc'  => 'Configurer les APIs Claude et ChatGPT',
         'color' => '#6d3fc0',
+    ),
+    'doublons_prefixe' => array(
+        'icon'  => 'dashicons-search',
+        'label' => 'Doublons de préfixe',
+        'desc'  => 'Trouver et corriger les numéros en double',
     ),
 );
 ?>
