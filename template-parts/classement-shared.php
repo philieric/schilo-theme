@@ -384,6 +384,30 @@ function schilo_classement_render_article_item( int $post_id ): void {
 }
 
 /**
+ * Accent visuel (classe CSS modificatrice + icone Tabler) par prefixe, pour
+ * qu'un lecteur distingue une Annexe d'une analyse de contradictions d'un
+ * coup d'oeil sur les cartes complement — sinon toutes identiques. Prefixe
+ * non mappe ici (encore inconnu ou rarement complement) -> style neutre par
+ * defaut (voir .schilo-parcours-complement dans parcours.css).
+ */
+function schilo_classement_complement_style( string $prefix ): array {
+	// $prefix vient de schilo_classement_split_title_prefix() et inclut les
+	// chiffres (ex: "ANN001") — on ne garde que le code lettres pour matcher
+	// la table ci-dessous (alignee sur la colonne `prefix`, lettres seules,
+	// de wp_schilo_indexation).
+	$letters = strtoupper( preg_replace( '/\d+$/', '', $prefix ) );
+
+	$styles = [
+		'ANN' => [ 'class' => 'schilo-parcours-complement--annexe',        'icon' => 'ti-paperclip' ],
+		'INF' => [ 'class' => 'schilo-parcours-complement--notes',         'icon' => 'ti-info-circle' ],
+		'MIR' => [ 'class' => 'schilo-parcours-complement--miracles',      'icon' => 'ti-sparkles' ],
+		'CTD' => [ 'class' => 'schilo-parcours-complement--contradictions','icon' => 'ti-alert-triangle' ],
+		'PRB' => [ 'class' => 'schilo-parcours-complement--analyse',       'icon' => 'ti-scale' ],
+	];
+	return $styles[ $letters ] ?? [ 'class' => '', 'icon' => 'ti-tag' ];
+}
+
+/**
  * Rendu compact d'un article "Complement" (ex: une Annexe) rattache a
  * l'etape principale qui le reference dans un parcours — volontairement
  * plus discret que schilo_classement_render_article_item() (pas de
@@ -397,9 +421,12 @@ function schilo_classement_render_complement_item( int $post_id ): void {
 
 	[ $prefix, $title ] = schilo_classement_split_title_prefix( get_the_title( $post_id ) );
 	$permalink = get_permalink( $post_id );
+	$style     = schilo_classement_complement_style( $prefix );
 	?>
-	<li class="schilo-parcours-complement">
-		<?php if ( $prefix ) : ?><span class="schilo-parcours-complement__tag"><?php echo esc_html( $prefix ); ?></span><?php endif; ?>
+	<li class="schilo-parcours-complement <?php echo esc_attr( $style['class'] ); ?>">
+		<?php if ( $prefix ) : ?>
+			<span class="schilo-parcours-complement__tag"><i class="ti <?php echo esc_attr( $style['icon'] ); ?>" aria-hidden="true"></i> <?php echo esc_html( $prefix ); ?></span>
+		<?php endif; ?>
 		<a href="<?php echo esc_url( $permalink ); ?>" class="schilo-parcours-complement__title"><?php echo esc_html( $title ); ?></a>
 		<?php if ( $resume ) : ?>
 			<p class="schilo-parcours-complement__excerpt"><?php echo esc_html( wp_trim_words( $resume, 24, '…' ) ); ?></p>

@@ -256,23 +256,43 @@
 }
 
 .schilo-parcours-complement {
+  --spc-accent: var(--schilo-accent, #2872d4);
+  --spc-accent-pale: var(--schilo-accent-pale, #e2eefb);
+
   position: relative;
   background: var(--schilo-bg-soft, #f8fafc);
   border: 1px solid var(--schilo-border, #e2e8f0);
+  border-left: 3px solid var(--spc-accent);
   border-radius: 12px;
   padding: .85rem 1rem .85rem 1rem;
 }
 
+/* Accent par categorie de prefixe (voir schilo_classement_complement_style()
+   dans classement-shared.php) — pour distinguer une Annexe d'une analyse de
+   contradictions d'un coup d'oeil, sans concurrencer visuellement les cartes
+   principales. */
+.schilo-parcours-complement--annexe        { --spc-accent: #c2601a; --spc-accent-pale: #fdf2e9; }
+.schilo-parcours-complement--notes         { --spc-accent: #4338ca; --spc-accent-pale: #eef2ff; }
+.schilo-parcours-complement--miracles      { --spc-accent: #047857; --spc-accent-pale: #ecfdf5; }
+.schilo-parcours-complement--contradictions{ --spc-accent: #b91c1c; --spc-accent-pale: #fef2f2; }
+.schilo-parcours-complement--analyse       { --spc-accent: #6d28d9; --spc-accent-pale: #f5f3ff; }
+
 .schilo-parcours-complement__tag {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
   margin: 0 .5rem .4rem 0;
-  padding: .1rem .5rem;
+  padding: .1rem .55rem;
   font-size: .7rem;
   font-weight: 700;
   letter-spacing: .03em;
   border-radius: 999px;
-  background: var(--schilo-accent-pale, #e2eefb);
-  color: var(--schilo-accent, #2872d4);
+  background: var(--spc-accent-pale);
+  color: var(--spc-accent);
+}
+
+.schilo-parcours-complement__tag .ti {
+  font-size: .8rem;
 }
 
 .schilo-parcours-complement__title {

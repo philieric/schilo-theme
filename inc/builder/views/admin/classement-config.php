@@ -143,7 +143,15 @@ $role_labels = [
                                 <?php endforeach; ?>
                             </select>
                         </td>
-                        <td><input type="number" min="0" max="100" name="scl_prefix_rules[<?php echo esc_attr($prefix); ?>][poids]" value="<?php echo esc_attr($rule['poids']); ?>" style="width:70px;"></td>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <input type="range" min="0" max="100" step="5"
+                                    name="scl_prefix_rules[<?php echo esc_attr($prefix); ?>][poids]"
+                                    value="<?php echo esc_attr($rule['poids']); ?>" style="width:90px;"
+                                    oninput="this.nextElementSibling.textContent=this.value">
+                                <span style="min-width:26px;display:inline-block;font-variant-numeric:tabular-nums;font-weight:600;color:#334155;"><?php echo esc_html($rule['poids']); ?></span>
+                            </div>
+                        </td>
                         <td><input type="number" min="0" name="scl_prefix_rules[<?php echo esc_attr($prefix); ?>][limite]" value="<?php echo esc_attr($rule['limite']); ?>" style="width:70px;" placeholder="0 = illimité"></td>
                     </tr>
                     <?php endforeach; ?>
