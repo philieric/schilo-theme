@@ -87,7 +87,7 @@ get_header();
 		<div class="schilo-hero__eyebrow"><i class="ti ti-route"></i> <?php esc_html_e( 'Parcours', 'schilo' ); ?></div>
 		<h1 class="schilo-hero__title schilo-serif"><?php echo esc_html( $term->name ); ?></h1>
 		<?php if ( $term->description ) : ?>
-			<p class="schilo-hero__desc"><?php echo esc_html( $term->description ); ?></p>
+			<?php schilo_classement_render_term_description( $term->description, 'schilo-hero__desc' ); ?>
 		<?php endif; ?>
 	</div>
 </div>
@@ -133,7 +133,7 @@ get_header();
 				</div>
 				<div class="schilo-card__body">
 					<?php if ( $child->description ) : ?>
-						<p class="schilo-card__desc"><?php echo esc_html( $child->description ); ?></p>
+						<?php schilo_classement_render_term_description( $child->description, 'schilo-card__desc' ); ?>
 					<?php endif; ?>
 					<?php $render_ordered_posts( (int) $child->term_id ); ?>
 				</div>

@@ -17,6 +17,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['scl_config_nonce'])) 
         $words_max = max($words_min, absint($_POST['scl_desc_words_max'] ?? 250));
         update_option('schilo_classement_desc_words', ['min' => $words_min, 'max' => $words_max], false);
 
+        $paragraphs_min = max(1, absint($_POST['scl_desc_paragraphs_min'] ?? 2));
+        $paragraphs_max = max($paragraphs_min, absint($_POST['scl_desc_paragraphs_max'] ?? 4));
+        update_option('schilo_classement_desc_paragraphs', ['min' => $paragraphs_min, 'max' => $paragraphs_max], false);
+
         $prefix_rules_raw = (array) ($_POST['scl_prefix_rules'] ?? []);
         $prefix_rules = [];
         foreach ($prefix_rules_raw as $prefix => $rule) {
@@ -34,6 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['scl_config_nonce'])) 
 
 $validation_mode = get_option('schilo_classement_validation_mode', 'manuel');
 $word_range = $service->getDescriptionWordRange();
+$paragraph_range = $service->getDescriptionParagraphRange();
 $prefix_rules = $service->getPrefixRules();
 $prefix_categories = (array) get_option(\Schilo\Builder\Admin\SettingsPage::OPTION_PREFIX_CATEGORIES, []);
 $back_url = admin_url('admin.php?page=schilo-builder-classement');
@@ -101,6 +106,20 @@ $role_labels = [
                 à
                 <input type="number" name="scl_desc_words_max" min="20" step="10" value="<?php echo esc_attr($word_range['max']); ?>" style="width:80px;">
                 mots
+            </label>
+            <p style="color:#64748b;font-size:13px;margin-bottom:6px;">
+                Le texte est structuré en plusieurs paragraphes courts plutôt qu'un seul bloc compact
+                (affichage réel sur la page publique, pas seulement dans l'éditeur).
+            </p>
+            <label style="display:inline-flex;align-items:center;gap:6px;margin-right:20px;font-size:14px;">
+                De
+                <input type="number" name="scl_desc_paragraphs_min" min="1" step="1" value="<?php echo esc_attr($paragraph_range['min']); ?>" style="width:80px;">
+                paragraphe(s)
+            </label>
+            <label style="display:inline-flex;align-items:center;gap:6px;font-size:14px;">
+                à
+                <input type="number" name="scl_desc_paragraphs_max" min="1" step="1" value="<?php echo esc_attr($paragraph_range['max']); ?>" style="width:80px;">
+                paragraphe(s)
             </label>
         </div>
 

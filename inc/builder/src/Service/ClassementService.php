@@ -52,6 +52,19 @@ class ClassementService
         return ['min' => $min, 'max' => $max];
     }
 
+    /**
+     * Bornes (nombre de paragraphes courts) configurables pour les descriptions
+     * de termes generees via IA — force un texte aere plutot qu'un seul bloc,
+     * reglable au meme endroit que la longueur en mots.
+     */
+    public function getDescriptionParagraphRange(): array
+    {
+        $option = get_option('schilo_classement_desc_paragraphs', []);
+        $min = isset($option['min']) ? max(1, (int) $option['min']) : 2;
+        $max = isset($option['max']) ? max($min, (int) $option['max']) : 4;
+        return ['min' => $min, 'max' => $max];
+    }
+
     /* =========================================================
        INSTALLATION / MISE A NIVEAU DE LA TABLE
     ========================================================= */
@@ -1059,16 +1072,21 @@ class ClassementService
             'schilo_serie'    => "=== Valeurs de \"serie\" indexees ===\n" . $this->formatIndexedValues($this->getDistinctIndexedValues('serie')) . "\n\n",
         ];
 
-        $namesList = implode("\n", array_map(fn($n) => '- "' . $n . '"', $names));
-        $words     = $this->getDescriptionWordRange();
+        $namesList  = implode("\n", array_map(fn($n) => '- "' . $n . '"', $names));
+        $words      = $this->getDescriptionWordRange();
+        $paragraphs = $this->getDescriptionParagraphRange();
 
         return $this->curationIntro()
              . ($taxContext[$taxonomy] ?? '')
              . "Pour CHACUN des termes suivants, redige une description developpee (entre {$words['min']} et {$words['max']} mots, "
-             . "plusieurs phrases formant un ou plusieurs paragraphes, destinee a etre affichee publiquement en haut "
-             . "de la page de ce terme). Donne au lecteur une vraie mise en contexte : de quoi parle ce theme/"
-             . "parcours/etape/serie, quels evenements ou enseignements bibliques il couvre, pourquoi il est "
-             . "interessant a lire, en t'appuyant sur les valeurs indexees ci-dessus.\n\n"
+             . "destinee a etre affichee publiquement en haut de la page de ce terme). Donne au lecteur une vraie "
+             . "mise en contexte : de quoi parle ce theme/parcours/etape/serie, quels evenements ou enseignements "
+             . "bibliques il couvre, pourquoi il est interessant a lire, en t'appuyant sur les valeurs indexees "
+             . "ci-dessus.\n\n"
+             . "Format IMPORTANT : structure le texte en {$paragraphs['min']} a {$paragraphs['max']} paragraphes "
+             . "COURTS (quelques phrases chacun, une idee par paragraphe) plutot qu'un seul bloc compact. Separe "
+             . "chaque paragraphe par une ligne vide (\\n\\n) dans la valeur JSON — pas de markdown, pas de listes "
+             . "a puces, juste du texte brut avec des paragraphes.\n\n"
              . "Termes a decrire :\n" . $namesList . "\n\n"
              . "Retourne UNIQUEMENT un JSON avec cette structure exacte (aucun texte avant/apres, sans backticks), "
              . "une entree par terme demande, avec le nom exact en cle :\n"

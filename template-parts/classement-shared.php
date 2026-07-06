@@ -12,6 +12,19 @@ defined( 'ABSPATH' ) || exit;
 if ( ! function_exists( 'schilo_classement_aggregate_indexation' ) ) :
 
 /**
+ * Affiche une description de terme (parcours/theme/serie) generee via IA en
+ * plusieurs paragraphes (voir ClassementService::getDescriptionParagraphRange()
+ * et buildTermDescriptionsPrompt()) : le texte brut stocke separe ses
+ * paragraphes par une ligne vide, wpautop() les transforme en balises <p>
+ * reelles — un simple esc_html() les aurait sinon aplatis en un seul bloc
+ * (les retours a la ligne sont ignores par le rendu HTML normal).
+ */
+function schilo_classement_render_term_description( string $description, string $class = '' ): void {
+	if ( trim( $description ) === '' ) return;
+	echo '<div class="' . esc_attr( $class ) . '">' . wp_kses_post( wpautop( $description ) ) . '</div>';
+}
+
+/**
  * Agrege les infos d'indexation (temps de lecture, personnages, lieux,
  * mots-cles, references bibliques) sur un ensemble d'articles, triees
  * par frequence decroissante.

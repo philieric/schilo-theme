@@ -37,7 +37,7 @@ get_header();
 		<div class="schilo-hero__eyebrow"><i class="ti ti-stack-2"></i> <?php esc_html_e( 'Série', 'schilo' ); ?></div>
 		<h1 class="schilo-hero__title schilo-serif"><?php echo esc_html( $term->name ); ?></h1>
 		<?php if ( $term->description ) : ?>
-			<p class="schilo-hero__desc"><?php echo esc_html( $term->description ); ?></p>
+			<?php schilo_classement_render_term_description( $term->description, 'schilo-hero__desc' ); ?>
 		<?php endif; ?>
 	</div>
 </div>

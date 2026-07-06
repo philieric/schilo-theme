@@ -11,6 +11,20 @@
   max-width: 760px;
 }
 
+/* Les descriptions sont rendues via wpautop() (voir
+   schilo_classement_render_term_description() dans classement-shared.php) :
+   plusieurs paragraphes <p> reels a l'interieur du conteneur, plutot qu'un
+   seul bloc de texte. */
+.schilo-hero__desc p,
+.schilo-card__desc p {
+  margin: 0 0 .75em;
+}
+
+.schilo-hero__desc p:last-child,
+.schilo-card__desc p:last-child {
+  margin-bottom: 0;
+}
+
 /* ── Barre d'onglets (étapes / sous-thèmes) — calque de .schilo-single-tabnav ── */
 .schilo-parcours-tabnav {
   background: var(--schilo-bg-card, #fff);
