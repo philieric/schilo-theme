@@ -1,0 +1,631 @@
+/* =====================================================
+   Schilo — Parcours, thèmes & séries (front)
+   ===================================================== */
+
+/* Les descriptions de termes sont desormais des paragraphes developpes
+   (150-250 mots) : la largeur reduite de .schilo-hero__desc (calibree pour
+   1-2 phrases sur les autres heros du site) les rendrait trop etroites et
+   hautes. Feuille chargee apres schilo-main : la surcharge s'applique donc
+   uniquement sur ces pages (voir class-schilo-assets.php). */
+.schilo-hero__desc {
+  max-width: 760px;
+}
+
+/* ── Barre d'onglets (étapes / sous-thèmes) — calque de .schilo-single-tabnav ── */
+.schilo-parcours-tabnav {
+  background: var(--schilo-bg-card, #fff);
+  border-bottom: 1px solid var(--schilo-border, #e2e8f0);
+  z-index: 200;
+  transition: box-shadow .2s;
+}
+
+.schilo-parcours-tabnav.is-sticky {
+  position: sticky;
+  /* Se cale sous la barre de navigation globale (elle aussi sticky/top:0)
+     pour eviter que les deux se superposent une fois toutes deux "collees". */
+  top: var(--schilo-nav-h, 56px);
+  box-shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+
+.schilo-parcours-tabnav__inner {
+  display: flex;
+  align-items: stretch;
+}
+
+.schilo-parcours-tabnav .schilo-tabnav-list {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.schilo-parcours-tabnav .schilo-tabnav-list::-webkit-scrollbar { display: none; }
+
+.schilo-parcours-tabnav .schilo-tabnav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .8rem 1rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--schilo-text-secondary, #64748b);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  font-family: var(--schilo-font-sans, sans-serif);
+  transition: color .15s, border-color .15s;
+}
+
+.schilo-parcours-tabnav .schilo-tabnav-link:hover {
+  color: var(--schilo-text-primary, #1e293b);
+}
+
+.schilo-parcours-tabnav .schilo-tabnav-link.is-active {
+  color: var(--schilo-accent, #2872d4);
+  border-bottom-color: var(--schilo-accent, #2872d4);
+}
+
+.schilo-parcours-tabnav .schilo-tabnav-link .ti { font-size: 14px; }
+
+[id^="sec-"] { scroll-margin-top: calc(var(--schilo-nav-h, 56px) + 52px); }
+
+@media (max-width: 782px) {
+  .schilo-parcours-tabnav { overflow-x: auto; }
+}
+
+.schilo-parcours-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.schilo-card__desc {
+  position: relative;
+  margin: 0 0 1.25rem;
+  padding: .85rem 1.1rem .85rem 1.4rem;
+  border-left: 3px solid var(--schilo-accent, #2872d4);
+  background: var(--schilo-bg-muted, #f4f6f9);
+  border-radius: 0 12px 12px 0;
+  font-family: var(--schilo-font-serif, serif);
+  font-size: 1rem;
+  font-style: italic;
+  line-height: 1.55;
+  color: var(--schilo-text-secondary, #64748b);
+}
+
+.schilo-parcours-grid__item {
+  display: block;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--schilo-border, #e2e8f0);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.schilo-parcours-grid__item:hover {
+  border-color: var(--schilo-accent, #2872d4);
+  box-shadow: 0 2px 10px rgba(40, 114, 212, .1);
+}
+
+.schilo-parcours-grid__item h3 {
+  margin: 0 0 .35rem;
+  font-size: 1.05rem;
+}
+
+.schilo-parcours-grid__item p {
+  margin: 0 0 .5rem;
+  font-size: .9rem;
+  color: var(--schilo-text-secondary, #64748b);
+}
+
+.schilo-parcours-grid__meta {
+  font-size: .8rem;
+  color: var(--schilo-text-secondary, #64748b);
+}
+
+/* ---- Layout 2 colonnes (contenu + sidebar) ------------- */
+.schilo-parcours-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 2rem;
+  align-items: start;
+  padding-top: 2rem;
+  padding-bottom: 4rem;
+}
+
+.schilo-parcours-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: sticky;
+  top: 1rem;
+}
+
+@media (max-width: 960px) {
+  .schilo-parcours-layout { grid-template-columns: 1fr 240px; gap: 1.5rem; }
+}
+
+@media (max-width: 860px) {
+  .schilo-parcours-layout { grid-template-columns: 1fr; }
+  .schilo-parcours-sidebar { position: static; }
+}
+
+/* ---- Liste d'articles : cartes editoriales ---------------------- */
+.schilo-parcours-articles {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  counter-reset: schilo-parcours-counter;
+}
+
+.schilo-parcours-article {
+  --spa-accent: var(--schilo-accent, #2872d4);
+  --spa-accent-dark: var(--schilo-luc-dark, #060c55);
+  --spa-accent-pale: var(--schilo-accent-pale, #e2eefb);
+
+  position: relative;
+  overflow: hidden;
+  background: var(--schilo-bg-card, #fff);
+  border: 1px solid var(--schilo-border, #e2e8f0);
+  border-radius: 20px;
+  padding: 1.75rem 1.75rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .05);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.schilo-parcours-article::before {
+  counter-increment: schilo-parcours-counter;
+  content: counter(schilo-parcours-counter, decimal-leading-zero);
+  position: absolute;
+  top: -.4rem;
+  left: -.3rem;
+  font-family: var(--schilo-font-serif, serif);
+  font-size: 4.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--spa-accent);
+  opacity: .07;
+  pointer-events: none;
+  user-select: none;
+}
+
+.schilo-parcours-articles--unordered .schilo-parcours-article::before {
+  content: '';
+}
+
+.schilo-parcours-article::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 5px;
+  background: var(--spa-accent);
+  opacity: .85;
+}
+
+.schilo-parcours-article:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px -12px rgba(15, 23, 42, .18);
+  border-color: var(--spa-accent);
+}
+
+/* Teintes par evangile (calquees sur les tokens deja utilises pour les versets) */
+.schilo-parcours-article--matthieu { --spa-accent: var(--schilo-mat, #d71f1f); --spa-accent-dark: var(--schilo-mat-dark, #8a0000); --spa-accent-pale: var(--schilo-mat-pale, #fce8e8); }
+.schilo-parcours-article--marc     { --spa-accent: var(--schilo-marc, #0f490f); --spa-accent-dark: var(--schilo-marc-dark, #083008); --spa-accent-pale: var(--schilo-marc-pale, #d0efda); }
+.schilo-parcours-article--luc      { --spa-accent: var(--schilo-luc, #0a137e); --spa-accent-dark: var(--schilo-luc-dark, #060c55); --spa-accent-pale: var(--schilo-luc-pale, #c8d0f0); }
+.schilo-parcours-article--jean     { --spa-accent: var(--schilo-jean, #484204); --spa-accent-dark: var(--schilo-jean-dark, #2e2a02); --spa-accent-pale: var(--schilo-jean-pale, #f0ecc0); }
+.schilo-parcours-article--bible    { --spa-accent: #6d3fc0; --spa-accent-dark: #4a1878; --spa-accent-pale: #ede0f8; }
+
+.schilo-parcours-article__tag {
+  position: absolute;
+  top: 1.1rem;
+  right: -1.9rem;
+  transform: rotate(35deg);
+  width: 8rem;
+  padding: .22rem 0;
+  text-align: center;
+  background: var(--spa-accent);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+}
+
+.schilo-parcours-article__title {
+  position: relative;
+  display: block;
+  margin: 0 2.5rem .6rem 0;
+  font-family: var(--schilo-font-serif, serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--schilo-text-primary, #1e293b);
+  text-decoration: none;
+}
+
+.schilo-parcours-article__title:hover {
+  color: var(--spa-accent-dark);
+}
+
+.schilo-parcours-article__excerpt {
+  position: relative;
+  margin: 0 0 .9rem;
+  font-size: .95rem;
+  line-height: 1.65;
+  color: var(--schilo-text-secondary, #64748b);
+}
+
+.schilo-parcours-article__excerpt--dropcap::first-letter {
+  float: left;
+  font-family: var(--schilo-font-serif, serif);
+  font-size: 2.9rem;
+  font-weight: 700;
+  line-height: .8;
+  padding: .1rem .35rem 0 0;
+  color: var(--spa-accent);
+}
+
+.schilo-parcours-article__verse {
+  margin: 0 0 1rem;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.schilo-parcours-article__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .9rem;
+}
+
+.schilo-parcours-article__more {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .45rem 1rem;
+  border-radius: 99px;
+  background: var(--spa-accent-pale);
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--spa-accent-dark);
+  text-decoration: none;
+  transition: background .15s, transform .15s;
+}
+
+.schilo-parcours-article__more:hover {
+  background: var(--spa-accent);
+  color: #fff;
+}
+
+.schilo-parcours-article__more .ti {
+  font-size: .8rem;
+  transition: transform .15s;
+}
+
+.schilo-parcours-article__more:hover .ti {
+  transform: translateX(3px);
+}
+
+.schilo-parcours-article__meta {
+  margin: 0;
+  padding-top: .9rem;
+  border-top: 1px dashed var(--schilo-border, #e2e8f0);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: .78rem;
+  color: var(--schilo-text-muted, #8a96a8);
+}
+
+.schilo-parcours-article__meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+}
+
+/* ---- Declencheur "Resume detaille" (modal) ------------------------ */
+.schilo-parcours-article__detail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .45rem 1rem;
+  border-radius: 99px;
+  border: 1.5px dashed var(--spa-accent, var(--schilo-accent, #2872d4));
+  background: transparent;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--spa-accent-dark, var(--schilo-accent-dark, #0e3f88));
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+
+.schilo-parcours-article__detail-btn:hover {
+  background: var(--spa-accent-pale, var(--schilo-accent-pale, #e2eefb));
+}
+
+/* ---- Fenetre modale "Resume detaille" ------------------------------ */
+.schilo-resume-modal {
+  --spm-accent: var(--spa-accent, var(--schilo-accent, #2872d4));
+  --spm-accent-dark: var(--spa-accent-dark, var(--schilo-accent-dark, #0e3f88));
+  --spm-accent-pale: var(--spa-accent-pale, var(--schilo-accent-pale, #e2eefb));
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+}
+
+.schilo-resume-modal.is-open {
+  display: block;
+}
+
+.schilo-resume-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, .6);
+  backdrop-filter: blur(2px);
+  animation: schilo-modal-fade .18s ease;
+}
+
+.schilo-resume-modal__panel {
+  position: relative;
+  z-index: 1;
+  margin: 4vh auto;
+  max-width: 680px;
+  max-height: 90vh;
+  width: calc(100% - 2.5rem);
+  background: var(--schilo-bg-card, #fff);
+  border-radius: 22px;
+  border-top: 6px solid var(--spm-accent);
+  box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .35);
+  overflow-y: auto;
+  animation: schilo-modal-pop .22s cubic-bezier(.2, .9, .3, 1.2);
+}
+
+@keyframes schilo-modal-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes schilo-modal-pop {
+  from { opacity: 0; transform: translateY(14px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.schilo-resume-modal__close {
+  position: absolute;
+  top: .9rem;
+  right: 1.1rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  border: none;
+  background: var(--schilo-bg-muted, #f4f6f9);
+  color: var(--schilo-text-secondary, #64748b);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.schilo-resume-modal__close:hover {
+  background: var(--spm-accent-pale);
+  color: var(--spm-accent-dark);
+}
+
+.schilo-resume-modal__header {
+  position: relative;
+  padding: 2rem 3.2rem 1rem 2rem;
+}
+
+.schilo-resume-modal__tag {
+  display: inline-block;
+  margin-bottom: .5rem;
+  padding: .2rem .65rem;
+  border-radius: 99px;
+  background: var(--spm-accent);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.schilo-resume-modal__title {
+  margin: 0;
+  font-family: var(--schilo-font-serif, serif);
+  font-size: 1.4rem;
+  line-height: 1.3;
+  color: var(--schilo-text-primary, #1e293b);
+}
+
+.schilo-resume-modal__body {
+  padding: 0 2rem 1rem;
+}
+
+.schilo-resume-modal__chapter {
+  position: relative;
+  margin-bottom: 1.2rem;
+  padding-left: 2.4rem;
+}
+
+.schilo-resume-modal__chapter-num {
+  position: absolute;
+  left: 0;
+  top: -.3rem;
+  font-family: var(--schilo-font-serif, serif);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--spm-accent);
+  opacity: .5;
+}
+
+.schilo-resume-modal__chapter p {
+  margin: 0;
+  font-size: .96rem;
+  line-height: 1.7;
+  color: var(--schilo-text-secondary, #64748b);
+}
+
+.schilo-resume-modal__verse {
+  margin: 0 0 1.2rem;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.schilo-resume-modal__footer {
+  padding: 1rem 2rem 1.75rem;
+  border-top: 1px dashed var(--schilo-border, #e2e8f0);
+}
+
+body.schilo-modal-open {
+  overflow: hidden;
+}
+
+@media (max-width: 560px) {
+  .schilo-resume-modal__header { padding: 1.5rem 2.8rem 1rem 1.25rem; }
+  .schilo-resume-modal__body { padding: 0 1.25rem 1rem; }
+  .schilo-resume-modal__footer { padding: 1rem 1.25rem 1.5rem; }
+  .schilo-parcours-article { padding: 1.5rem 1.25rem 1.25rem; }
+  .schilo-parcours-article__tag { right: -2.1rem; top: 1rem; }
+}
+
+/* ---- Sidebar "En bref" — design enrichi, aligne sur les couleurs des
+   cartes d'articles (evite l'effet "sidebar fade" a cote de contenu tres
+   colore) : accent haut par carte, badge icone rond, carte stats sombre
+   en echo au hero, nuage de mots-cles gradue par frequence. ---- */
+.schilo-sidebar-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--schilo-bg-card, #fff);
+  border: 1px solid var(--schilo-border, #e2e8f0);
+  border-radius: var(--schilo-radius-lg, 14px);
+  padding: 1.1rem 1.15rem;
+  box-shadow: var(--schilo-shadow-sm, 0 1px 3px rgba(0,0,0,.06));
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.schilo-sidebar-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -14px rgba(15, 23, 42, .22);
+}
+
+.schilo-sidebar-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--schilo-sb-accent, var(--schilo-accent, #2872d4));
+}
+
+.schilo-sidebar-card--people    { --schilo-sb-accent: var(--schilo-mat, #d71f1f); }
+.schilo-sidebar-card--places    { --schilo-sb-accent: var(--schilo-marc, #0f490f); }
+.schilo-sidebar-card--keywords  { --schilo-sb-accent: var(--schilo-jean, #484204); }
+.schilo-sidebar-card--refs      { --schilo-sb-accent: var(--schilo-luc, #0a137e); }
+
+.schilo-sidebar-card__head {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  margin-bottom: .85rem;
+}
+
+.schilo-sidebar-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--schilo-sb-accent, var(--schilo-accent, #2872d4));
+  color: #fff;
+  font-size: 13px;
+}
+
+.schilo-sidebar-card__title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--schilo-text-muted, #8a96a8);
+}
+
+/* Carte "En bref" : bloc stats sombre, en echo au hero de la page */
+.schilo-sidebar-card--stats {
+  background: linear-gradient(135deg, var(--schilo-bg-dark, #1e2a3a), var(--schilo-bg-mid, #273548));
+  border-color: transparent;
+}
+
+.schilo-sidebar-card--stats::before { display: none; }
+
+.schilo-sidebar-stat-grid {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.schilo-sidebar-stat { flex: 1; min-width: 0; }
+
+.schilo-sidebar-stat__num {
+  display: block;
+  font-family: var(--schilo-font-serif, serif);
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+.schilo-sidebar-stat__label {
+  display: block;
+  margin-top: .35rem;
+  font-size: 11px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.65);
+}
+
+.schilo-sidebar-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.schilo-sidebar-theme-tag {
+  display: inline-block;
+  padding: .2rem .6rem;
+  border-radius: 99px;
+  background: var(--schilo-bg-muted, #f4f6f9);
+  border: 1px solid var(--schilo-border, #e2e8f0);
+  color: var(--schilo-text-secondary, #64748b);
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.schilo-sidebar-theme-tag:hover {
+  background: var(--schilo-bg-card, #fff);
+  border-color: var(--schilo-sb-accent, var(--schilo-accent, #2872d4));
+  color: var(--schilo-text-primary, #1e293b);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px -4px rgba(15,23,42,.3);
+}
+
+/* Nuage de mots-cles : taille degressive selon le rang de frequence */
+.schilo-sidebar-theme-tag--lg { font-size: 14px; font-weight: 700; padding: .28rem .75rem; }
+.schilo-sidebar-theme-tag--sm { font-size: 11px; opacity: .8; }
+
+/* Références bibliques : meme code couleur par evangile que les cartes d'articles */
+.schilo-sidebar-theme-tag--matthieu { background: var(--schilo-mat-pale, #fce8e8); border-color: var(--schilo-mat, #d71f1f); color: var(--schilo-mat-dark, #8a0000); }
+.schilo-sidebar-theme-tag--marc     { background: var(--schilo-marc-pale, #d0efda); border-color: var(--schilo-marc, #0f490f); color: var(--schilo-marc-dark, #083008); }
+.schilo-sidebar-theme-tag--luc      { background: var(--schilo-luc-pale, #c8d0f0); border-color: var(--schilo-luc, #0a137e); color: var(--schilo-luc-dark, #060c55); }
+.schilo-sidebar-theme-tag--jean     { background: var(--schilo-jean-pale, #f0ecc0); border-color: var(--schilo-jean, #484204); color: var(--schilo-jean-dark, #2e2a02); }
+.schilo-sidebar-theme-tag--bible    { background: #ede0f8; border-color: #6d3fc0; color: #4a1878; }

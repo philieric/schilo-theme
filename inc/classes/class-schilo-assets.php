@@ -177,6 +177,22 @@ class Schilo_Assets {
 
         // La page de recherche utilise le style principal (search cards définis dans style.css)
 
+        if ( is_page_template( 'page-parcours.php' ) || is_tax( [ 'schilo_parcours', 'schilo_theme', 'schilo_serie' ] ) || get_query_var( 'schilo_index_field' ) !== '' ) {
+            wp_enqueue_style(
+                'schilo-parcours',
+                SCHILO_ASSETS . '/css/parcours.css',
+                [ 'schilo-main' ],
+                self::ver( $dir . '/assets/css/parcours.css' )
+            );
+            wp_enqueue_script(
+                'schilo-parcours-modal',
+                SCHILO_ASSETS . '/js/parcours-modal.js',
+                [],
+                self::ver( $dir . '/assets/js/parcours-modal.js' ),
+                true
+            );
+        }
+
         if ( is_page_template( 'page-sitemap.php' ) ) {
             wp_enqueue_style(
                 'schilo-sitemap',

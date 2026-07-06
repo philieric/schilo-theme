@@ -36,7 +36,18 @@
     update();
   })();
 
-  document.addEventListener('DOMContentLoaded', function () {
+  // Script charge en pied de page : DOMContentLoaded a souvent deja ete
+  // emis a ce stade (comportement variable selon navigateurs/vitesse de
+  // chargement), d'ou l'attente conditionnee sur document.readyState.
+  function ready(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
+
+  ready(function () {
     var tabnav = document.getElementById('schilo-tabnav');
     if (!tabnav) return;
 
