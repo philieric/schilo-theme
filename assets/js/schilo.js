@@ -1,71 +1,12 @@
 /**
  * Schilo.Theme
  * Namespace : Schilo
- * Classes   : Schilo.Nav | Schilo.Search | Schilo.Anchors | Schilo.Verses | Schilo.MarkRead | Schilo.ArchiveView | Schilo.CategoryAccordion
+ * Classes   : Schilo.Search | Schilo.Anchors | Schilo.Verses | Schilo.MarkRead | Schilo.ArchiveView | Schilo.CategoryAccordion
  *
- * JS principal du thème — menu mobile, ancres, versions versets, mark-read.
+ * JS principal du thème — ancres, versions versets, mark-read.
  */
 
 var Schilo = Schilo || {};
-
-/* ════════════════════════════════════════════
-   Schilo.Nav
-   Gère le menu burger mobile
-════════════════════════════════════════════ */
-Schilo.Nav = (function () {
-
-    'use strict';
-
-    var _toggle = null;
-    var _nav    = null;
-
-    function _open() {
-        _nav.classList.add('is-open');
-        _toggle.setAttribute('aria-expanded', 'true');
-        var icon = _toggle.querySelector('i');
-        if (icon) icon.className = 'ti ti-x';
-    }
-
-    function _close() {
-        _nav.classList.remove('is-open');
-        _toggle.setAttribute('aria-expanded', 'false');
-        var icon = _toggle.querySelector('i');
-        if (icon) icon.className = 'ti ti-menu-2';
-    }
-
-    function _isOpen() {
-        return _nav.classList.contains('is-open');
-    }
-
-    function init() {
-        _toggle = document.getElementById('schilo-menu-toggle');
-        _nav    = document.getElementById('schilo-primary-nav');
-        if (!_toggle || !_nav) return;
-
-        _toggle.addEventListener('click', function () {
-            _isOpen() ? _close() : _open();
-        });
-
-        /* Fermer au clic extérieur */
-        document.addEventListener('click', function (e) {
-            if (!_nav.contains(e.target) && !_toggle.contains(e.target)) {
-                _close();
-            }
-        });
-
-        /* Fermer à Escape */
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && _isOpen()) {
-                _close();
-                _toggle.focus();
-            }
-        });
-    }
-
-    return { init: init, open: _open, close: _close };
-
-})();
-
 
 /* ════════════════════════════════════════════
    Schilo.Search
@@ -412,7 +353,6 @@ Schilo.App = (function () {
     'use strict';
 
     function init() {
-        Schilo.Nav.init();
         Schilo.Search.init();
         Schilo.Anchors.init();
         Schilo.Verses.init();
