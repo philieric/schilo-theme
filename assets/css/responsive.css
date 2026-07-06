@@ -218,8 +218,11 @@
   .schilo-btn-primary { padding: 6px 14px; font-size: 12px; }
 }
 
-/* ── 768px : basculer en menu burger ── */
-@media (max-width: 768px) {
+/* ── 960px : basculer en menu burger ──
+   Seuil relevé de 768 à 960 : entre les deux, les liens desktop
+   (Accueil/Synopse/Annexes + recherche + langue + CTA) ne tenaient
+   plus sur une seule ligne et « Annexes » retombait seul en dessous. */
+@media (max-width: 960px) {
   .schilo-nav__links {
     display: none;
     position: fixed;
