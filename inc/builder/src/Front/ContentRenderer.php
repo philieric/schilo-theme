@@ -40,6 +40,21 @@ class ContentRenderer
 
         $prefix = (new ArticleTypeService())->resolveType($postId);
 
+        // Couleur d'accent unique pour tout l'article : agrege les references
+        // bibliques de toutes les sections, puis determine l'evangile dominant
+        // (Matthieu > Marc > Luc > Jean > Bible en cas d'egalite), applique a
+        // chaque carte de section pour un rendu homogene sur toute la fiche.
+        $totalGospelCounts = array('matthieu' => 0, 'marc' => 0, 'luc' => 0, 'jean' => 0, 'bible' => 0);
+        foreach ($sections as $section) {
+            if ($this->isSectionEmpty($section)) {
+                continue;
+            }
+            foreach (SectionRenderer::countGospels($section) as $gospel => $count) {
+                $totalGospelCounts[$gospel] += $count;
+            }
+        }
+        $dominantGospel = SectionRenderer::pickDominantGospel($totalGospelCounts);
+
         ob_start();
 
         echo '<div class="schilo-post-sections schilo-post-' . esc_attr(strtolower($prefix)) . '">';
@@ -49,7 +64,7 @@ class ContentRenderer
             if ($this->isSectionEmpty($section)) {
                 continue;
             }
-            (new SectionRenderer())->render($section, $prefix, $index);
+            (new SectionRenderer())->render($section, $prefix, $index, $dominantGospel);
             $rendered++;
         }
 
