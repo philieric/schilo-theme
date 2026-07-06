@@ -18,7 +18,9 @@ $current_tax = isset($_GET['taxonomy']) && array_key_exists($_GET['taxonomy'], $
 $tree = $service->getTermsTree($current_tax);
 $base_url = admin_url('admin.php?page=schilo-builder-classement&tab=termes');
 $word_range = $service->getDescriptionWordRange();
-$desc_placeholder = "Description affichée sur la page publique ({$word_range['min']}-{$word_range['max']} mots conseillés)...";
+$paragraph_range = $service->getDescriptionParagraphRange();
+$desc_placeholder = "Description affichée sur la page publique ({$word_range['min']}-{$word_range['max']} mots, "
+    . "{$paragraph_range['min']}-{$paragraph_range['max']} paragraphes conseillés)...";
 ?>
 <div class="wrap schilo-builder-settings">
     <h1 class="scl-page-title">
