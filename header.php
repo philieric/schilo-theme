@@ -25,20 +25,6 @@
       </div>
     </a>
 
-    <!-- Navigation principale -->
-    <nav class="schilo-nav__links" id="schilo-primary-nav"
-         aria-label="<?php esc_attr_e( 'Navigation principale', 'schilo' ); ?>">
-      <?php
-      wp_nav_menu( [
-        'theme_location' => 'primary',
-        'container'      => false,
-        'fallback_cb'    => 'schilo_fallback_nav',
-        'items_wrap'     => '%3$s',
-        'walker'         => new Schilo_Nav_Walker(),
-      ] );
-      ?>
-    </nav>
-
     <!-- Droite -->
     <div class="schilo-nav__right">
 
@@ -159,13 +145,6 @@
       <a href="<?php echo esc_url( home_url( '/#parcours' ) ); ?>" class="schilo-btn-primary">
         <?php esc_html_e( 'Commencer', 'schilo' ); ?>
       </a>
-
-      <!-- Burger mobile -->
-      <button class="schilo-nav__toggle" id="schilo-menu-toggle"
-              aria-controls="schilo-primary-nav" aria-expanded="false"
-              aria-label="<?php esc_attr_e( 'Ouvrir le menu', 'schilo' ); ?>">
-        <i class="ti ti-menu-2" aria-hidden="true"></i>
-      </button>
     </div>
 
   </div>
