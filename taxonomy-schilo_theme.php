@@ -36,11 +36,33 @@ $render_posts = function ( int $term_id ) use ( $get_post_ids ): void {
 		return;
 	}
 
+	// Voir taxonomy-schilo_parcours.php : les complements (ex: une Annexe) se
+	// rattachent sous l'article principal qui les reference plutot que
+	// d'apparaitre comme un element de premier plan a part entiere.
+	$grouped = schilo_classement_group_articles_with_complements( $post_ids );
+
 	echo '<ul class="schilo-parcours-articles schilo-parcours-articles--unordered">';
-	foreach ( $post_ids as $post_id ) {
-		schilo_classement_render_article_item( (int) $post_id );
+	foreach ( $grouped['groups'] as $group ) {
+		schilo_classement_render_article_item( (int) $group['principal'] );
+		if ( ! empty( $group['complements'] ) ) : ?>
+			<li class="schilo-parcours-complements-block">
+				<div class="schilo-parcours-complements-label"><i class="ti ti-paperclip" aria-hidden="true"></i> <?php esc_html_e( 'En complément', 'schilo' ); ?></div>
+				<ul class="schilo-parcours-complements">
+					<?php foreach ( $group['complements'] as $cid ) : schilo_classement_render_complement_item( (int) $cid ); endforeach; ?>
+				</ul>
+			</li>
+		<?php endif;
 	}
 	echo '</ul>';
+
+	if ( ! empty( $grouped['orphans'] ) ) : ?>
+		<div class="schilo-parcours-complements-block schilo-parcours-complements-block--orphans">
+			<div class="schilo-parcours-complements-label"><i class="ti ti-paperclip" aria-hidden="true"></i> <?php esc_html_e( 'Compléments', 'schilo' ); ?></div>
+			<ul class="schilo-parcours-complements">
+				<?php foreach ( $grouped['orphans'] as $cid ) : schilo_classement_render_complement_item( (int) $cid ); endforeach; ?>
+			</ul>
+		</div>
+	<?php endif;
 };
 
 $children = get_term_children( $term->term_id, $taxonomy );
@@ -62,7 +84,7 @@ get_header();
 		<div class="schilo-hero__eyebrow"><i class="ti ti-category"></i> <?php esc_html_e( 'Thème', 'schilo' ); ?></div>
 		<h1 class="schilo-hero__title schilo-serif"><?php echo esc_html( $term->name ); ?></h1>
 		<?php if ( $term->description ) : ?>
-			<p class="schilo-hero__desc"><?php echo esc_html( $term->description ); ?></p>
+			<?php schilo_classement_render_term_description( $term->description, 'schilo-hero__desc' ); ?>
 		<?php endif; ?>
 	</div>
 </div>
@@ -124,7 +146,7 @@ get_header();
 			</div>
 			<div class="schilo-card__body">
 				<?php if ( $child->description ) : ?>
-					<p class="schilo-card__desc"><?php echo esc_html( $child->description ); ?></p>
+					<?php schilo_classement_render_term_description( $child->description, 'schilo-card__desc' ); ?>
 				<?php endif; ?>
 				<?php $render_posts( (int) $child->term_id ); ?>
 			</div>

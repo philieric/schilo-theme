@@ -12,6 +12,19 @@ defined( 'ABSPATH' ) || exit;
 if ( ! function_exists( 'schilo_classement_aggregate_indexation' ) ) :
 
 /**
+ * Affiche une description de terme (parcours/theme/serie) generee via IA en
+ * plusieurs paragraphes (voir ClassementService::getDescriptionParagraphRange()
+ * et buildTermDescriptionsPrompt()) : le texte brut stocke separe ses
+ * paragraphes par une ligne vide, wpautop() les transforme en balises <p>
+ * reelles — un simple esc_html() les aurait sinon aplatis en un seul bloc
+ * (les retours a la ligne sont ignores par le rendu HTML normal).
+ */
+function schilo_classement_render_term_description( string $description, string $class = '' ): void {
+	if ( trim( $description ) === '' ) return;
+	echo '<div class="' . esc_attr( $class ) . '">' . wp_kses_post( wpautop( $description ) ) . '</div>';
+}
+
+/**
  * Agrege les infos d'indexation (temps de lecture, personnages, lieux,
  * mots-cles, references bibliques) sur un ensemble d'articles, triees
  * par frequence decroissante.
@@ -381,6 +394,126 @@ function schilo_classement_render_article_item( int $post_id ): void {
 		<?php endif; ?>
 	</li>
 	<?php
+}
+
+/**
+ * Accent visuel (classe CSS modificatrice + icone Tabler) par prefixe, pour
+ * qu'un lecteur distingue une Annexe d'une analyse de contradictions d'un
+ * coup d'oeil sur les cartes complement — sinon toutes identiques. Prefixe
+ * non mappe ici (encore inconnu ou rarement complement) -> style neutre par
+ * defaut (voir .schilo-parcours-complement dans parcours.css).
+ */
+function schilo_classement_complement_style( string $prefix ): array {
+	// $prefix vient de schilo_classement_split_title_prefix() et inclut les
+	// chiffres (ex: "ANN001") — on ne garde que le code lettres pour matcher
+	// la table ci-dessous (alignee sur la colonne `prefix`, lettres seules,
+	// de wp_schilo_indexation).
+	$letters = strtoupper( preg_replace( '/\d+$/', '', $prefix ) );
+
+	$styles = [
+		'ANN' => [ 'class' => 'schilo-parcours-complement--annexe',        'icon' => 'ti-paperclip' ],
+		'INF' => [ 'class' => 'schilo-parcours-complement--notes',         'icon' => 'ti-info-circle' ],
+		'MIR' => [ 'class' => 'schilo-parcours-complement--miracles',      'icon' => 'ti-sparkles' ],
+		'CTD' => [ 'class' => 'schilo-parcours-complement--contradictions','icon' => 'ti-alert-triangle' ],
+		'PRB' => [ 'class' => 'schilo-parcours-complement--analyse',       'icon' => 'ti-scale' ],
+	];
+	return $styles[ $letters ] ?? [ 'class' => '', 'icon' => 'ti-tag' ];
+}
+
+/**
+ * Rendu compact d'un article "Complement" (ex: une Annexe) rattache a
+ * l'etape principale qui le reference dans un parcours — volontairement
+ * plus discret que schilo_classement_render_article_item() (pas de
+ * numero decoratif, pas de verset, pas de lettrine). Voir
+ * schilo_classement_group_articles_with_complements().
+ */
+function schilo_classement_render_complement_item( int $post_id ): void {
+	$service = new \Schilo\Builder\Service\IndexationService();
+	$row     = $service->getByPostId( $post_id );
+	$resume  = $row['resume_court'] ?? '';
+
+	[ $prefix, $title ] = schilo_classement_split_title_prefix( get_the_title( $post_id ) );
+	$permalink = get_permalink( $post_id );
+	$style     = schilo_classement_complement_style( $prefix );
+	?>
+	<li class="schilo-parcours-complement <?php echo esc_attr( $style['class'] ); ?>">
+		<?php if ( $prefix ) : ?>
+			<span class="schilo-parcours-complement__tag"><i class="ti <?php echo esc_attr( $style['icon'] ); ?>" aria-hidden="true"></i> <?php echo esc_html( $prefix ); ?></span>
+		<?php endif; ?>
+		<a href="<?php echo esc_url( $permalink ); ?>" class="schilo-parcours-complement__title"><?php echo esc_html( $title ); ?></a>
+		<?php if ( $resume ) : ?>
+			<p class="schilo-parcours-complement__excerpt"><?php echo esc_html( wp_trim_words( $resume, 24, '…' ) ); ?></p>
+		<?php endif; ?>
+	</li>
+	<?php
+}
+
+/**
+ * Regroupe une liste ordonnee de post_ids d'un terme de parcours en
+ * articles "principaux" + leurs "complements" rattaches (voir
+ * ClassementService::resolveComplementPrincipal() et la config des roles
+ * par prefixe dans Parcours & Themes > Configuration). Objectif : qu'une
+ * Annexe classee dans un parcours n'apparaisse jamais comme une etape
+ * numerotee au meme titre qu'un PER, mais rattachee sous l'article qui la
+ * reference (ou dans une section "Complements" generique si aucun match).
+ *
+ * Retourne :
+ *   [ 'groups'  => [ ['principal' => post_id, 'complements' => [post_id, ...]], ... ],
+ *     'orphans' => [ post_id, ... ] ]  // compements sans principal resolu dans ce terme
+ */
+function schilo_classement_group_articles_with_complements( array $post_ids ): array {
+	if ( empty( $post_ids ) ) return [ 'groups' => [], 'orphans' => [] ];
+
+	$service = new \Schilo\Builder\Service\ClassementService();
+	$rules   = $service->getPrefixRules();
+
+	$principals  = [];
+	$complements = [];
+	foreach ( $post_ids as $post_id ) {
+		$post_id = (int) $post_id;
+		$row     = $service->getByPostId( $post_id );
+		$prefix  = $row['prefix'] ?? '';
+		$role    = ( $prefix !== '' && isset( $rules[ $prefix ] ) ) ? $rules[ $prefix ]['role'] : 'principal';
+		if ( $role === 'complement' ) {
+			$complements[] = $post_id;
+		} else {
+			$principals[] = $post_id;
+		}
+	}
+
+	$groups = [];
+	$index_by_principal = [];
+	foreach ( $principals as $pid ) {
+		$groups[] = [ 'principal' => $pid, 'complements' => [] ];
+		$index_by_principal[ $pid ] = count( $groups ) - 1;
+	}
+
+	$orphans_weighted = [];
+	foreach ( $complements as $cid ) {
+		$crow   = $service->getByPostId( $cid );
+		$prefix = $crow['prefix'] ?? '';
+		$poids  = ( $prefix !== '' && isset( $rules[ $prefix ] ) ) ? $rules[ $prefix ]['poids'] : 50;
+
+		$match = $service->resolveComplementPrincipal( $cid, $principals );
+		if ( $match !== null && isset( $index_by_principal[ $match ] ) ) {
+			$groups[ $index_by_principal[ $match ] ]['complements'][] = [ 'id' => $cid, 'poids' => $poids ];
+		} else {
+			$orphans_weighted[] = [ 'id' => $cid, 'poids' => $poids ];
+		}
+	}
+
+	foreach ( $groups as &$group ) {
+		usort( $group['complements'], fn( $a, $b ) => $b['poids'] <=> $a['poids'] );
+		$group['complements'] = array_column( $group['complements'], 'id' );
+	}
+	unset( $group );
+
+	usort( $orphans_weighted, fn( $a, $b ) => $b['poids'] <=> $a['poids'] );
+
+	return [
+		'groups'  => $groups,
+		'orphans' => array_column( $orphans_weighted, 'id' ),
+	];
 }
 
 endif;

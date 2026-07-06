@@ -11,6 +11,20 @@
   max-width: 760px;
 }
 
+/* Les descriptions sont rendues via wpautop() (voir
+   schilo_classement_render_term_description() dans classement-shared.php) :
+   plusieurs paragraphes <p> reels a l'interieur du conteneur, plutot qu'un
+   seul bloc de texte. */
+.schilo-hero__desc p,
+.schilo-card__desc p {
+  margin: 0 0 .75em;
+}
+
+.schilo-hero__desc p:last-child,
+.schilo-card__desc p:last-child {
+  margin-bottom: 0;
+}
+
 /* ── Barre d'onglets (étapes / sous-thèmes) — calque de .schilo-single-tabnav ── */
 .schilo-parcours-tabnav {
   background: var(--schilo-bg-card, #fff);
@@ -214,6 +228,104 @@
   transform: translateY(-4px);
   box-shadow: 0 14px 30px -12px rgba(15, 23, 42, .18);
   border-color: var(--spa-accent);
+}
+
+/* ---- Complements rattaches (ex: Annexe) — voir Parcours & Themes >
+   Configuration > Regles par prefixe. Cle : ne PAS utiliser la classe
+   .schilo-parcours-article ici (evite le compteur decoratif numerote,
+   reserve aux etapes "principales"). ------------------------------- */
+.schilo-parcours-complements-block {
+  list-style: none;
+  margin: -.75rem 0 0;
+  padding: 0 0 0 1.5rem;
+  border-left: 3px solid var(--schilo-border, #e2e8f0);
+}
+
+.schilo-parcours-complements-block--orphans {
+  margin: 1.5rem 0 0;
+  padding: 1.25rem 1.25rem 1.25rem 1.5rem;
+  background: var(--schilo-bg-soft, #f8fafc);
+  border-radius: 16px;
+}
+
+.schilo-parcours-complements-label {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin: 0 0 .6rem;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--schilo-text-secondary, #64748b);
+}
+
+.schilo-parcours-complements {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+
+.schilo-parcours-complement {
+  --spc-accent: var(--schilo-accent, #2872d4);
+  --spc-accent-pale: var(--schilo-accent-pale, #e2eefb);
+
+  position: relative;
+  background: var(--schilo-bg-soft, #f8fafc);
+  border: 1px solid var(--schilo-border, #e2e8f0);
+  border-left: 3px solid var(--spc-accent);
+  border-radius: 12px;
+  padding: .85rem 1rem .85rem 1rem;
+}
+
+/* Accent par categorie de prefixe (voir schilo_classement_complement_style()
+   dans classement-shared.php) — pour distinguer une Annexe d'une analyse de
+   contradictions d'un coup d'oeil, sans concurrencer visuellement les cartes
+   principales. */
+.schilo-parcours-complement--annexe        { --spc-accent: #c2601a; --spc-accent-pale: #fdf2e9; }
+.schilo-parcours-complement--notes         { --spc-accent: #4338ca; --spc-accent-pale: #eef2ff; }
+.schilo-parcours-complement--miracles      { --spc-accent: #047857; --spc-accent-pale: #ecfdf5; }
+.schilo-parcours-complement--contradictions{ --spc-accent: #b91c1c; --spc-accent-pale: #fef2f2; }
+.schilo-parcours-complement--analyse       { --spc-accent: #6d28d9; --spc-accent-pale: #f5f3ff; }
+
+.schilo-parcours-complement__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  margin: 0 .5rem .4rem 0;
+  padding: .1rem .55rem;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  border-radius: 999px;
+  background: var(--spc-accent-pale);
+  color: var(--spc-accent);
+}
+
+.schilo-parcours-complement__tag .ti {
+  font-size: .8rem;
+}
+
+.schilo-parcours-complement__title {
+  display: block;
+  font-weight: 600;
+  color: var(--schilo-text, #1e293b);
+  text-decoration: none;
+}
+
+.schilo-parcours-complement__title:hover {
+  color: var(--schilo-accent, #2872d4);
+  text-decoration: underline;
+}
+
+.schilo-parcours-complement__excerpt {
+  margin: .3rem 0 0;
+  font-size: .85rem;
+  line-height: 1.5;
+  color: var(--schilo-text-secondary, #64748b);
 }
 
 /* Teintes par evangile (calquees sur les tokens deja utilises pour les versets) */

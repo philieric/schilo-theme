@@ -235,8 +235,8 @@ git fetch origin
 # Nouvelle branche de travail dans un dossier séparé, partant de develop à jour
 git worktree add "C:\Apache24\worktrees\schilo-theme-feature-y" -b feature/nom-chantier-y develop
 
-# Ou pour une branche qui existe déjà (ex: feature/indexation-validation-mode)
-git worktree add "C:\Apache24\worktrees\schilo-theme-indexation" feature/indexation-validation-mode
+# Ou pour continuer une branche existante dans un 2e dossier (remplacer par le nom réel)
+git worktree add "C:\Apache24\worktrees\schilo-theme-<branche>" feature/nom-de-la-branche-existante
 ```
 
 Chaque worktree suit exactement les mêmes règles que le reste de ce document

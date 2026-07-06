@@ -70,6 +70,10 @@ $render_parent_options = function (array $tree) {
         echo '<option value="' . esc_attr((int) $term->term_id) . '">' . esc_html($term->name) . '</option>';
     }
 };
+
+$prefix = $indexed['prefix'] ?? '';
+$prefix_rule = $prefix !== '' ? $service->getPrefixRule($prefix) : null;
+$prefix_role_labels = ['principal' => 'Principal', 'complement' => 'Complément', 'exclu' => 'Exclu'];
 ?>
 <div class="wrap schilo-builder-settings" id="scl-val-wrap">
     <h1 class="scl-page-title">
@@ -80,6 +84,21 @@ $render_parent_options = function (array $tree) {
     <?php if ($pending_suggestion) : ?>
     <div class="notice notice-info" style="padding:10px 12px;">
         <p style="margin:0;"><strong>Suggestion IA en attente</strong> (générée via un classement en lot) — les cases ci-dessous sont pré-cochées d'après cette suggestion. Vérifiez avant d'enregistrer.</p>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($prefix_rule && $prefix_rule['role'] !== 'principal') : ?>
+    <div class="notice notice-warning" style="padding:10px 12px;">
+        <p style="margin:0;">
+            <strong>Préfixe <?php echo esc_html($prefix); ?></strong> — rôle configuré :
+            <strong><?php echo esc_html($prefix_role_labels[$prefix_rule['role']] ?? $prefix_rule['role']); ?></strong>.
+            <?php if ($prefix_rule['role'] === 'exclu') : ?>
+                Cet article ne peut pas être classé (réglage dans Configuration).
+            <?php else : ?>
+                Classable, mais s'affichera en complément (rattaché à l'article principal qui le
+                référence) plutôt qu'en élément de premier plan.
+            <?php endif; ?>
+        </p>
     </div>
     <?php endif; ?>
 
