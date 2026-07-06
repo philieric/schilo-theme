@@ -600,7 +600,7 @@
   font-weight: 500;
 }
 
-.schilo-sidebar-navlink--next:hover { background: var(--schilo-accent-dark); }
+.schilo-sidebar-navlink--next:hover { background: var(--schilo-accent-dark); color: #fff; }
 
 .schilo-sidebar-navlink__dir {
   display: block;
