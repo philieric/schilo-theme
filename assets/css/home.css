@@ -490,60 +490,111 @@
   font-weight: 500;
 }
 
+.schilo-home-series {
+  margin-top: 2.5rem;
+}
+
+.schilo-home-series__heading {
+  margin-bottom: 1rem;
+}
+
+.schilo-home-series__heading span {
+  display: block;
+  margin-bottom: .4rem;
+  color: var(--schilo-accent);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.schilo-home-series__heading h3 {
+  margin: 0;
+  color: var(--schilo-text-primary);
+  font-family: var(--schilo-font-serif);
+  font-size: clamp(18px, 2.2vw, 22px);
+  font-weight: 500;
+}
+
 .schilo-home-resources {
-  margin-top: 1.25rem;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: .75rem;
+  gap: .9rem;
 }
 
 .schilo-home-resource {
-  min-height: 66px;
+  position: relative;
+  overflow: hidden;
+  min-height: 110px;
   display: flex;
-  align-items: center;
-  gap: .65rem;
-  padding: .8rem 1rem;
+  flex-direction: column;
+  padding: 1.1rem 1.15rem .95rem;
   border: 1px solid var(--schilo-home-card-border);
-  border-radius: var(--schilo-radius-md);
+  border-radius: var(--schilo-radius-lg);
   background: var(--schilo-bg-card);
   color: var(--schilo-text-primary);
   text-decoration: none;
-  transition: border-color var(--schilo-transition), transform var(--schilo-transition);
+  transition: box-shadow var(--schilo-transition), transform var(--schilo-transition);
 }
+
+.schilo-home-resource::before {
+  content: attr(data-letter);
+  position: absolute;
+  top: -.35em;
+  right: .1em;
+  color: var(--schilo-text-primary);
+  opacity: .06;
+  font-family: var(--schilo-font-serif);
+  font-size: 4.5rem;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.schilo-home-resource::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+.schilo-home-resource--mat::after { background: var(--schilo-mat); }
+.schilo-home-resource--marc::after { background: var(--schilo-marc); }
+.schilo-home-resource--luc::after { background: var(--schilo-luc); }
+.schilo-home-resource--jean::after { background: var(--schilo-jean); }
 
 .schilo-home-resource:hover {
-  border-color: var(--schilo-border-mid);
   color: var(--schilo-text-primary);
-  transform: translateY(-1px);
-}
-
-.schilo-home-resource__dot {
-  width: 9px;
-  height: 9px;
-  flex-shrink: 0;
-  border-radius: 50%;
-}
-
-.schilo-home-resource__dot--mat { background: var(--schilo-mat); }
-.schilo-home-resource__dot--marc { background: var(--schilo-marc); }
-.schilo-home-resource__dot--luc { background: var(--schilo-luc); }
-.schilo-home-resource__dot--jean { background: var(--schilo-jean); }
-
-.schilo-home-resource strong,
-.schilo-home-resource small {
-  display: block;
+  box-shadow: var(--schilo-home-card-shadow);
+  transform: translateY(-4px);
 }
 
 .schilo-home-resource strong {
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.35;
+  position: relative;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
-.schilo-home-resource small {
-  margin-top: .15rem;
+.schilo-home-resource__meta {
+  position: relative;
+  margin-top: .35rem;
   color: var(--schilo-text-muted);
-  font-size: 10px;
+  font-size: 11px;
+}
+
+.schilo-home-resource__link {
+  position: relative;
+  margin-top: auto;
+  padding-top: .75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--schilo-accent-dark);
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .schilo-home-themes {
@@ -660,6 +711,29 @@
   text-decoration: none;
   transition: border-color var(--schilo-transition), box-shadow var(--schilo-transition), transform var(--schilo-transition);
 }
+
+/* Bandeau d'accent en tête de carte, uniquement sur les cartes autonomes de la grille
+   (pas celles imbriquées dans .schilo-home-lib__group-row) — echo visuel du design parcours. */
+.schilo-home-lib__grid > .schilo-home-lib__card {
+  position: relative;
+  overflow: hidden;
+}
+
+.schilo-home-lib__grid > .schilo-home-lib__card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.schilo-home-lib__grid > .schilo-home-lib__card--c1::before { background: #1a56db; }
+.schilo-home-lib__grid > .schilo-home-lib__card--c2::before { background: #047857; }
+.schilo-home-lib__grid > .schilo-home-lib__card--c3::before { background: #b45309; }
+.schilo-home-lib__grid > .schilo-home-lib__card--c4::before { background: #6d28d9; }
+.schilo-home-lib__grid > .schilo-home-lib__card--c5::before { background: #0f766e; }
+.schilo-home-lib__grid > .schilo-home-lib__card--c6::before { background: #9d174d; }
 
 .schilo-home-lib__card:hover {
   border-color: var(--schilo-border-mid);
