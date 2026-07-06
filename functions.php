@@ -11,7 +11,7 @@ define( 'SCHILO_ASSETS',  SCHILO_URI . '/assets' );
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Schilo Builder (intÃƒÂ©grÃƒÂ© au thÃƒÂ¨me) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ( ! defined( 'SCHILO_BUILDER_VERSION' ) ) {
-    define( 'SCHILO_BUILDER_VERSION', '1.4.7' );
+    define( 'SCHILO_BUILDER_VERSION', '1.4.8' );
     define( 'SCHILO_BUILDER_PATH',    SCHILO_DIR . '/inc/builder/' );
     define( 'SCHILO_BUILDER_URL',     SCHILO_URI . '/inc/builder/' );
 
@@ -40,10 +40,12 @@ require_once SCHILO_DIR . '/inc/classes/class-schilo-meta.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-visitors.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-bible.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-featured.php';
+require_once SCHILO_DIR . '/inc/classes/class-schilo-search-suggest.php';
 require_once SCHILO_DIR . '/template-parts/nav-walker.php';
 
 Schilo_Setup::init();
 Schilo_Assets::init();
+Schilo_Search_Suggest::init();
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Favicon SVG (ti-flame sur fond #121c2e) Ã¢â‚¬â€ front + admin Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 add_action( 'wp_head',    'schilo_inject_favicon' );
@@ -134,6 +136,22 @@ add_action( 'admin_enqueue_scripts', function ( string $hook ): void {
 
 // -- Admin : nettoyage automatique du collage Word dans l'editeur classique --
 // -- + boutons H1-H6 / P a la place du menu deroulant "Paragraphe / Titre" --
+
+// Table de reference des raccourcis (token -> snippet), partagee entre le bouton
+// mce_buttons (savoir si le menu "Balises" doit apparaitre) et le JS d'insertion.
+function schilo_default_raccourcis_map(): array {
+    return array(
+        array( 'token' => ';bb',  'snippet' => '[/bib]',      'place_caret' => 'none',    'in_tinymce' => false, 'label' => '' ),
+        array( 'token' => ';bv',  'snippet' => '[/bvc]',      'place_caret' => 'none',    'in_tinymce' => false, 'label' => '' ),
+        array( 'token' => ';bi',  'snippet' => '[/bib]',      'place_caret' => 'none',    'in_tinymce' => false, 'label' => '' ),
+        array( 'token' => ';bn',  'snippet' => '[/bnv]',      'place_caret' => 'none',    'in_tinymce' => false, 'label' => '' ),
+        array( 'token' => ';bib', 'snippet' => '[bib][/bib]', 'place_caret' => 'between', 'in_tinymce' => true,  'label' => 'Bible' ),
+        array( 'token' => ';bvc', 'snippet' => '[bvc][/bvc]', 'place_caret' => 'between', 'in_tinymce' => true,  'label' => 'Vidéo' ),
+        array( 'token' => ';brc', 'snippet' => '[brc][/brc]', 'place_caret' => 'between', 'in_tinymce' => true,  'label' => 'Bloc riche' ),
+        array( 'token' => ';bnv', 'snippet' => '[bnv][/bnv]', 'place_caret' => 'between', 'in_tinymce' => true,  'label' => 'Navigation' ),
+    );
+}
+
 add_filter( 'mce_buttons', function ( array $buttons ): array {
     $heading_buttons = array( 'schilo_h1', 'schilo_h2', 'schilo_h3', 'schilo_h4', 'schilo_h5', 'schilo_h6', 'schilo_p' );
     $key = array_search( 'formatselect', $buttons, true );
@@ -147,11 +165,29 @@ add_filter( 'mce_buttons', function ( array $buttons ): array {
         array_splice( $buttons, $italic_key + 1, 0, array( 'underline' ) );
     }
     $buttons[] = 'pastetext';
+
+    $raccourcis_map = get_option( 'raccourcis_live_map' );
+    if ( ! is_array( $raccourcis_map ) || empty( $raccourcis_map ) ) {
+        $raccourcis_map = schilo_default_raccourcis_map();
+    }
+    $has_menu_entries = count( array_filter( $raccourcis_map, function ( $entry ) {
+        return ! empty( $entry['in_tinymce'] );
+    } ) ) > 0;
+    if ( $has_menu_entries ) {
+        $buttons[] = 'schilo_shortcodes';
+    }
+
     return $buttons;
 } );
 
 add_filter( 'tiny_mce_before_init', function ( array $init ): array {
-    $init['setup'] = <<<'JS'
+    $raccourcis_map = get_option( 'raccourcis_live_map' );
+    if ( ! is_array( $raccourcis_map ) || empty( $raccourcis_map ) ) {
+        $raccourcis_map = schilo_default_raccourcis_map();
+    }
+    $raccourcis_json = wp_json_encode( $raccourcis_map );
+
+    $init['setup'] = <<<JS
 function (editor) {
     editor.on('PastePreProcess', function (e) {
         var html = e.content;
@@ -162,6 +198,75 @@ function (editor) {
         html = html.replace(/<\/?span[^>]*>/gi, '');
         html = html.replace(/<font[^>]*>/gi, '').replace(/<\/font>/gi, '');
         e.content = html;
+    });
+
+    /* Raccourcis live : tape un token (ex: ;bib) suivi d'espace/tab/entrée -> snippet inséré */
+    var schiloRaccourcis = {$raccourcis_json};
+
+    function schiloFindMatch(textBefore) {
+        var match = null;
+        schiloRaccourcis.forEach(function (item) {
+            if (!item.token) return;
+            if (textBefore.length < item.token.length) return;
+            if (textBefore.slice(-item.token.length) !== item.token) return;
+            if (!match || item.token.length > match.token.length) match = item;
+        });
+        return match;
+    }
+
+    editor.on('keydown', function (e) {
+        if (e.keyCode !== 32 && e.keyCode !== 9) return;
+        var rng = editor.selection.getRng();
+        var node = rng.startContainer;
+        if (!node || node.nodeType !== 3) return;
+        var offset = rng.startOffset;
+        var match = schiloFindMatch(node.data.substring(0, offset));
+        if (!match) return;
+
+        e.preventDefault();
+        var start   = offset - match.token.length;
+        var after   = node.data.substring(offset);
+        var trigger = (e.keyCode === 32) ? ' ' : '\\t';
+        node.data = node.data.substring(0, start) + match.snippet + trigger + after;
+
+        var caretPos = start + match.snippet.length + trigger.length;
+        if (match.place_caret === 'between') {
+            var closeIdx = match.snippet.indexOf(']');
+            if (closeIdx !== -1) caretPos = start + closeIdx + 1;
+        }
+        var newRng = editor.dom.createRng();
+        newRng.setStart(node, caretPos);
+        newRng.setEnd(node, caretPos);
+        editor.selection.setRng(newRng);
+    });
+
+    editor.on('keyup', function (e) {
+        if (e.keyCode !== 13) return;
+        var node = editor.selection.getNode();
+        var prev = node.previousSibling;
+        while (prev && prev.nodeType === 3 && !prev.data.replace(/\s/g, '')) {
+            prev = prev.previousSibling;
+        }
+        if (!prev) return;
+        var walker = document.createTreeWalker(prev, NodeFilter.SHOW_TEXT, null, false);
+        var textNode = null, current;
+        while ((current = walker.nextNode())) textNode = current;
+        if (!textNode) return;
+
+        var match = schiloFindMatch(textNode.data);
+        if (!match) return;
+
+        var start = textNode.data.length - match.token.length;
+        textNode.data = textNode.data.substring(0, start) + match.snippet;
+
+        if (match.place_caret === 'between') {
+            var closeIdx = match.snippet.indexOf(']');
+            var caretPos = closeIdx !== -1 ? start + closeIdx + 1 : textNode.data.length;
+            var newRng = editor.dom.createRng();
+            newRng.setStart(textNode, caretPos);
+            newRng.setEnd(textNode, caretPos);
+            editor.selection.setRng(newRng);
+        }
     });
 
     var schiloBlocks = [
@@ -189,6 +294,41 @@ function (editor) {
             }
         });
     });
+
+    /* Menu "Balises" : insere le shortcode d'un raccourci au clic (sans passer par le token clavier) */
+    function schiloInsertSnippet(item) {
+        editor.focus();
+        var snippet  = item.snippet || '';
+        var closeIdx = snippet.indexOf(']');
+        if (item.place_caret === 'between' && closeIdx !== -1) {
+            editor.insertContent(snippet.substring(0, closeIdx + 1));
+            var bookmark = editor.selection.getBookmark();
+            editor.insertContent(snippet.substring(closeIdx + 1));
+            editor.selection.moveToBookmark(bookmark);
+        } else {
+            editor.insertContent(snippet);
+        }
+    }
+
+    var schiloMenuItems = schiloRaccourcis.filter(function (item) {
+        return !!item.in_tinymce;
+    });
+
+    if (schiloMenuItems.length) {
+        editor.addButton('schilo_shortcodes', {
+            type: 'menubutton',
+            text: 'Balises',
+            icon: false,
+            menu: schiloMenuItems.map(function (item) {
+                return {
+                    text: item.label || item.token,
+                    onclick: function () {
+                        schiloInsertSnippet(item);
+                    }
+                };
+            })
+        });
+    }
 }
 JS;
     return $init;
