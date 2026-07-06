@@ -1120,10 +1120,12 @@ class SettingsPage
     /**
      * Detecte les articles partageant le meme couple prefixe+numero
      * (ex: deux articles "INF144 - ...") et renumerote les doublons
-     * en cascade : le plus ancien (ID le plus bas) garde son numero,
-     * les suivants recoivent le prochain numero disponible pour ce
-     * prefixe, en incrementant a chaque assignation pour eviter toute
-     * nouvelle collision entre doublons traites dans le meme lot.
+     * en cascade : le post publie garde son numero en priorite (jamais
+     * un brouillon ne doit faire changer l'URL d'un article publie) ;
+     * a defaut de publie dans le groupe, le plus ancien (ID le plus bas)
+     * le conserve. Les autres recoivent le prochain numero disponible
+     * pour ce prefixe, en incrementant a chaque assignation pour eviter
+     * toute nouvelle collision entre doublons traites dans le meme lot.
      * Meme convention de format que ArticleTitleNumberer (PREFIX+3 chiffres).
      */
     private function runFixDuplicatePrefixes($dry)
@@ -1131,14 +1133,14 @@ class SettingsPage
         global $wpdb;
 
         $rows = $wpdb->get_results("
-            SELECT ID, post_title
+            SELECT ID, post_title, post_status
             FROM {$wpdb->posts}
             WHERE post_type = 'post'
               AND post_status NOT IN ('trash', 'auto-draft')
             ORDER BY ID ASC
         ");
 
-        $groups      = array(); // prefixe => numero => [ {id, title, rest}, ... ]
+        $groups      = array(); // prefixe => numero => [ {id, title, rest, status}, ... ]
         $maxByPrefix = array(); // prefixe => plus grand numero observe
 
         foreach ($rows as $row) {
@@ -1154,9 +1156,10 @@ class SettingsPage
             $rest   = $this->cleanTitleSuffix($m[3]);
 
             $groups[$prefix][$number][] = array(
-                'id'    => (int) $row->ID,
-                'title' => $title,
-                'rest'  => $rest,
+                'id'     => (int) $row->ID,
+                'title'  => $title,
+                'rest'   => $rest,
+                'status' => (string) $row->post_status,
             );
 
             if (!isset($maxByPrefix[$prefix]) || $number > $maxByPrefix[$prefix]) {
@@ -1173,7 +1176,18 @@ class SettingsPage
                     continue;
                 }
 
-                $keep = array_shift($posts); // le plus ancien conserve son numero
+                // Priorite : un post publie garde toujours son numero avant un brouillon,
+                // sinon le plus ancien (ID le plus bas) le conserve.
+                usort($posts, function ($a, $b) {
+                    $aPub = $a['status'] === 'publish' ? 0 : 1;
+                    $bPub = $b['status'] === 'publish' ? 0 : 1;
+                    if ($aPub !== $bPub) {
+                        return $aPub <=> $bPub;
+                    }
+                    return $a['id'] <=> $b['id'];
+                });
+
+                $keep = array_shift($posts);
 
                 foreach ($posts as $dup) {
                     $maxByPrefix[$prefix]++;
@@ -1183,13 +1197,15 @@ class SettingsPage
                     $newTitle = sprintf('%s%03d - %s', $prefix, $newNumber, $suffix);
 
                     $duplicates[] = array(
-                        'prefix'     => $prefix,
-                        'number'     => $number,
-                        'kept_id'    => $keep['id'],
-                        'kept_title' => $keep['title'],
-                        'dup_id'     => $dup['id'],
-                        'old_title'  => $dup['title'],
-                        'new_title'  => $newTitle,
+                        'prefix'      => $prefix,
+                        'number'      => $number,
+                        'kept_id'     => $keep['id'],
+                        'kept_title'  => $keep['title'],
+                        'kept_status' => $keep['status'],
+                        'dup_id'      => $dup['id'],
+                        'old_title'   => $dup['title'],
+                        'dup_status'  => $dup['status'],
+                        'new_title'   => $newTitle,
                     );
                 }
             }
