@@ -5,6 +5,17 @@ Effectue ou pilote la migration complète d'un site Schilo :
 2. Configuration des modèles et templates Schilo Builder
 3. Migration batch WPBakery → Schilo Builder pour tous les préfixes
 
+---
+
+> **Prérequis obligatoire — branche dédiée** : toute action de ce skill (transfert de
+> CPT, configuration de modèles, migration batch d'un préfixe, correctif d'un script)
+> doit commencer par la création d'une sous-branche dédiée depuis `develop` à jour
+> (`feature/*`, `fix/*` ou `chore/*` selon le cas). Jamais de commit direct sur
+> `develop` ou `master`. Voir [[git-workflow]] section 2 pour la procédure exacte
+> (`git checkout develop && git pull && git checkout -b ...`).
+
+---
+
 ## Contexte
 
 Les scripts PHP réutilisables sont dans :

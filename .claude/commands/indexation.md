@@ -7,6 +7,14 @@ Invoquer avec `/indexation` pour installer le module depuis zéro, reprendre une
 
 ---
 
+> **Prérequis obligatoire — branche dédiée** : toute action de ce skill (installation,
+> ajout de fonctionnalité, correctif, config) doit commencer par la création d'une
+> sous-branche dédiée depuis `develop` à jour (`feature/*`, `fix/*` ou `chore/*` selon
+> le cas). Jamais de commit direct sur `develop` ou `master`. Voir [[git-workflow]]
+> section 2 pour la procédure exacte (`git checkout develop && git pull && git checkout -b ...`).
+
+---
+
 ## 0. Avant tout : vérifier l'état actuel
 
 Commence TOUJOURS par auditer ce qui existe déjà pour ne pas écraser du travail en cours :

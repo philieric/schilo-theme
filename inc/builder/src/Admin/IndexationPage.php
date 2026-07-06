@@ -194,7 +194,9 @@ class IndexationPage
             wp_send_json_error(['message' => 'Acces refuse.'], 403);
         }
 
-        $data    = (array) ($_POST['data'] ?? []);
+        // wp_unslash obligatoire : WordPress ajoute des antislashs devant apostrophes/guillemets
+        // sur tout $_POST (emulation historique des magic quotes), meme pour un tableau imbrique.
+        $data    = wp_unslash((array) ($_POST['data'] ?? []));
         $post_id = absint($data['post_id'] ?? 0);
 
         if (!$post_id) {
@@ -285,7 +287,7 @@ class IndexationPage
 
         $post_id = absint($_POST['post_id'] ?? 0);
         $statut  = sanitize_key($_POST['statut'] ?? '');
-        $notes   = sanitize_textarea_field($_POST['notes'] ?? '');
+        $notes   = sanitize_textarea_field(wp_unslash($_POST['notes'] ?? ''));
 
         if (!$post_id || !$statut) {
             wp_send_json_error(['message' => 'Parametres manquants.']);
