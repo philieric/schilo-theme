@@ -79,6 +79,14 @@ class Schilo_Assets {
             self::ver( $dir . '/assets/css/responsive.css' )
         );
 
+        // Modale de recherche : le bouton déclencheur est dans le header, présent sur toutes les pages
+        wp_enqueue_style(
+            'schilo-search-modal',
+            SCHILO_ASSETS . '/css/search-modal.css',
+            [ 'schilo-main' ],
+            self::ver( $dir . '/assets/css/search-modal.css' )
+        );
+
         // ── Scripts ─────────────────────────────────────────────
 
         wp_enqueue_script(
@@ -112,6 +120,14 @@ class Schilo_Assets {
             'themeUrl' => SCHILO_URI,
             'version'  => SCHILO_VERSION,
         ] );
+
+        wp_enqueue_script(
+            'schilo-search-modal',
+            SCHILO_ASSETS . '/js/search-modal.js',
+            [ 'schilo-main' ],
+            self::ver( $dir . '/assets/js/search-modal.js' ),
+            true
+        );
 
         // ── Conditionnels ────────────────────────────────────────
 
