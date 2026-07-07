@@ -10,6 +10,7 @@ use Schilo\Builder\Service\Migration\MigrationDestinationFields;
 use Schilo\Builder\Service\Migration\MigrationModelService;
 use Schilo\Builder\Service\Migration\MigrationApplier;
 use Schilo\Builder\Service\Migration\MigrationSourceContent;
+use Schilo\Builder\Service\ClassementService;
 
 class SettingsPage
 {
@@ -23,6 +24,11 @@ class SettingsPage
         add_action('admin_enqueue_scripts', array($this, 'enqueueAssets'));
         add_action('wp_ajax_schilo_load_tool', array($this, 'ajaxLoadTool'));
         add_action('wp_ajax_schilo_test_ia',   array($this, 'ajaxTestIa'));
+
+        // Bouton "Générer via IA" sur l'écran d'édition des catégories WP
+        add_action('admin_enqueue_scripts', array($this, 'enqueueCategoryIaAssets'));
+        add_action('category_edit_form_fields', array($this, 'renderCategoryIaButton'), 10, 2);
+        add_action('wp_ajax_schilo_generate_category_description', array($this, 'ajaxGenerateCategoryDescription'));
 
         // Indexation
         $indexationPage = new IndexationPage();
@@ -207,6 +213,139 @@ class SettingsPage
                 true
             );
         }
+    }
+
+    /**
+     * Charge le bouton "Générer via IA" uniquement sur l'écran d'édition
+     * d'une catégorie existante (edit-tags.php?taxonomy=category&tag_ID=...).
+     */
+    public function enqueueCategoryIaAssets($hook)
+    {
+        $taxonomy = isset($_GET['taxonomy']) ? sanitize_key($_GET['taxonomy']) : '';
+        $termId   = isset($_GET['tag_ID']) ? (int) $_GET['tag_ID'] : 0;
+
+        if (!in_array($hook, array('edit-tags.php', 'term.php'), true) || $taxonomy !== 'category' || $termId <= 0) {
+            return;
+        }
+
+        wp_enqueue_script(
+            'schilo-category-ia',
+            SCHILO_BUILDER_URL . 'assets/admin/category-ia.js',
+            array('jquery'),
+            SCHILO_BUILDER_VERSION,
+            true
+        );
+
+        wp_localize_script('schilo-category-ia', 'schiloCategoryIa', array(
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce'   => wp_create_nonce('schilo_category_ia'),
+            'termId'  => $termId,
+        ));
+    }
+
+    /**
+     * Ajoute le bouton "Générer via IA" sous le champ Description, sur l'écran
+     * d'édition d'une catégorie WP existante.
+     */
+    public function renderCategoryIaButton($term, $taxonomy)
+    {
+        ?>
+        <tr class="form-field schilo-category-ia-row">
+            <th scope="row"><label>Description via IA</label></th>
+            <td>
+                <button type="button" class="button" id="schilo-category-ia-generate">
+                    <span class="dashicons dashicons-superhero" style="vertical-align:middle;margin-right:4px;"></span>
+                    Générer via IA
+                </button>
+                <span id="schilo-category-ia-status" style="margin-left:8px;"></span>
+                <p class="description">
+                    Remplit le champ Description ci-dessus à partir des articles déjà classés dans cette catégorie.
+                    Le résultat n'est pas enregistré tant que vous n'avez pas cliqué sur « Mettre à jour ».
+                </p>
+            </td>
+        </tr>
+        <?php
+    }
+
+    /**
+     * Genere la description d'une categorie WP via IA, a partir d'un
+     * echantillon des titres d'articles deja classes dedans.
+     */
+    public function ajaxGenerateCategoryDescription()
+    {
+        @set_time_limit(90);
+
+        check_ajax_referer('schilo_category_ia', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Accès refusé.'), 403);
+        }
+
+        $termId = isset($_POST['term_id']) ? (int) $_POST['term_id'] : 0;
+        $term   = $termId ? get_term($termId, 'category') : null;
+
+        if (!$term || is_wp_error($term)) {
+            wp_send_json_error(array('message' => 'Catégorie introuvable.'));
+        }
+
+        $iaConfig = get_option('schilo_ia_config', array());
+        $provider = isset($iaConfig['default_provider']) ? sanitize_key($iaConfig['default_provider']) : 'claude';
+
+        if (empty($iaConfig[$provider]['api_key'] ?? '')) {
+            wp_send_json_error(array('message' => 'Clé API ' . $provider . ' non configurée (Schilo Builder > Intelligence Artificielle).'));
+        }
+
+        $prompt     = $this->buildCategoryDescriptionPrompt($term);
+        $classement = new ClassementService();
+        $raw        = $classement->callIaRaw($provider, $prompt, 1200);
+
+        if (is_wp_error($raw)) {
+            wp_send_json_error(array('message' => $raw->get_error_message()));
+        }
+
+        $description = trim((string) $raw);
+        if ($description === '') {
+            wp_send_json_error(array('message' => "L'IA n'a pas renvoyé de description."));
+        }
+
+        wp_send_json_success(array('description' => $description));
+    }
+
+    /**
+     * Construit le prompt de description pour une categorie WP, en s'appuyant
+     * sur un echantillon des titres d'articles deja classes dedans pour cerner
+     * precisement son perimetre (les categories n'ont pas de champ indexe
+     * dedie comme les taxonomies schilo_*, contrairement a buildTermDescriptionsPrompt).
+     */
+    private function buildCategoryDescriptionPrompt($term)
+    {
+        $sample = get_posts(array(
+            'category'       => $term->term_id,
+            'post_status'    => 'publish',
+            'posts_per_page' => 20,
+            'orderby'        => 'rand',
+            'fields'         => 'ids',
+        ));
+
+        $titles = array_map(function ($postId) {
+            return html_entity_decode(get_the_title($postId), ENT_QUOTES, 'UTF-8');
+        }, $sample);
+
+        $titlesList = !empty($titles)
+            ? implode("\n", array_map(fn($t) => '- "' . $t . '"', $titles))
+            : '(aucun article encore classé dans cette catégorie)';
+
+        return "Tu es un bibliothécaire expert en analyse de contenu biblique. Rédige une description "
+            . "développée (entre 150 et 250 mots, destinée à être affichée publiquement en haut de la page "
+            . "de cette catégorie du site) de la catégorie d'articles \"{$term->name}\".\n\n"
+            . "Voici un échantillon de titres d'articles déjà classés dans cette catégorie, pour cerner "
+            . "précisément son périmètre :\n" . $titlesList . "\n\n"
+            . "Donne au lecteur une vraie mise en contexte : de quoi parle cette catégorie, quels événements "
+            . "ou enseignements bibliques elle couvre, pourquoi elle est intéressante à explorer.\n\n"
+            . "Format IMPORTANT : structure le texte en 2 à 4 paragraphes COURTS (quelques phrases chacun, "
+            . "une idée par paragraphe), séparés par une ligne vide (\\n\\n) — pas de markdown, pas de listes "
+            . "à puces, juste du texte brut.\n\n"
+            . "Retourne UNIQUEMENT le texte de la description, sans titre, sans guillemets, sans commentaire "
+            . "avant ou après.";
     }
 
     public function renderDashboardPage()

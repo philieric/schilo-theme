@@ -750,8 +750,11 @@ class ClassementService
 
     /**
      * Appelle Claude ou OpenAI avec le prompt donne et renvoie le texte brut de la reponse.
+     * Public : reutilise par d'autres fonctionnalites IA du theme (ex: description
+     * de categorie WP dans SettingsPage) qui n'ont pas besoin du reste du pipeline
+     * de classement (JSON multi-termes, taxonomies schilo_*).
      */
-    private function callIaRaw(string $provider, string $prompt, int $max_tokens = 1024): string|\WP_Error
+    public function callIaRaw(string $provider, string $prompt, int $max_tokens = 1024): string|\WP_Error
     {
         $config = get_option('schilo_ia_config', []);
 
