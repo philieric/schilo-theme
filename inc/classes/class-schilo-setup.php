@@ -119,8 +119,12 @@ class Schilo_Setup {
             'modified-desc' => [ 'orderby' => 'modified',      'order' => 'DESC' ],
             'comment-desc'  => [ 'orderby' => 'comment_count', 'order' => 'DESC' ],
         ];
-        $sort = isset( $_GET['schilo_sort'] ) ? sanitize_key( $_GET['schilo_sort'] ) : 'date-desc';
-        if ( ! array_key_exists( $sort, $allowed_sorts ) ) $sort = 'date-desc';
+        // Les categories affichent leurs articles du plus ancien au plus recent par
+        // defaut (comportement historique) ; les autres archives (tags, auteurs...)
+        // restent triees du plus recent au plus ancien.
+        $default_sort = $query->is_category() ? 'date-asc' : 'date-desc';
+        $sort = isset( $_GET['schilo_sort'] ) ? sanitize_key( $_GET['schilo_sort'] ) : $default_sort;
+        if ( ! array_key_exists( $sort, $allowed_sorts ) ) $sort = $default_sort;
         $query->set( 'orderby', $allowed_sorts[ $sort ]['orderby'] );
         $query->set( 'order',   $allowed_sorts[ $sort ]['order'] );
 

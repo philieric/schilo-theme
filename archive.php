@@ -48,9 +48,13 @@ $sort_options = [
     'comment-desc'  => __( 'Plus commentés', 'schilo' ),
 ];
 $allowed_sorts = array_keys( $sort_options );
+// Les categories affichent leurs articles du plus ancien au plus recent par defaut
+// (comportement historique) ; les autres archives restent triees du plus recent
+// au plus ancien. Doit rester coherent avec Schilo_Setup::apply_archive_sort().
+$default_sort  = is_category() ? 'date-asc' : 'date-desc';
 $current_sort  = isset( $_GET['schilo_sort'] ) && in_array( $_GET['schilo_sort'], $allowed_sorts, true )
     ? sanitize_key( $_GET['schilo_sort'] )
-    : 'date-desc';
+    : $default_sort;
 
 // ── Articles par page ────────────────────────────────────────────
 $pp_options  = [ 10, 20, 50, -1 ]; // -1 = tous
@@ -140,7 +144,7 @@ get_header();
                         <select id="schilo-archive-sort"
                                 class="schilo-archive-select"
                                 data-param="schilo_sort"
-                                data-default="date-desc"
+                                data-default="<?php echo esc_attr( $default_sort ); ?>"
                                 data-base-url="<?php echo esc_url( $base_url ); ?>"
                                 data-current-pp="<?php echo esc_attr( $current_pp !== 10 ? $current_pp : '' ); ?>">
                             <?php foreach ( $sort_options as $key => $label ) : ?>
