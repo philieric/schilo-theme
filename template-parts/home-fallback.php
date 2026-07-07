@@ -99,21 +99,29 @@ $paths_fallback = [
     ],
 ];
 
+// Service partage pour la rotation periodique (Parcours & Themes > Configuration) :
+// meme principe que Schilo_Featured::get(), sans cron, base sur le temps ecoule.
+$classement_service = new \Schilo\Builder\Service\ClassementService();
+
 // Parcours dynamiques : termes de premier niveau de la taxonomie schilo_parcours
-// (Schilo Builder > Parcours & Thèmes), triés par ordre défini, limités à 3 pour l'accueil.
+// (Schilo Builder > Parcours & Thèmes), triés par ordre défini. Le sous-ensemble
+// affiché peut tourner périodiquement (voir Configuration > Rotation).
 $paths = [];
 if ( taxonomy_exists( 'schilo_parcours' ) ) {
-    $parcours_terms = get_terms( [
+    $parcours_pool = get_terms( [
         'taxonomy'   => 'schilo_parcours',
         'parent'     => 0,
         'hide_empty' => true,
         'orderby'    => 'meta_value_num',
         'meta_key'   => 'schilo_ordre',
         'order'      => 'ASC',
-        'number'     => 3,
     ] );
 
-    if ( ! is_wp_error( $parcours_terms ) && ! empty( $parcours_terms ) ) {
+    if ( ! is_wp_error( $parcours_pool ) && ! empty( $parcours_pool ) ) {
+        $pool_by_id     = array_column( $parcours_pool, null, 'term_id' );
+        $rotated_ids    = $classement_service->getRotatedTermIds( 'schilo_parcours', wp_list_pluck( $parcours_pool, 'term_id' ) );
+        $parcours_terms = array_values( array_filter( array_map( fn( $id ) => $pool_by_id[ $id ] ?? null, $rotated_ids ) ) );
+
         // Reutilise les 3 variantes visuelles (degrades) deja definies dans home.css
         // pour .schilo-home-path--luc/--mat/--jean, independamment du contenu reel.
         $path_icons = [ 'ti-route', 'ti-mountain', 'ti-sun' ];
@@ -150,18 +158,22 @@ if ( empty( $paths ) ) {
 }
 
 // Séries thématiques dynamiques : termes de la taxonomie schilo_serie
-// (Schilo Builder > Parcours & Thèmes), triées par nombre d'articles, limitées à 8.
+// (Schilo Builder > Parcours & Thèmes), triées par nombre d'articles. Le
+// sous-ensemble affiché peut tourner périodiquement (voir Configuration > Rotation).
 $resources = [];
 if ( taxonomy_exists( 'schilo_serie' ) ) {
-    $serie_terms = get_terms( [
+    $serie_pool = get_terms( [
         'taxonomy'   => 'schilo_serie',
         'hide_empty' => true,
         'orderby'    => 'count',
         'order'      => 'DESC',
-        'number'     => 8,
     ] );
 
-    if ( ! is_wp_error( $serie_terms ) ) {
+    if ( ! is_wp_error( $serie_pool ) && ! empty( $serie_pool ) ) {
+        $pool_by_id  = array_column( $serie_pool, null, 'term_id' );
+        $rotated_ids = $classement_service->getRotatedTermIds( 'schilo_serie', wp_list_pluck( $serie_pool, 'term_id' ) );
+        $serie_terms = array_values( array_filter( array_map( fn( $id ) => $pool_by_id[ $id ] ?? null, $rotated_ids ) ) );
+
         $serie_evs = [ 'mat', 'marc', 'luc', 'jean' ];
         foreach ( $serie_terms as $index => $serie_term ) {
             $resources[] = [
@@ -169,6 +181,36 @@ if ( taxonomy_exists( 'schilo_serie' ) ) {
                 'title' => $serie_term->name,
                 'meta'  => sprintf( _n( '%d fiche', '%d fiches', $serie_term->count, 'schilo' ), $serie_term->count ),
                 'url'   => get_term_link( $serie_term, 'schilo_serie' ),
+            ];
+        }
+    }
+}
+
+// Thèmes dynamiques : termes de premier niveau de la taxonomie schilo_theme
+// (Schilo Builder > Parcours & Thèmes), avec la même rotation périodique optionnelle.
+$themes = [];
+if ( taxonomy_exists( 'schilo_theme' ) ) {
+    $theme_pool = get_terms( [
+        'taxonomy'   => 'schilo_theme',
+        'parent'     => 0,
+        'hide_empty' => true,
+        'orderby'    => 'meta_value_num',
+        'meta_key'   => 'schilo_ordre',
+        'order'      => 'ASC',
+    ] );
+
+    if ( ! is_wp_error( $theme_pool ) && ! empty( $theme_pool ) ) {
+        $pool_by_id  = array_column( $theme_pool, null, 'term_id' );
+        $rotated_ids = $classement_service->getRotatedTermIds( 'schilo_theme', wp_list_pluck( $theme_pool, 'term_id' ) );
+        $theme_terms = array_values( array_filter( array_map( fn( $id ) => $pool_by_id[ $id ] ?? null, $rotated_ids ) ) );
+
+        $theme_evs = [ 'jean', 'mat', 'marc', 'luc' ];
+        foreach ( $theme_terms as $index => $theme_term ) {
+            $themes[] = [
+                'ev'    => $theme_evs[ $index % count( $theme_evs ) ],
+                'title' => $theme_term->name,
+                'meta'  => sprintf( _n( '%d fiche', '%d fiches', $theme_term->count, 'schilo' ), $theme_term->count ),
+                'url'   => get_term_link( $theme_term, 'schilo_theme' ),
             ];
         }
     }
@@ -340,6 +382,31 @@ $category_description_fallbacks = [
                        data-letter="<?php echo esc_attr( $resource_letter ); ?>">
                         <strong><?php echo esc_html( $resource['title'] ); ?></strong>
                         <span class="schilo-home-resource__meta"><?php echo esc_html( $resource['meta'] ); ?></span>
+                        <span class="schilo-home-resource__link">
+                            <?php esc_html_e( 'Découvrir', 'schilo' ); ?>
+                            <i class="ti ti-arrow-right" aria-hidden="true"></i>
+                        </span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <?php if ( ! empty( $themes ) ) : ?>
+        <div class="schilo-home-series">
+            <div class="schilo-home-series__heading">
+                <span><?php esc_html_e( 'Bibliothèque Schilo', 'schilo' ); ?></span>
+                <h3><?php esc_html_e( 'Thèmes', 'schilo' ); ?></h3>
+            </div>
+            <div class="schilo-home-resources">
+                <?php foreach ( $themes as $theme ) :
+                    $theme_letter = mb_strtoupper( mb_substr( $theme['title'], 0, 1 ) );
+                ?>
+                    <a href="<?php echo esc_url( $theme['url'] ); ?>"
+                       class="schilo-home-resource schilo-home-resource--<?php echo esc_attr( $theme['ev'] ); ?>"
+                       data-letter="<?php echo esc_attr( $theme_letter ); ?>">
+                        <strong><?php echo esc_html( $theme['title'] ); ?></strong>
+                        <span class="schilo-home-resource__meta"><?php echo esc_html( $theme['meta'] ); ?></span>
                         <span class="schilo-home-resource__link">
                             <?php esc_html_e( 'Découvrir', 'schilo' ); ?>
                             <i class="ti ti-arrow-right" aria-hidden="true"></i>

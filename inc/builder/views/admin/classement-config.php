@@ -32,6 +32,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['scl_config_nonce'])) 
         }
         $service->savePrefixRules($prefix_rules);
 
+        $rotation_raw = (array) ($_POST['scl_rotation'] ?? []);
+        $rotation = [];
+        foreach (ClassementService::TAXONOMIES as $taxonomy) {
+            $raw = (array) ($rotation_raw[$taxonomy] ?? []);
+            $rotation[$taxonomy] = [
+                'enabled'       => !empty($raw['enabled']),
+                'interval_days' => absint($raw['interval_days'] ?? 7),
+                'count'         => absint($raw['count'] ?? 4),
+            ];
+        }
+        $service->saveRotationSettings($rotation);
+
         $saved = true;
     }
 }
@@ -48,6 +60,16 @@ $role_labels = [
     'complement' => 'Complément',
     'exclu'      => 'Exclu',
 ];
+
+$rotation_labels = [
+    'schilo_parcours' => 'Parcours d\'étude',
+    'schilo_theme'    => 'Thèmes',
+    'schilo_serie'    => 'Séries thématiques',
+];
+$rotation_settings = [];
+foreach (ClassementService::TAXONOMIES as $tax) {
+    $rotation_settings[$tax] = $service->getRotationSettings($tax);
+}
 ?>
 <div class="wrap schilo-builder-settings">
     <h1 class="scl-page-title">
@@ -177,6 +199,54 @@ $role_labels = [
                 </tbody>
             </table>
             <?php endif; ?>
+        </div>
+
+        <div class="scl-val-bloc" style="display:block;margin-top:16px;">
+            <div class="scl-val-bloc-title">Rotation périodique sur la page d'accueil</div>
+            <p style="color:#64748b;font-size:13px;">
+                Par défaut, l'accueil affiche toujours les mêmes éléments (les plus anciens par ordre,
+                ou les plus populaires pour les séries). En activant la rotation pour une section,
+                un nouveau lot d'éléments est affiché automatiquement à intervalle régulier — par
+                exemple un parcours différent chaque semaine — sans action manuelle et sans tâche
+                planifiée (le calcul se base simplement sur la date/heure courante).
+            </p>
+            <table class="widefat scl-table">
+                <thead><tr>
+                    <th>Section</th>
+                    <th style="width:120px;">Activer</th>
+                    <th style="width:220px;">Fréquence</th>
+                    <th style="width:220px;">Nombre affiché</th>
+                </tr></thead>
+                <tbody>
+                    <?php foreach ($rotation_labels as $tax => $label) :
+                        $r = $rotation_settings[$tax];
+                    ?>
+                    <tr>
+                        <td><strong><?php echo esc_html($label); ?></strong></td>
+                        <td>
+                            <label style="display:flex;align-items:center;gap:6px;">
+                                <input type="checkbox" name="scl_rotation[<?php echo esc_attr($tax); ?>][enabled]" value="1" <?php checked($r['enabled']); ?>>
+                                Activée
+                            </label>
+                        </td>
+                        <td>
+                            <label style="display:inline-flex;align-items:center;gap:6px;">
+                                Tous les
+                                <input type="number" min="1" step="1"
+                                    name="scl_rotation[<?php echo esc_attr($tax); ?>][interval_days]"
+                                    value="<?php echo esc_attr($r['interval_days']); ?>" style="width:70px;">
+                                jour(s)
+                            </label>
+                        </td>
+                        <td>
+                            <input type="number" min="1" step="1"
+                                name="scl_rotation[<?php echo esc_attr($tax); ?>][count]"
+                                value="<?php echo esc_attr($r['count']); ?>" style="width:70px;">
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
 
         <div class="scl-val-bloc" style="display:block;margin-top:16px;">
