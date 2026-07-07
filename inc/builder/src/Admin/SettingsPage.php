@@ -255,7 +255,7 @@ class SettingsPage
             <th scope="row"><label>Description via IA</label></th>
             <td>
                 <button type="button" class="button" id="schilo-category-ia-generate">
-                    <span class="dashicons dashicons-superhero" style="font-size:15px;height:15px;width:15px;vertical-align:middle;margin-right:3px;margin-top:1px;"></span>
+                    <span class="dashicons dashicons-superhero" style="font-size:15px;height:15px;width:15px;line-height:15px;vertical-align:middle;margin-right:3px;margin-top:0;"></span>
                     Générer via IA
                 </button>
                 <span id="schilo-category-ia-status" style="margin-left:8px;"></span>

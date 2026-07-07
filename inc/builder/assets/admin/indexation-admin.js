@@ -139,7 +139,7 @@
                 html += '</button> ';
             }
             html += '<button type="button" class="button button-small sia-btn-index-ia" data-post-id="' + postId + '" title="Indexer via IA">';
-            html += '<span class="dashicons dashicons-superhero" style="font-size:14px;height:14px;width:14px;vertical-align:middle;float:none;margin-top:1px;"></span>';
+            html += '<span class="dashicons dashicons-superhero" style="font-size:14px;height:14px;width:14px;line-height:14px;vertical-align:middle;float:none;margin-top:0;"></span>';
             html += '</button> ';
             html += '<button type="button" class="button button-small sia-btn-export-xml" data-post-id="' + postId + '" title="Export XML">XML</button>';
             html += '</td>';
