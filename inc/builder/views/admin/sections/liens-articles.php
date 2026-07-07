@@ -74,16 +74,20 @@ $links = isset($normalizedData['links']) && is_array($normalizedData['links']) ?
     <div class="schilo-links-items">
         <?php foreach ($links as $linkIndex => $link) : ?>
             <?php
-            $label = isset($link['label']) ? $link['label'] : '';
-            $url = isset($link['url']) ? $link['url'] : '';
+            $label   = isset($link['label']) ? $link['label'] : '';
+            $url     = isset($link['url']) ? $link['url'] : '';
+            $post_id = isset($link['post_id']) ? (int) $link['post_id'] : 0;
 
-            $articleSearchValue = $url;
-            if ($url !== '') {
-                $matchedPostId = url_to_postid($url);
-                if ($matchedPostId > 0) {
-                    $articleSearchValue = html_entity_decode(get_the_title($matchedPostId), ENT_QUOTES, 'UTF-8');
-                }
+            // Ancien lien enregistre sans post_id : tente de le retrouver a partir de
+            // l'URL pour le pre-remplir (bascule automatiquement sur le lien par ID
+            // des le prochain enregistrement de cette section).
+            if ($post_id <= 0 && $url !== '') {
+                $post_id = (int) url_to_postid($url);
             }
+
+            $articleSearchValue = $post_id > 0
+                ? html_entity_decode(get_the_title($post_id), ENT_QUOTES, 'UTF-8')
+                : $url;
             ?>
             <div class="schilo-link-item">
                 <input type="text" class="widefat schilo-link-label"
@@ -101,6 +105,9 @@ $links = isset($normalizedData['links']) && is_array($normalizedData['links']) ?
                        name="schilo_sections[<?php echo esc_attr($index); ?>][data][links][<?php echo esc_attr($linkIndex); ?>][url]"
                        value="<?php echo esc_attr($url); ?>"
                        placeholder="https://...">
+                <input type="hidden" class="schilo-link-post-id"
+                       name="schilo_sections[<?php echo esc_attr($index); ?>][data][links][<?php echo esc_attr($linkIndex); ?>][post_id]"
+                       value="<?php echo esc_attr($post_id); ?>">
                 <button type="button" class="button schilo-remove-link">Retirer</button>
             </div>
         <?php endforeach; ?>

@@ -327,6 +327,7 @@
                     <ul class="schilo-combobox-list"></ul>
                 </div>
                 <input type="url" class="widefat schilo-link-url" name="schilo_sections[${index}][data][links][${itemIndex}][url]" value="${escapeHtml(url)}" placeholder="https://...">
+                <input type="hidden" class="schilo-link-post-id" name="schilo_sections[${index}][data][links][${itemIndex}][post_id]" value="">
                 <button type="button" class="button schilo-remove-link">Retirer</button>
             </div>
         `;
@@ -713,7 +714,8 @@
             const item = $('<li></li>')
                 .text(article.title)
                 .attr('data-url', article.url)
-                .attr('data-title', article.title);
+                .attr('data-title', article.title)
+                .attr('data-id', article.id);
             list.append(item);
         });
 
@@ -730,10 +732,12 @@
         const linkItem = combobox.closest('.schilo-link-item');
         const title = item.data('title');
         const url = item.data('url');
+        const id = item.data('id');
 
         combobox.find('.schilo-link-article-search').val(title);
         linkItem.find('.schilo-link-url').val(url);
         linkItem.find('.schilo-link-label').val(title);
+        linkItem.find('.schilo-link-post-id').val(id);
 
         combobox.find('.schilo-combobox-list').empty().hide();
     });
@@ -747,10 +751,13 @@
     $(document).on('blur', '.schilo-link-article-search', function () {
         const input = $(this);
         const value = input.val().trim();
-        const urlInput = input.closest('.schilo-link-item').find('.schilo-link-url');
+        const linkItem = input.closest('.schilo-link-item');
+        const urlInput = linkItem.find('.schilo-link-url');
+        const postIdInput = linkItem.find('.schilo-link-post-id');
 
         if (value === '') {
             urlInput.val('');
+            postIdInput.val('');
             return;
         }
 
@@ -761,8 +768,12 @@
 
         if (exactMatch) {
             urlInput.val(exactMatch.url);
+            postIdInput.val(exactMatch.id);
         } else if (/^https?:\/\//i.test(value) || value.charAt(0) === '/') {
+            // URL collee a la main (pas un article du site) : pas d'ID a resoudre,
+            // le lien restera enregistre en URL figee.
             urlInput.val(value);
+            postIdInput.val('');
         }
     });
 

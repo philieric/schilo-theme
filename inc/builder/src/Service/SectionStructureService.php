@@ -118,12 +118,13 @@ class SectionStructureService
 
             $label = isset($link['label']) ? sanitize_text_field((string) $link['label']) : '';
             $url = isset($link['url']) ? esc_url_raw((string) $link['url']) : '';
+            $post_id = isset($link['post_id']) ? absint($link['post_id']) : 0;
 
             if ($label === '' && $url === '') {
                 continue;
             }
 
-            $clean[] = array('label' => $label, 'url' => $url);
+            $clean[] = array('label' => $label, 'url' => $url, 'post_id' => $post_id);
         }
 
         return array(
