@@ -252,12 +252,27 @@ foreach (ClassementService::TAXONOMIES as $tax) {
 
         <div class="scl-val-bloc" style="display:block;margin-top:16px;">
             <div class="scl-val-bloc-title">État des taxonomies</div>
-            <?php foreach (['schilo_parcours' => 'Parcours', 'schilo_theme' => 'Thèmes', 'schilo_serie' => 'Séries'] as $tax => $label) :
-                $count = wp_count_terms(['taxonomy' => $tax, 'hide_empty' => false]);
-                $count = is_wp_error($count) ? 0 : (int) $count;
-            ?>
-                <p><strong><?php echo esc_html($label); ?></strong> : <?php echo esc_html($count); ?> terme(s) — <a href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-classement&tab=termes&taxonomy=' . $tax)); ?>">gérer</a></p>
-            <?php endforeach; ?>
+            <table class="widefat scl-table">
+                <thead><tr>
+                    <th>Taxonomie</th>
+                    <th style="width:160px;">Termes</th>
+                    <th style="width:120px;">Actions</th>
+                </tr></thead>
+                <tbody>
+                    <?php foreach (['schilo_parcours' => 'Parcours', 'schilo_theme' => 'Thèmes', 'schilo_serie' => 'Séries'] as $tax => $label) :
+                        $count = wp_count_terms(['taxonomy' => $tax, 'hide_empty' => false]);
+                        $count = is_wp_error($count) ? 0 : (int) $count;
+                    ?>
+                    <tr>
+                        <td><strong><?php echo esc_html($label); ?></strong></td>
+                        <td><?php echo esc_html($count); ?> terme(s)</td>
+                        <td>
+                            <a href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-classement&tab=termes&taxonomy=' . $tax)); ?>" class="button button-secondary">Gérer</a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
 
         <p><button type="submit" class="button button-primary">Enregistrer la configuration</button></p>

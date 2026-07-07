@@ -571,6 +571,28 @@
   transform: translateY(-4px);
 }
 
+.schilo-home-resource__icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: .65rem;
+  border-radius: 9px;
+  font-size: 15px;
+  transition: transform var(--schilo-transition);
+}
+
+.schilo-home-resource--mat .schilo-home-resource__icon  { background: var(--schilo-mat-pale);  color: var(--schilo-mat-dark); }
+.schilo-home-resource--marc .schilo-home-resource__icon { background: var(--schilo-marc-pale); color: var(--schilo-marc-dark); }
+.schilo-home-resource--luc .schilo-home-resource__icon  { background: var(--schilo-luc-pale);  color: var(--schilo-luc-dark); }
+.schilo-home-resource--jean .schilo-home-resource__icon { background: var(--schilo-jean-pale); color: var(--schilo-jean-dark); }
+
+.schilo-home-resource:hover .schilo-home-resource__icon {
+  transform: scale(1.08);
+}
+
 .schilo-home-resource strong {
   position: relative;
   font-size: 13px;

@@ -47,7 +47,7 @@ $desc_placeholder = "Description affichée sur la page publique ({$word_range['m
             <option value="openai">ChatGPT</option>
         </select>
         <button type="button" id="scl-btn-propose-terms" class="button button-primary">
-            <span class="dashicons dashicons-superhero" style="vertical-align:middle;margin-top:-2px;"></span>
+            <span class="dashicons dashicons-superhero" style="font-size:15px;height:15px;width:15px;line-height:15px;vertical-align:middle;margin-right:3px;margin-top:0;"></span>
             Suggérer via IA
         </button>
         <span id="scl-curation-feedback" style="margin-left:8px;display:none;font-weight:600;"></span>
@@ -79,7 +79,7 @@ $desc_placeholder = "Description affichée sur la page publique ({$word_range['m
                     <td<?php echo $isChild ? ' style="padding-left:28px;"' : ''; ?>>
                         <strong><?php echo ($isChild ? '— ' : '') . esc_html($term->name); ?></strong><br>
                         <button type="button" class="button button-small scl-btn-generate-desc" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>" title="Générer/regénérer la description de ce terme via IA">
-                            <span class="dashicons dashicons-superhero" style="font-size:14px;height:14px;width:14px;vertical-align:middle;"></span> Générer via IA
+                            <span class="dashicons dashicons-superhero" style="font-size:15px;height:15px;width:15px;line-height:15px;vertical-align:middle;margin-right:3px;margin-top:0;"></span> Générer via IA
                         </button>
                     </td>
                     <td>
@@ -90,7 +90,9 @@ $desc_placeholder = "Description affichée sur la page publique ({$word_range['m
                                     ? 'Généré via IA le ' . esc_html(date_i18n('d/m/Y à H:i', strtotime($generatedAt)))
                                     : 'Pas encore généré via IA'; ?>
                             </small>
-                            <button type="button" class="button button-small scl-btn-generate-desc" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>" style="margin-left:6px;">Générer via IA</button>
+                            <button type="button" class="button button-small scl-btn-generate-desc" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>" style="margin-left:6px;">
+                                <span class="dashicons dashicons-superhero" style="font-size:15px;height:15px;width:15px;line-height:15px;vertical-align:middle;margin-right:3px;margin-top:0;"></span> Générer via IA
+                            </button>
                         </div>
                     </td>
                     <td><input type="number" min="0" class="scl-term-ordre" value="<?php echo esc_attr(get_term_meta((int) $term->term_id, 'schilo_ordre', true) ?: 0); ?>" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>"></td>
