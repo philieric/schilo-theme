@@ -98,7 +98,7 @@ get_header();
                             <?php if ( $cat ) : ?>
                                 <a href="<?php echo esc_url( get_category_link( $cat->term_id ) ); ?>"
                                    class="schilo-search-card__cat">
-                                    <?php echo esc_html( $cat->name ); ?>
+                                    <?php echo esc_html( schilo_strip_category_number( $cat->name ) ); ?>
                                 </a>
                             <?php endif; ?>
 

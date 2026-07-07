@@ -110,7 +110,7 @@ $export_date = wp_date( 'd/m/Y' );
           <span class="pdf-ref__code"><?php echo esc_html( $per_code ); ?></span>
         <?php endif; ?>
         <?php if ( $primary_cat ) : ?>
-          <span class="pdf-ref__cat"><?php echo esc_html( $primary_cat->name ); ?></span>
+          <span class="pdf-ref__cat"><?php echo esc_html( schilo_strip_category_number( $primary_cat->name ) ); ?></span>
         <?php endif; ?>
         <?php if ( $tags ) : foreach ( $tags as $tag ) : ?>
           <span class="pdf-ref__cat"><?php echo esc_html( $tag->name ); ?></span>

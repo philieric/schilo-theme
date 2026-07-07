@@ -57,3 +57,12 @@ function schilo_ev_badge( string $ev, string $size = '32px' ): void {
         . esc_html( schilo_ev_letter( $ev ) )
         . '</span>';
 }
+
+/**
+ * Retire le préfixe numérique ("1 - ", "12 - "…) utilisé pour ordonner les
+ * catégories principales dans les menus admin, avant affichage public
+ * (cartes d'articles, badges, fils d'Ariane…).
+ */
+function schilo_strip_category_number( string $name ): string {
+    return preg_replace( '/^\d+\s*-\s*/u', '', $name );
+}
