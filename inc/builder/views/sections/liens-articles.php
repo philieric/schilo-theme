@@ -36,8 +36,16 @@ $texteLibre = isset($data['texte_libre']) ? $data['texte_libre'] : '';
         <ul class="schilo-links-list">
             <?php foreach ($links as $link) : ?>
                 <?php
-                $label = isset($link['label']) ? $link['label'] : '';
-                $url = isset($link['url']) ? $link['url'] : '';
+                $label   = isset($link['label']) ? $link['label'] : '';
+                $url     = isset($link['url']) ? $link['url'] : '';
+                $post_id = isset($link['post_id']) ? (int) $link['post_id'] : 0;
+
+                // Lien vers un article du site : reconstruit toujours l'URL a partir de
+                // l'ID plutot que d'utiliser l'URL enregistree, pour ne jamais casser si
+                // le slug de la cible change apres coup.
+                if ($post_id > 0 && get_post_status($post_id) === 'publish') {
+                    $url = get_permalink($post_id);
+                }
 
                 if ($label === '' && $url === '') {
                     continue;

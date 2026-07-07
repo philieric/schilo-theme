@@ -10,6 +10,7 @@ use Schilo\Builder\Service\Migration\MigrationDestinationFields;
 use Schilo\Builder\Service\Migration\MigrationModelService;
 use Schilo\Builder\Service\Migration\MigrationApplier;
 use Schilo\Builder\Service\Migration\MigrationSourceContent;
+use Schilo\Builder\Repository\SectionRepository;
 
 class SettingsPage
 {
@@ -719,7 +720,7 @@ class SettingsPage
         }
 
         $tool    = isset($_POST['tool']) ? sanitize_key($_POST['tool']) : '';
-        $allowed = array('inherit_cat', 'delete_cats', 'delete_media', 'raccourcis', 'ia_config', 'doublons_prefixe');
+        $allowed = array('inherit_cat', 'delete_cats', 'delete_media', 'raccourcis', 'ia_config', 'doublons_prefixe', 'liens_ids');
         if (!in_array($tool, $allowed, true)) {
             wp_die('Outil inconnu.', '', 400);
         }
@@ -754,6 +755,7 @@ class SettingsPage
         $result_orphan_media     = null;
         $result_raccourcis       = null;
         $result_doublons_prefixe = null;
+        $result_liens_ids        = null;
         $selected_parent_id      = 0;
         $active_tool             = '';
 
@@ -810,6 +812,16 @@ class SettingsPage
                 $active_tool             = 'doublons_prefixe';
                 $dry                     = (int) ($_POST['schilo_doublons_prefixe_dry'] ?? 1) === 1;
                 $result_doublons_prefixe = $this->runFixDuplicatePrefixes($dry);
+            }
+
+            if (
+                $action === 'migrate_liens_ids'
+                && isset($_POST['schilo_liens_ids_nonce'])
+                && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['schilo_liens_ids_nonce'])), 'schilo_migrate_liens_ids')
+            ) {
+                $active_tool      = 'liens_ids';
+                $dry              = (int) ($_POST['schilo_liens_ids_dry'] ?? 1) === 1;
+                $result_liens_ids = $this->runMigrateLiensArticlesIds($dry);
             }
         }
 
@@ -1362,6 +1374,128 @@ class SettingsPage
         }
 
         return strtoupper(substr($text, 0, 1)) . substr($text, 1);
+    }
+
+    /**
+     * Parcourt toutes les sections "liens-articles" du site et resout un
+     * post_id pour chaque lien qui n'en a pas encore (ancien format enregistre
+     * avec seulement une URL). Une fois le post_id enregistre, le lien ne
+     * pourra plus jamais casser suite a un changement de slug de sa cible
+     * (voir inc/builder/views/sections/liens-articles.php, qui reconstruit
+     * l'URL a partir du post_id a chaque affichage).
+     *
+     * Les liens dont l'URL ne correspond plus a aucun article existant (deja
+     * casses par un renommage passe) ne peuvent pas etre resolus automatiquement
+     * — ils sont simplement listes pour correction manuelle dans l'editeur.
+     */
+    private function runMigrateLiensArticlesIds($dry)
+    {
+        $postIds = get_posts(array(
+            'post_type'      => array('post', 'page'),
+            'post_status'    => array('publish', 'draft', 'pending', 'private', 'future'),
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
+            'meta_query'     => array(
+                array('key' => SectionRepository::META_KEY, 'compare' => 'EXISTS'),
+            ),
+        ));
+
+        $repository   = new SectionRepository();
+        $migrated     = array();
+        $broken       = array();
+        $postsTouched = 0;
+
+        foreach ($postIds as $postId) {
+            $sections = $repository->findByPostId($postId);
+            if (empty($sections)) {
+                continue;
+            }
+
+            $sectionChanged = false;
+
+            foreach ($sections as $section) {
+                if ($section->getType() !== 'liens-articles') {
+                    continue;
+                }
+
+                $data = $section->getData();
+                if (empty($data['links']) || !is_array($data['links'])) {
+                    continue;
+                }
+
+                $links      = $data['links'];
+                $linksTouched = false;
+
+                foreach ($links as $i => $link) {
+                    if (!is_array($link)) {
+                        continue;
+                    }
+
+                    $targetId = isset($link['post_id']) ? (int) $link['post_id'] : 0;
+                    $url      = isset($link['url']) ? (string) $link['url'] : '';
+                    $label    = isset($link['label']) ? (string) $link['label'] : '';
+
+                    if ($targetId > 0 || $url === '') {
+                        continue; // deja migre, ou rien a resoudre
+                    }
+
+                    $resolved = (int) url_to_postid($url);
+
+                    if ($resolved > 0) {
+                        $links[$i]['post_id'] = $resolved;
+                        $linksTouched          = true;
+                        $migrated[] = array(
+                            'source_id'    => $postId,
+                            'source_title' => html_entity_decode(get_the_title($postId), ENT_QUOTES, 'UTF-8'),
+                            'label'        => $label,
+                            'target_id'    => $resolved,
+                            'target_title' => html_entity_decode(get_the_title($resolved), ENT_QUOTES, 'UTF-8'),
+                        );
+                    } else {
+                        $broken[] = array(
+                            'source_id'    => $postId,
+                            'source_title' => html_entity_decode(get_the_title($postId), ENT_QUOTES, 'UTF-8'),
+                            'label'        => $label,
+                            'url'          => $url,
+                        );
+                    }
+                }
+
+                if ($linksTouched) {
+                    $data['links'] = $links;
+                    $section->setData($data);
+                    $sectionChanged = true;
+                }
+            }
+
+            if ($sectionChanged) {
+                $postsTouched++;
+                if (!$dry) {
+                    $repository->save($postId, $sections);
+                }
+            }
+        }
+
+        return array(
+            'dry'           => $dry,
+            'posts_touched' => $postsTouched,
+            'migrated'      => $migrated,
+            'broken'        => $broken,
+            'message'       => $dry
+                ? sprintf(
+                    '%d lien(s) résoluble(s) trouvé(s) dans %d article(s) (simulation — rien n\'a été modifié). %d lien(s) déjà cassé(s) nécessitent une correction manuelle.',
+                    count($migrated),
+                    $postsTouched,
+                    count($broken)
+                )
+                : sprintf(
+                    '%d lien(s) migré(s) vers un post_id stable dans %d article(s). %d lien(s) déjà cassé(s) restent à corriger manuellement.',
+                    count($migrated),
+                    $postsTouched,
+                    count($broken)
+                ),
+        );
     }
 
     public function renderIaPage()

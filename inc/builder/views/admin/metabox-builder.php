@@ -27,6 +27,7 @@ $schiloLinkPosts = get_posts( array(
 $schiloArticlesPayload = array();
 foreach ( $schiloLinkPosts as $schiloLinkPost ) {
     $schiloArticlesPayload[] = array(
+        'id'    => (int) $schiloLinkPost->ID,
         'title' => html_entity_decode( get_the_title( $schiloLinkPost ), ENT_QUOTES, 'UTF-8' ),
         'url'   => get_permalink( $schiloLinkPost ),
     );
