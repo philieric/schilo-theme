@@ -573,6 +573,81 @@ class ClassementService
     }
 
     /**
+     * Compare le classement DEJA enregistre (avant ce chantier ou avant un
+     * changement de regle ulterieur) aux regles par prefixe ACTUELLEMENT
+     * configurees, pour reperer une derive : un article classe alors que son
+     * prefixe est desormais "exclu", ou une limite depassee dans un terme.
+     * L'enforcement (checkPrefixRulesForTaxonomy) ne s'applique qu'aux
+     * NOUVEAUX enregistrements — rien ne "nettoie" automatiquement l'existant
+     * si une regle change apres coup, d'ou cet audit en lecture seule.
+     *
+     * Retourne ['exclu' => [...], 'limite' => [...]] (voir usage dans
+     * classement-audit.php pour le detail des cles de chaque entree).
+     */
+    public function auditPrefixRuleViolations(): array
+    {
+        global $wpdb;
+        $rules  = $this->getPrefixRules();
+        $result = ['exclu' => [], 'limite' => []];
+
+        $exclu_prefixes  = array_keys(array_filter($rules, fn($r) => $r['role'] === 'exclu'));
+        $limite_prefixes = array_keys(array_filter($rules, fn($r) => $r['limite'] > 0));
+
+        foreach (self::TAXONOMIES as $taxonomy) {
+            if (!empty($exclu_prefixes)) {
+                $placeholders = implode(',', array_fill(0, count($exclu_prefixes), '%s'));
+                $rows = $wpdb->get_results($wpdb->prepare("
+                    SELECT wi.post_id, wi.titre, wi.prefix, tt.term_id, t.name AS term_name
+                    FROM {$this->table} wi
+                    JOIN {$wpdb->term_relationships} tr ON tr.object_id = wi.post_id
+                    JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = %s
+                    JOIN {$wpdb->terms} t ON t.term_id = tt.term_id
+                    WHERE wi.prefix IN ($placeholders)
+                    ORDER BY wi.post_id
+                ", $taxonomy, ...$exclu_prefixes));
+                foreach ($rows as $row) {
+                    $result['exclu'][] = [
+                        'post_id'   => (int) $row->post_id,
+                        'titre'     => $row->titre,
+                        'prefix'    => $row->prefix,
+                        'taxonomy'  => $taxonomy,
+                        'term_id'   => (int) $row->term_id,
+                        'term_name' => $row->term_name,
+                    ];
+                }
+            }
+
+            if (!empty($limite_prefixes)) {
+                $placeholders = implode(',', array_fill(0, count($limite_prefixes), '%s'));
+                $rows = $wpdb->get_results($wpdb->prepare("
+                    SELECT tt.term_id, t.name AS term_name, wi.prefix, COUNT(*) AS n
+                    FROM {$this->table} wi
+                    JOIN {$wpdb->term_relationships} tr ON tr.object_id = wi.post_id
+                    JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = %s
+                    JOIN {$wpdb->terms} t ON t.term_id = tt.term_id
+                    WHERE wi.prefix IN ($placeholders)
+                    GROUP BY tt.term_id, wi.prefix
+                ", $taxonomy, ...$limite_prefixes));
+                foreach ($rows as $row) {
+                    $limite = $rules[$row->prefix]['limite'] ?? 0;
+                    if ((int) $row->n > $limite) {
+                        $result['limite'][] = [
+                            'taxonomy'  => $taxonomy,
+                            'term_id'   => (int) $row->term_id,
+                            'term_name' => $row->term_name,
+                            'prefix'    => $row->prefix,
+                            'count'     => (int) $row->n,
+                            'limite'    => $limite,
+                        ];
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Tente de rattacher un article "Complement" (ex: une Annexe) a l'article
      * "Principal" du meme terme de parcours qui le reference, via le champ
      * deja indexe articles_lies (texte libre, parfois bruite). Compare les

@@ -59,6 +59,7 @@ $role_labels = [
         <a href="<?php echo esc_url($back_url); ?>" class="scl-tab">Classement</a>
         <a href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-classement&tab=termes')); ?>" class="scl-tab">Termes</a>
         <a href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-classement&tab=config')); ?>" class="scl-tab scl-tab-active">Configuration</a>
+        <a href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-classement&tab=audit')); ?>" class="scl-tab">Audit</a>
     </nav>
 
     <?php if ($saved) : ?>
