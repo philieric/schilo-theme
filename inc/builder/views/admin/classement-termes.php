@@ -47,7 +47,7 @@ $desc_placeholder = "Description affichée sur la page publique ({$word_range['m
             <option value="openai">ChatGPT</option>
         </select>
         <button type="button" id="scl-btn-propose-terms" class="button button-primary" style="display:inline-flex;align-items:center;gap:6px;">
-            <span class="dashicons dashicons-superhero" aria-hidden="true"></span>
+            <span class="dashicons dashicons-superhero" style="margin-top:3px;" aria-hidden="true"></span>
             Suggérer via IA
         </button>
         <span id="scl-curation-feedback" style="margin-left:8px;display:none;font-weight:600;"></span>
@@ -79,7 +79,7 @@ $desc_placeholder = "Description affichée sur la page publique ({$word_range['m
                     <td<?php echo $isChild ? ' style="padding-left:28px;"' : ''; ?>>
                         <strong><?php echo ($isChild ? '— ' : '') . esc_html($term->name); ?></strong><br>
                         <button type="button" class="button button-small scl-btn-generate-desc" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>" title="Générer/regénérer la description de ce terme via IA" style="display:inline-flex;align-items:center;gap:4px;">
-                            <span class="dashicons dashicons-superhero" style="font-size:14px;height:14px;width:14px;" aria-hidden="true"></span> Générer via IA
+                            <span class="dashicons dashicons-superhero" style="font-size:14px;height:14px;width:14px;margin-top:2px;" aria-hidden="true"></span> Générer via IA
                         </button>
                     </td>
                     <td>
@@ -91,7 +91,7 @@ $desc_placeholder = "Description affichée sur la page publique ({$word_range['m
                                     : 'Pas encore généré via IA'; ?>
                             </small>
                             <button type="button" class="button button-small scl-btn-generate-desc" data-term-id="<?php echo esc_attr((int) $term->term_id); ?>" data-taxonomy="<?php echo esc_attr($current_tax); ?>" style="margin-left:6px;display:inline-flex;align-items:center;gap:4px;">
-                                <span class="dashicons dashicons-superhero" style="font-size:14px;height:14px;width:14px;" aria-hidden="true"></span> Générer via IA
+                                <span class="dashicons dashicons-superhero" style="font-size:14px;height:14px;width:14px;margin-top:2px;" aria-hidden="true"></span> Générer via IA
                             </button>
                         </div>
                     </td>
