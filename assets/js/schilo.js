@@ -230,17 +230,29 @@ Schilo.ArchiveView = (function () {
 
     function _buildArchiveUrl(baseUrl, params) {
         var defaults = { schilo_sort: 'date-desc', schilo_pp: '10' };
-        var parts = [];
+        var urlParts = baseUrl.split('?');
+        var base     = urlParts[0];
+
+        // Conserve les params deja presents dans baseUrl (ex: "s=" en recherche),
+        // sauf schilo_sort/schilo_pp qui seront reconstruits ci-dessous.
+        var kept = [];
+        if (urlParts[1]) {
+            urlParts[1].split('&').forEach(function (pair) {
+                if (!pair) return;
+                var key = pair.split('=')[0];
+                if (key !== 'schilo_sort' && key !== 'schilo_pp') kept.push(pair);
+            });
+        }
+
         var keys = Object.keys(defaults);
         for (var i = 0; i < keys.length; i++) {
             var key = keys[i];
             var val = String(params[key] || '');
             if (val && val !== defaults[key]) {
-                parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(val));
+                kept.push(encodeURIComponent(key) + '=' + encodeURIComponent(val));
             }
         }
-        var base = baseUrl.split('?')[0];
-        return base + (parts.length ? '?' + parts.join('&') : '');
+        return base + (kept.length ? '?' + kept.join('&') : '');
     }
 
     function init() {
