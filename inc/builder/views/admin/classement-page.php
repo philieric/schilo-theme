@@ -44,20 +44,20 @@ $filter_url = function (array $override) use ($base_url, $statut, $prefix) {
     </nav>
 
     <div class="scl-stats-row">
-        <a href="<?php echo esc_url($filter_url(['statut' => ''])); ?>" class="scl-stat-card<?php echo $statut === '' ? ' scl-stat-active' : ''; ?>">
+        <a href="<?php echo esc_url($filter_url(['statut' => ''])); ?>" class="scl-stat-card<?php echo $statut === '' ? ' scl-stat-active' : ''; ?>" data-statut="">
             <span class="scl-stat-num"><?php echo esc_html($counts['total']); ?></span>
             <span class="scl-stat-label">Total</span>
         </a>
-        <a href="<?php echo esc_url($filter_url(['statut' => 'classe'])); ?>" class="scl-stat-card scl-stat-green<?php echo $statut === 'classe' ? ' scl-stat-active' : ''; ?>">
+        <a href="<?php echo esc_url($filter_url(['statut' => 'classe'])); ?>" class="scl-stat-card scl-stat-green<?php echo $statut === 'classe' ? ' scl-stat-active' : ''; ?>" data-statut="classe">
             <span class="scl-stat-num"><?php echo esc_html($counts['classes']); ?></span>
             <span class="scl-stat-label">Classés</span>
         </a>
-        <a href="<?php echo esc_url($filter_url(['statut' => 'non_classe'])); ?>" class="scl-stat-card<?php echo $statut === 'non_classe' ? ' scl-stat-active' : ''; ?>">
+        <a href="<?php echo esc_url($filter_url(['statut' => 'non_classe'])); ?>" class="scl-stat-card<?php echo $statut === 'non_classe' ? ' scl-stat-active' : ''; ?>" data-statut="non_classe">
             <span class="scl-stat-num" style="color:#64748b;"><?php echo esc_html($counts['non_classes']); ?></span>
             <span class="scl-stat-label">Non classés</span>
         </a>
         <?php if (!empty($counts['suggestions'])) : ?>
-        <div class="scl-stat-card" style="cursor:default;">
+        <div class="scl-stat-card" style="cursor:default;" data-statut="suggestion">
             <span class="scl-stat-num" style="color:#92400e;"><?php echo esc_html($counts['suggestions']); ?></span>
             <span class="scl-stat-label">Suggestions en attente</span>
         </div>
@@ -153,5 +153,6 @@ $filter_url = function (array $override) use ($base_url, $statut, $prefix) {
 window.sclData = {
     nonce:   '<?php echo esc_js(wp_create_nonce('schilo_classement')); ?>',
     ajaxUrl: '<?php echo esc_js(admin_url('admin-ajax.php')); ?>',
+    statut:  '<?php echo esc_js($statut); ?>',
 };
 </script>

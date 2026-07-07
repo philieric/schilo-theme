@@ -140,6 +140,7 @@ jQuery(function ($) {
             var okIds = res.data.ok || [];
             var errList = res.data.error || [];
             var autoMode = !!res.data.auto_mode;
+            var currentStatut = (window.sclData && window.sclData.statut) || '';
 
             okIds.forEach(function (postId) {
                 var $row = $table.find('tr[data-post-id="' + postId + '"]');
@@ -152,8 +153,29 @@ jQuery(function ($) {
                     $row.find('.scl-action-link').addClass('button-primary').text('Valider');
                 }
                 $row.css('background', '#fef9e7');
-                setTimeout(function () { $row.css('background', ''); }, 2500);
+
+                if (autoMode && currentStatut === 'non_classe') {
+                    // Cet article vient d'etre classe : il n'appartient plus a la vue "Non classes".
+                    setTimeout(function () {
+                        $row.fadeOut(400, function () {
+                            $row.remove();
+                            if (!$table.find('tbody tr').length) {
+                                $table.replaceWith('<p class="scl-empty">Aucun article indexé (valide) à afficher pour ce filtre.</p>');
+                            }
+                        });
+                    }, 1200);
+                } else {
+                    setTimeout(function () { $row.css('background', ''); }, 2500);
+                }
             });
+
+            // Compteurs "Classes" / "Non classes" en tete de page.
+            if (autoMode && okIds.length) {
+                var $classeNum = $('.scl-stat-card[data-statut="classe"] .scl-stat-num');
+                var $nonClasseNum = $('.scl-stat-card[data-statut="non_classe"] .scl-stat-num');
+                if ($classeNum.length) $classeNum.text((parseInt($classeNum.text(), 10) || 0) + okIds.length);
+                if ($nonClasseNum.length) $nonClasseNum.text(Math.max(0, (parseInt($nonClasseNum.text(), 10) || 0) - okIds.length));
+            }
 
             var msg = autoMode
                 ? '<strong>' + okIds.length + ' article(s) classé(s) automatiquement.</strong>'
