@@ -256,7 +256,10 @@ foreach (ClassementService::TAXONOMIES as $tax) {
                 $count = wp_count_terms(['taxonomy' => $tax, 'hide_empty' => false]);
                 $count = is_wp_error($count) ? 0 : (int) $count;
             ?>
-                <p><strong><?php echo esc_html($label); ?></strong> : <?php echo esc_html($count); ?> terme(s) — <a href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-classement&tab=termes&taxonomy=' . $tax)); ?>">gérer</a></p>
+                <div class="scl-taxo-status-row">
+                    <span><strong><?php echo esc_html($label); ?></strong> : <?php echo esc_html($count); ?> terme(s)</span>
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-classement&tab=termes&taxonomy=' . $tax)); ?>" class="button button-secondary">Gérer</a>
+                </div>
             <?php endforeach; ?>
         </div>
 
