@@ -6,7 +6,7 @@ defined( 'ABSPATH' ) || exit;
 
 // ── Infos de la taxonomie courante ──────────────────────────────
 $term        = get_queried_object();
-$term_name   = $term instanceof WP_Term ? $term->name   : get_bloginfo( 'name' );
+$term_name   = $term instanceof WP_Term ? schilo_strip_category_number( $term->name ) : get_bloginfo( 'name' );
 $term_desc   = $term instanceof WP_Term ? term_description() : '';
 $term_count  = $term instanceof WP_Term ? (int) $term->count : 0;
 $parent_term = ( $term instanceof WP_Term && $term->parent )
@@ -79,7 +79,7 @@ get_header();
             <nav class="schilo-archive-breadcrumb" aria-label="<?php esc_attr_e( 'Fil d\'Ariane', 'schilo' ); ?>">
                 <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Accueil', 'schilo' ); ?></a>
                 <i class="ti ti-chevron-right" aria-hidden="true"></i>
-                <a href="<?php echo esc_url( get_term_link( $parent_term ) ); ?>"><?php echo esc_html( $parent_term->name ); ?></a>
+                <a href="<?php echo esc_url( get_term_link( $parent_term ) ); ?>"><?php echo esc_html( schilo_strip_category_number( $parent_term->name ) ); ?></a>
                 <i class="ti ti-chevron-right" aria-hidden="true"></i>
                 <span aria-current="page"><?php echo esc_html( $term_name ); ?></span>
             </nav>
