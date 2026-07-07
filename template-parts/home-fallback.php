@@ -174,10 +174,12 @@ if ( taxonomy_exists( 'schilo_serie' ) ) {
         $rotated_ids = $classement_service->getRotatedTermIds( 'schilo_serie', wp_list_pluck( $serie_pool, 'term_id' ) );
         $serie_terms = array_values( array_filter( array_map( fn( $id ) => $pool_by_id[ $id ] ?? null, $rotated_ids ) ) );
 
-        $serie_evs = [ 'mat', 'marc', 'luc', 'jean' ];
+        $serie_evs    = [ 'mat', 'marc', 'luc', 'jean' ];
+        $serie_icons  = [ 'ti-stack-2', 'ti-list-details', 'ti-bookmarks', 'ti-layers-intersect' ];
         foreach ( $serie_terms as $index => $serie_term ) {
             $resources[] = [
                 'ev'    => $serie_evs[ $index % count( $serie_evs ) ],
+                'icon'  => $serie_icons[ $index % count( $serie_icons ) ],
                 'title' => $serie_term->name,
                 'desc'  => wp_strip_all_tags( $serie_term->description ),
                 'meta'  => sprintf( _n( '%d fiche', '%d fiches', $serie_term->count, 'schilo' ), $serie_term->count ),
@@ -205,10 +207,12 @@ if ( taxonomy_exists( 'schilo_theme' ) ) {
         $rotated_ids = $classement_service->getRotatedTermIds( 'schilo_theme', wp_list_pluck( $theme_pool, 'term_id' ) );
         $theme_terms = array_values( array_filter( array_map( fn( $id ) => $pool_by_id[ $id ] ?? null, $rotated_ids ) ) );
 
-        $theme_evs = [ 'jean', 'mat', 'marc', 'luc' ];
+        $theme_evs   = [ 'jean', 'mat', 'marc', 'luc' ];
+        $theme_icons = [ 'ti-category-2', 'ti-hash', 'ti-sparkles', 'ti-book-2' ];
         foreach ( $theme_terms as $index => $theme_term ) {
             $themes[] = [
                 'ev'    => $theme_evs[ $index % count( $theme_evs ) ],
+                'icon'  => $theme_icons[ $index % count( $theme_icons ) ],
                 'title' => $theme_term->name,
                 'meta'  => sprintf( _n( '%d fiche', '%d fiches', $theme_term->count, 'schilo' ), $theme_term->count ),
                 'url'   => get_term_link( $theme_term, 'schilo_theme' ),
@@ -394,6 +398,9 @@ $category_description_fallbacks = [
                     <a href="<?php echo esc_url( $resource['url'] ); ?>"
                        class="schilo-home-resource schilo-home-resource--<?php echo esc_attr( $resource['ev'] ); ?>"
                        data-letter="<?php echo esc_attr( $resource_letter ); ?>">
+                        <?php if ( ! empty( $resource['icon'] ) ) : ?>
+                            <span class="schilo-home-resource__icon" aria-hidden="true"><i class="ti <?php echo esc_attr( $resource['icon'] ); ?>"></i></span>
+                        <?php endif; ?>
                         <strong><?php echo esc_html( $resource['title'] ); ?></strong>
                         <?php if ( ! empty( $resource['desc'] ) ) : ?>
                             <span class="schilo-home-resource__desc"><?php echo esc_html( wp_trim_words( $resource['desc'], 16, '…' ) ); ?></span>
@@ -422,6 +429,9 @@ $category_description_fallbacks = [
                     <a href="<?php echo esc_url( $theme['url'] ); ?>"
                        class="schilo-home-resource schilo-home-resource--<?php echo esc_attr( $theme['ev'] ); ?>"
                        data-letter="<?php echo esc_attr( $theme_letter ); ?>">
+                        <?php if ( ! empty( $theme['icon'] ) ) : ?>
+                            <span class="schilo-home-resource__icon" aria-hidden="true"><i class="ti <?php echo esc_attr( $theme['icon'] ); ?>"></i></span>
+                        <?php endif; ?>
                         <strong><?php echo esc_html( $theme['title'] ); ?></strong>
                         <span class="schilo-home-resource__meta"><?php echo esc_html( $theme['meta'] ); ?></span>
                         <span class="schilo-home-resource__link">
