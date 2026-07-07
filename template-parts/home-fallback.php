@@ -167,6 +167,7 @@ if ( taxonomy_exists( 'schilo_serie' ) ) {
             $resources[] = [
                 'ev'    => $serie_evs[ $index % count( $serie_evs ) ],
                 'title' => $serie_term->name,
+                'desc'  => wp_strip_all_tags( $serie_term->description ),
                 'meta'  => sprintf( _n( '%d fiche', '%d fiches', $serie_term->count, 'schilo' ), $serie_term->count ),
                 'url'   => get_term_link( $serie_term, 'schilo_serie' ),
             ];
@@ -203,8 +204,21 @@ $child_icons_by_slug = [
     '7-la-derniere-journee-jusqua-la-crucifixion'             => 'ti-cross',
 ];
 $category_description_fallbacks = [
-    'a-propos' => __( 'Découvrez la mission, les valeurs et la démarche éditoriale de Schilo.', 'schilo' ),
-    'synopse'  => __( 'Suivez chronologiquement les événements de la vie et du ministère de Jésus.', 'schilo' ),
+    'a-propos'                        => __( 'Découvrez la mission, les valeurs et la démarche éditoriale de Schilo.', 'schilo' ),
+    'synopse'                         => __( 'Suivez chronologiquement les événements de la vie et du ministère de Jésus.', 'schilo' ),
+    'analyse-comparative-des-textes'  => __( 'Comparez les récits parallèles des Évangiles pour en dégager les nuances propres à chaque auteur.', 'schilo' ),
+    'details'                         => __( "Des précisions techniques et des points d'analyse approfondis sur des sujets ponctuels.", 'schilo' ),
+    'exorcismes'                      => __( 'Les récits de délivrance et de confrontation avec les forces spirituelles dans les Évangiles.', 'schilo' ),
+    'guerisons'                       => __( 'Les guérisons accomplies par Jésus, replacées dans leur contexte historique et théologique.', 'schilo' ),
+    'miracles'                        => __( "L'ensemble des miracles rapportés dans les Évangiles, classés et analysés un à un.", 'schilo' ),
+    'miracles-sur-la-nature'          => __( 'Les miracles de Jésus sur les éléments naturels : tempêtes apaisées, multiplication des pains, marche sur l\'eau.', 'schilo' ),
+    'notes-geographiques'             => __( 'Des repères sur les lieux, régions et itinéraires mentionnés dans les récits bibliques.', 'schilo' ),
+    'notes-historiques'               => __( 'Le contexte historique, politique et culturel qui éclaire les événements racontés dans la Bible.', 'schilo' ),
+    'paraboles'                       => __( 'Les paraboles de Jésus, expliquées une à une pour en saisir le sens et la portée.', 'schilo' ),
+    'resurrections'                   => __( "Les récits de résurrection rapportés dans les Évangiles, au-delà de celle de Jésus lui-même.", 'schilo' ),
+    'series-bibliques'                => __( "Des séries d'articles organisées autour d'un même fil conducteur biblique.", 'schilo' ),
+    'textes-biliques'                 => __( 'Les textes bibliques présentés et commentés, organisés par thème ou par livre.', 'schilo' ),
+    'thematiques'                     => __( "Des dossiers thématiques regroupant plusieurs études autour d'un même sujet.", 'schilo' ),
 ];
 ?>
 
@@ -339,6 +353,9 @@ $category_description_fallbacks = [
                        class="schilo-home-resource schilo-home-resource--<?php echo esc_attr( $resource['ev'] ); ?>"
                        data-letter="<?php echo esc_attr( $resource_letter ); ?>">
                         <strong><?php echo esc_html( $resource['title'] ); ?></strong>
+                        <?php if ( ! empty( $resource['desc'] ) ) : ?>
+                            <span class="schilo-home-resource__desc"><?php echo esc_html( wp_trim_words( $resource['desc'], 16, '…' ) ); ?></span>
+                        <?php endif; ?>
                         <span class="schilo-home-resource__meta"><?php echo esc_html( $resource['meta'] ); ?></span>
                         <span class="schilo-home-resource__link">
                             <?php esc_html_e( 'Découvrir', 'schilo' ); ?>
@@ -417,37 +434,74 @@ $category_description_fallbacks = [
                         $lib_color     = ( $lib_index % 6 ) + 1;
                         $lib_has_child = ! empty( $lib_children );
                         if ( $lib_has_child ) :
-                            $lib_child_total = array_sum( array_column( (array) $lib_children, 'count' ) );
-                            $lib_child_id    = 'lib-ch-' . $category->term_id;
+                            $lib_child_id = 'lib-ch-' . $category->term_id;
+                            $lib_desc     = wp_strip_all_tags( category_description( $category->term_id ) );
+                            if ( '' !== $lib_desc ) {
+                                $lib_desc = wp_trim_words( $lib_desc, 16, '…' );
+                            } elseif ( isset( $category_description_fallbacks[ $category->slug ] ) ) {
+                                $lib_desc = $category_description_fallbacks[ $category->slug ];
+                            } else {
+                                $lib_desc = sprintf(
+                                    _n( '%s article disponible', '%s articles disponibles', (int) $category->count, 'schilo' ),
+                                    number_format_i18n( (int) $category->count )
+                                );
+                            }
                     ?>
-                        <div class="schilo-home-lib__group schilo-home-lib__group--c<?php echo esc_attr( $lib_color ); ?>">
+                        <div class="schilo-home-lib__group schilo-home-lib__group--c<?php echo esc_attr( $lib_color ); ?> open">
                             <div class="schilo-home-lib__group-row">
                                 <a href="<?php echo esc_url( get_category_link( $category->term_id ) ); ?>" class="schilo-home-lib__card schilo-home-lib__card--c<?php echo esc_attr( $lib_color ); ?>">
                                     <span class="schilo-home-lib__icon"><i class="ti <?php echo esc_attr( $lib_icon ); ?>" aria-hidden="true"></i></span>
-                                    <span class="schilo-home-lib__name"><?php echo esc_html( $category->name ); ?></span>
-                                    <span class="schilo-home-lib__badge"><?php echo esc_html( count( $lib_children ) ); ?> <span><?php esc_html_e( 'thèmes', 'schilo' ); ?></span></span>
+                                    <span class="schilo-home-lib__body">
+                                        <span class="schilo-home-lib__name"><?php echo esc_html( $category->name ); ?></span>
+                                        <span class="schilo-home-lib__desc"><?php echo esc_html( $lib_desc ); ?></span>
+                                    </span>
                                 </a>
-                                <button class="schilo-home-lib__toggle" aria-expanded="false" aria-controls="<?php echo esc_attr( $lib_child_id ); ?>">
+                                <button class="schilo-home-lib__toggle" aria-expanded="true" aria-controls="<?php echo esc_attr( $lib_child_id ); ?>">
                                     <i class="ti ti-chevron-down" aria-hidden="true"></i>
+                                    <span><?php echo esc_html( sprintf( _n( '%s thème', '%s thèmes', count( $lib_children ), 'schilo' ), number_format_i18n( count( $lib_children ) ) ) ); ?></span>
                                 </button>
                             </div>
-                            <div class="schilo-home-lib__children" id="<?php echo esc_attr( $lib_child_id ); ?>" hidden>
+                            <div class="schilo-home-lib__children" id="<?php echo esc_attr( $lib_child_id ); ?>">
                                 <?php foreach ( $lib_children as $lib_child ) :
-                                    $lib_child_icon = $child_icons_by_slug[ $lib_child->slug ] ?? 'ti-folder';
+                                    $lib_child_icon  = $child_icons_by_slug[ $lib_child->slug ] ?? 'ti-folder';
+                                    $lib_child_title = preg_replace( '/^\d+\s*-\s*/u', '', $lib_child->name );
+                                    $lib_child_desc  = wp_strip_all_tags( category_description( $lib_child->term_id ) );
+                                    $lib_child_desc  = $lib_child_desc
+                                        ? wp_trim_words( $lib_child_desc, 14, '…' )
+                                        : sprintf( _n( '%s article', '%s articles', $lib_child->count, 'schilo' ), number_format_i18n( (int) $lib_child->count ) );
                                 ?>
                                     <a href="<?php echo esc_url( get_category_link( $lib_child->term_id ) ); ?>" class="schilo-home-lib__child">
-                                        <i class="ti <?php echo esc_attr( $lib_child_icon ); ?>" aria-hidden="true"></i>
-                                        <span class="schilo-home-lib__child-name"><?php echo esc_html( $lib_child->name ); ?></span>
-                                        <small><?php echo esc_html( number_format_i18n( (int) $lib_child->count ) ); ?></small>
+                                        <span class="schilo-home-lib__child-icon"><i class="ti <?php echo esc_attr( $lib_child_icon ); ?>" aria-hidden="true"></i></span>
+                                        <span class="schilo-home-lib__child-body">
+                                            <span class="schilo-home-lib__child-top">
+                                                <span class="schilo-home-lib__child-name"><?php echo esc_html( $lib_child_title ); ?></span>
+                                                <small><?php echo esc_html( number_format_i18n( (int) $lib_child->count ) ); ?></small>
+                                            </span>
+                                            <span class="schilo-home-lib__child-desc"><?php echo esc_html( $lib_child_desc ); ?></span>
+                                        </span>
                                     </a>
                                 <?php endforeach; ?>
                             </div>
                         </div>
-                    <?php else : ?>
+                    <?php else :
+                        $lib_desc = wp_strip_all_tags( category_description( $category->term_id ) );
+                        if ( '' !== $lib_desc ) {
+                            $lib_desc = wp_trim_words( $lib_desc, 16, '…' );
+                        } elseif ( isset( $category_description_fallbacks[ $category->slug ] ) ) {
+                            $lib_desc = $category_description_fallbacks[ $category->slug ];
+                        } else {
+                            $lib_desc = sprintf(
+                                _n( '%s article disponible', '%s articles disponibles', (int) $category->count, 'schilo' ),
+                                number_format_i18n( (int) $category->count )
+                            );
+                        }
+                    ?>
                         <a href="<?php echo esc_url( get_category_link( $category->term_id ) ); ?>" class="schilo-home-lib__card schilo-home-lib__card--c<?php echo esc_attr( $lib_color ); ?>">
                             <span class="schilo-home-lib__icon"><i class="ti <?php echo esc_attr( $lib_icon ); ?>" aria-hidden="true"></i></span>
-                            <span class="schilo-home-lib__name"><?php echo esc_html( $category->name ); ?></span>
-                            <span class="schilo-home-lib__badge"><?php echo esc_html( number_format_i18n( (int) $category->count ) ); ?></span>
+                            <span class="schilo-home-lib__body">
+                                <span class="schilo-home-lib__name"><?php echo esc_html( $category->name ); ?></span>
+                                <span class="schilo-home-lib__desc"><?php echo esc_html( $lib_desc ); ?></span>
+                            </span>
                             <i class="ti ti-arrow-right schilo-home-lib__arrow" aria-hidden="true"></i>
                         </a>
                     <?php endif; ?>

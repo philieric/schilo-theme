@@ -525,7 +525,7 @@
 .schilo-home-resource {
   position: relative;
   overflow: hidden;
-  min-height: 110px;
+  min-height: 190px;
   display: flex;
   flex-direction: column;
   padding: 1.1rem 1.15rem .95rem;
@@ -578,9 +578,21 @@
   line-height: 1.4;
 }
 
+.schilo-home-resource__desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  position: relative;
+  margin-top: .45rem;
+  color: var(--schilo-text-secondary);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
 .schilo-home-resource__meta {
   position: relative;
-  margin-top: .35rem;
+  margin-top: .5rem;
   color: var(--schilo-text-muted);
   font-size: 11px;
 }
@@ -658,14 +670,10 @@
   margin-top: auto;
 }
 
-/* ── Bibliothèque Schilo — nouveau design compact ─────────────────── */
+/* ── Bibliothèque Schilo — cartes éditoriales ─────────────────────── */
 
 .schilo-home-lib {
   margin-top: 3rem;
-  padding: 2rem;
-  border: 1px solid var(--schilo-border);
-  border-radius: var(--schilo-radius-xl);
-  background: var(--schilo-bg-muted);
 }
 
 .schilo-home-lib__heading {
@@ -695,164 +703,145 @@
 .schilo-home-lib__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: .6rem;
+  gap: .9rem;
 }
 
-/* Carte compacte (catégorie sans enfants) */
+/* Carte éditoriale (catégorie sans enfants) — même grammaire visuelle
+   que .schilo-home-theme : icône sur fond teinté, corps avec titre + description. */
 .schilo-home-lib__card {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: .7rem;
-  padding: .7rem .85rem;
+  align-items: flex-start;
+  gap: .9rem;
+  min-height: 108px;
+  padding: 1.1rem 1.2rem;
   border: 1px solid var(--schilo-border);
-  border-radius: var(--schilo-radius-md);
+  border-radius: var(--schilo-radius-lg);
   background: var(--schilo-bg-card);
   color: var(--schilo-text-primary);
   text-decoration: none;
   transition: border-color var(--schilo-transition), box-shadow var(--schilo-transition), transform var(--schilo-transition);
 }
 
-/* Bandeau d'accent en tête de carte, uniquement sur les cartes autonomes de la grille
-   (pas celles imbriquées dans .schilo-home-lib__group-row) — echo visuel du design parcours. */
-.schilo-home-lib__grid > .schilo-home-lib__card {
-  position: relative;
-  overflow: hidden;
-}
-
-.schilo-home-lib__grid > .schilo-home-lib__card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-}
-
-.schilo-home-lib__grid > .schilo-home-lib__card--c1::before { background: #1a56db; }
-.schilo-home-lib__grid > .schilo-home-lib__card--c2::before { background: #047857; }
-.schilo-home-lib__grid > .schilo-home-lib__card--c3::before { background: #b45309; }
-.schilo-home-lib__grid > .schilo-home-lib__card--c4::before { background: #6d28d9; }
-.schilo-home-lib__grid > .schilo-home-lib__card--c5::before { background: #0f766e; }
-.schilo-home-lib__grid > .schilo-home-lib__card--c6::before { background: #9d174d; }
-
 .schilo-home-lib__card:hover {
   border-color: var(--schilo-border-mid);
-  box-shadow: 0 4px 14px rgba(30,42,58,.1);
+  box-shadow: var(--schilo-shadow-md);
   color: var(--schilo-text-primary);
   transform: translateY(-2px);
 }
 
-/* Icône colorée par variante */
+/* Icône sur fond teinté (écho des icônes .schilo-home-theme__icon) */
 .schilo-home-lib__icon {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border-radius: var(--schilo-radius-sm);
-  color: #fff;
-  font-size: 16px;
+  border-radius: var(--schilo-radius-md);
+  font-size: 17px;
 }
 
 .schilo-home-lib__card--c1 .schilo-home-lib__icon,
-.schilo-home-lib__group--c1 .schilo-home-lib__icon { background: #1a56db; }
+.schilo-home-lib__group--c1 .schilo-home-lib__icon { background: rgba(26,86,219,.12); color: #1a56db; }
 .schilo-home-lib__card--c2 .schilo-home-lib__icon,
-.schilo-home-lib__group--c2 .schilo-home-lib__icon { background: #047857; }
+.schilo-home-lib__group--c2 .schilo-home-lib__icon { background: rgba(4,120,87,.12); color: #047857; }
 .schilo-home-lib__card--c3 .schilo-home-lib__icon,
-.schilo-home-lib__group--c3 .schilo-home-lib__icon { background: #b45309; }
+.schilo-home-lib__group--c3 .schilo-home-lib__icon { background: rgba(180,83,9,.12); color: #b45309; }
 .schilo-home-lib__card--c4 .schilo-home-lib__icon,
-.schilo-home-lib__group--c4 .schilo-home-lib__icon { background: #6d28d9; }
+.schilo-home-lib__group--c4 .schilo-home-lib__icon { background: rgba(109,40,217,.12); color: #6d28d9; }
 .schilo-home-lib__card--c5 .schilo-home-lib__icon,
-.schilo-home-lib__group--c5 .schilo-home-lib__icon { background: #0f766e; }
+.schilo-home-lib__group--c5 .schilo-home-lib__icon { background: rgba(15,118,110,.12); color: #0f766e; }
 .schilo-home-lib__card--c6 .schilo-home-lib__icon,
-.schilo-home-lib__group--c6 .schilo-home-lib__icon { background: #9d174d; }
+.schilo-home-lib__group--c6 .schilo-home-lib__icon { background: rgba(157,23,77,.12); color: #9d174d; }
 
-/* Nom de la catégorie */
-.schilo-home-lib__name {
+/* Corps : titre + description (remplace l'ancien badge compteur) */
+.schilo-home-lib__body {
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.schilo-home-lib__name {
+  font-size: 14px;
   font-weight: 500;
-  line-height: 1.3;
+  line-height: 1.35;
+}
+
+.schilo-home-lib__desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: var(--schilo-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
-/* Badge compteur */
-.schilo-home-lib__badge {
-  flex-shrink: 0;
-  padding: 2px 8px;
-  border-radius: 99px;
-  background: var(--schilo-bg-muted);
-  color: var(--schilo-text-muted);
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.schilo-home-lib__badge span {
-  font-weight: 400;
-  opacity: .75;
-}
-
-/* Flèche droite */
+/* Flèche, révélée au survol */
 .schilo-home-lib__arrow {
   flex-shrink: 0;
+  margin-top: .2rem;
   color: var(--schilo-text-hint);
   font-size: 14px;
   opacity: 0;
+  transform: translateX(-4px);
   transition: opacity var(--schilo-transition), transform var(--schilo-transition);
 }
 
 .schilo-home-lib__card:hover .schilo-home-lib__arrow {
   opacity: 1;
-  transform: translateX(2px);
+  transform: translateX(0);
 }
 
 /* Groupe avec sous-catégories (pleine largeur) */
 .schilo-home-lib__group {
   grid-column: 1 / -1;
-  border: 1px solid var(--schilo-border-mid);
+  border: 1px solid var(--schilo-border);
   border-radius: var(--schilo-radius-lg);
-  background: var(--schilo-bg-page);
+  background: var(--schilo-bg-card);
   overflow: hidden;
+  transition: border-color var(--schilo-transition), box-shadow var(--schilo-transition);
+}
+
+.schilo-home-lib__group.open,
+.schilo-home-lib__group:has(.schilo-home-lib__card:hover) {
+  border-color: var(--schilo-border-mid);
 }
 
 .schilo-home-lib__group-row {
   display: flex;
-  align-items: center;
-  gap: .4rem;
-  padding: .4rem .4rem .4rem .5rem;
+  align-items: stretch;
+  gap: .6rem;
+  padding: .6rem;
 }
 
 .schilo-home-lib__group-row .schilo-home-lib__card {
   flex: 1;
   border: none;
-  background: transparent;
-  box-shadow: none;
-  border-radius: var(--schilo-radius-sm);
+  padding: .5rem .6rem;
 }
 
 .schilo-home-lib__group-row .schilo-home-lib__card:hover {
-  background: rgba(0,0,0,.04);
-  box-shadow: none;
   transform: none;
+  box-shadow: none;
 }
 
 /* Bouton toggle */
 .schilo-home-lib__toggle {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  border: 1px solid var(--schilo-border-mid);
-  border-radius: var(--schilo-radius-sm);
-  background: var(--schilo-bg-card);
+  gap: .4rem;
+  padding: 0 1rem;
+  border: 1px solid var(--schilo-border);
+  border-radius: var(--schilo-radius-md);
+  background: transparent;
   color: var(--schilo-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
   transition: background var(--schilo-transition), border-color var(--schilo-transition), color var(--schilo-transition);
 }
@@ -865,7 +854,7 @@
 }
 
 .schilo-home-lib__toggle i {
-  font-size: 15px;
+  font-size: 14px;
   transition: transform var(--schilo-transition);
 }
 
@@ -873,14 +862,14 @@
   transform: rotate(180deg);
 }
 
-/* Sous-catégories */
+/* Sous-catégories — petites cartes éditoriales (icône + titre + description) */
 .schilo-home-lib__children[hidden] { display: none !important; }
 
 .schilo-home-lib__children {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0;
-  border-top: 1px solid var(--schilo-border);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .6rem;
+  padding: 0 1.1rem 1.1rem;
   animation: schilo-slide-down .2s ease;
 }
 
@@ -891,44 +880,77 @@
 
 .schilo-home-lib__child {
   display: flex;
-  align-items: center;
-  gap: .55rem;
-  padding: .7rem 1rem;
-  border-right: 1px solid var(--schilo-border);
-  border-bottom: 1px solid var(--schilo-border);
-  color: var(--schilo-text-secondary);
+  align-items: flex-start;
+  gap: .65rem;
+  padding: .75rem .85rem;
+  border: 1px solid var(--schilo-border);
+  border-radius: var(--schilo-radius-md);
+  background: var(--schilo-bg-page);
+  color: var(--schilo-text-primary);
   text-decoration: none;
-  font-size: 13px;
-  transition: background var(--schilo-transition), color var(--schilo-transition);
+  transition: background var(--schilo-transition), border-color var(--schilo-transition), transform var(--schilo-transition);
 }
-
-.schilo-home-lib__child:last-child,
-.schilo-home-lib__child:nth-child(4n) { border-right: none; }
 
 .schilo-home-lib__child:hover {
-  background: var(--schilo-accent-pale);
-  color: var(--schilo-accent-dark);
+  border-color: transparent;
+  transform: translateY(-1px);
 }
 
-.schilo-home-lib__child > i {
-  font-size: 15px;
+.schilo-home-lib__group--c1 .schilo-home-lib__child:hover { background: rgba(26,86,219,.08); }
+.schilo-home-lib__group--c2 .schilo-home-lib__child:hover { background: rgba(4,120,87,.08); }
+.schilo-home-lib__group--c3 .schilo-home-lib__child:hover { background: rgba(180,83,9,.08); }
+.schilo-home-lib__group--c4 .schilo-home-lib__child:hover { background: rgba(109,40,217,.08); }
+.schilo-home-lib__group--c5 .schilo-home-lib__child:hover { background: rgba(15,118,110,.08); }
+.schilo-home-lib__group--c6 .schilo-home-lib__child:hover { background: rgba(157,23,77,.08); }
+
+.schilo-home-lib__child-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  opacity: .6;
+  border-radius: var(--schilo-radius-sm);
+  background: var(--schilo-bg-card);
+  font-size: 13px;
+  opacity: .75;
+}
+
+.schilo-home-lib__child-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+
+.schilo-home-lib__child-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
 }
 
 .schilo-home-lib__child-name {
-  flex: 1;
-  min-width: 0;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.35;
 }
 
-.schilo-home-lib__child small {
+.schilo-home-lib__child-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--schilo-text-secondary);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.schilo-home-lib__child-top small {
   flex-shrink: 0;
-  padding: 1px 6px;
-  border-radius: 99px;
+  padding: 1px 7px;
+  border-radius: 999px;
   background: var(--schilo-bg-muted);
   color: var(--schilo-text-muted);
   font-size: 10px;
@@ -962,20 +984,21 @@
   .schilo-home-lib__grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .schilo-home-lib__children {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .schilo-home-lib__child:nth-child(2n) { border-right: none; }
 }
 
 @media (max-width: 600px) {
   .schilo-home-lib__grid {
     grid-template-columns: 1fr;
   }
+  .schilo-home-lib__group-row {
+    flex-wrap: wrap;
+  }
+  .schilo-home-lib__toggle span {
+    display: none;
+  }
   .schilo-home-lib__children {
     grid-template-columns: 1fr;
   }
-  .schilo-home-lib__child { border-right: none; }
   .schilo-home-cta {
     flex-direction: column;
     gap: 1.25rem;
