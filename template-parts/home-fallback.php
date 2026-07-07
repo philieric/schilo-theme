@@ -444,7 +444,7 @@ $category_description_fallbacks = [
 
                 if ( preg_match( '/^(\d+)\s*-\s*/u', $category->name, $matches ) ) {
                     $category_number = $matches[1];
-                    $category_title  = preg_replace( '/^\d+\s*-\s*/u', '', $category->name );
+                    $category_title  = schilo_strip_category_number( $category->name );
                 }
 
                 if ( '' === $category_description ) {
