@@ -112,8 +112,8 @@ $prefix_role_labels = ['principal' => 'Principal', 'complement' => 'Complément'
     </div>
 
     <div class="scl-val-bloc">
-        <button type="button" id="scl-btn-classify" class="button button-primary" data-post-id="<?php echo esc_attr($post_id); ?>">
-            <span class="dashicons dashicons-superhero" style="vertical-align:middle;margin-top:2px;"></span>
+        <button type="button" id="scl-btn-classify" class="button button-primary" data-post-id="<?php echo esc_attr($post_id); ?>" style="display:inline-flex;align-items:center;gap:6px;">
+            <span class="dashicons dashicons-superhero" aria-hidden="true"></span>
             Classer via IA (suggestion)
         </button>
         <select id="scl-provider-select">
