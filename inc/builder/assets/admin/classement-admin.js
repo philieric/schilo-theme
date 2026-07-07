@@ -107,6 +107,22 @@ jQuery(function ($) {
         $('#scl-check-all').prop('checked', !allChecked);
     });
 
+    /* Selection par plage (Maj+clic) : coche/decoche toutes les lignes
+       entre la derniere case cochee manuellement et celle-ci. */
+    var lastRowCheck = null;
+    $(document).on('click', '.scl-row-check', function (e) {
+        var $boxes = $('.scl-row-check');
+        if (e.shiftKey && lastRowCheck) {
+            var start = $boxes.index(lastRowCheck);
+            var end = $boxes.index(this);
+            if (start > -1 && end > -1) {
+                if (start > end) { var tmp = start; start = end; end = tmp; }
+                $boxes.slice(start, end + 1).prop('checked', this.checked);
+            }
+        }
+        lastRowCheck = this;
+    });
+
     /* ---- Page liste : classement en lot ---------------------------- */
     $('#scl-btn-batch-ia').on('click', function () {
         var ids = [];

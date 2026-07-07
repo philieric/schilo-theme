@@ -287,6 +287,22 @@
         $('#sia-check-all').prop('checked', !checked);
     });
 
+    /* Selection par plage (Maj+clic) : coche/decoche toutes les lignes
+       entre la derniere case cochee manuellement et celle-ci. */
+    var lastRowCheck = null;
+    $(document).on('click', '.sia-row-check', function (e) {
+        var $boxes = $('.sia-row-check');
+        if (e.shiftKey && lastRowCheck) {
+            var start = $boxes.index(lastRowCheck);
+            var end = $boxes.index(this);
+            if (start > -1 && end > -1) {
+                if (start > end) { var tmp = start; start = end; end = tmp; }
+                $boxes.slice(start, end + 1).prop('checked', this.checked);
+            }
+        }
+        lastRowCheck = this;
+    });
+
     /* =========================================================
        INDEXER VIA IA — bouton ligne
     ========================================================= */
