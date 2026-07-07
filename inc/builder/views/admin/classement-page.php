@@ -40,6 +40,7 @@ $filter_url = function (array $override) use ($base_url, $statut, $prefix) {
         <a href="<?php echo esc_url($base_url); ?>" class="scl-tab scl-tab-active">Classement</a>
         <a href="<?php echo esc_url(add_query_arg('tab', 'termes', $base_url)); ?>" class="scl-tab">Termes</a>
         <a href="<?php echo esc_url(add_query_arg('tab', 'config', $base_url)); ?>" class="scl-tab">Configuration</a>
+        <a href="<?php echo esc_url(add_query_arg('tab', 'audit', $base_url)); ?>" class="scl-tab">Audit</a>
     </nav>
 
     <div class="scl-stats-row">

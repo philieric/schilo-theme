@@ -47,6 +47,11 @@ $tools = array(
         'label' => 'Doublons de préfixe',
         'desc'  => 'Trouver et corriger les numéros en double',
     ),
+    'liens_ids' => array(
+        'icon'  => 'dashicons-admin-links',
+        'label' => 'Liens par ID',
+        'desc'  => 'Fiabiliser les liens internes contre les changements de slug',
+    ),
 );
 ?>
 

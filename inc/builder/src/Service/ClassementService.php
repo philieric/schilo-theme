@@ -22,6 +22,16 @@ class ClassementService
         'schilo_serie'    => 'serie_term_ids',
     ];
 
+    /** Option : reglages de rotation periodique sur l'accueil (une entree par taxonomie). */
+    public const ROTATION_OPTION = 'schilo_classement_rotation';
+
+    /** Valeurs par defaut par taxonomie — reprennent le comportement historique (pas de rotation). */
+    private const ROTATION_DEFAULTS = [
+        'schilo_parcours' => ['enabled' => false, 'interval_days' => 7, 'count' => 3],
+        'schilo_theme'    => ['enabled' => false, 'interval_days' => 7, 'count' => 4],
+        'schilo_serie'    => ['enabled' => false, 'interval_days' => 7, 'count' => 8],
+    ];
+
     /** Libelles pour les messages d'erreur de checkPrefixRulesForTaxonomy(). */
     private const TAXONOMY_ARTICLE_LABELS = [
         'schilo_parcours' => 'le parcours',
@@ -63,6 +73,75 @@ class ClassementService
         $min = isset($option['min']) ? max(1, (int) $option['min']) : 2;
         $max = isset($option['max']) ? max($min, (int) $option['max']) : 4;
         return ['min' => $min, 'max' => $max];
+    }
+
+    /* =========================================================
+       ROTATION PERIODIQUE SUR L'ACCUEIL (parcours / themes / series)
+       Meme principe que Schilo_Featured::get() (voir class-schilo-featured.php) :
+       aucun cron, une simple fenetre deterministe basee sur le temps ecoule,
+       identique pour tous les visiteurs simultanes et compatible avec le cache.
+    ========================================================= */
+
+    /**
+     * Reglages de rotation pour une taxonomie ('schilo_parcours', 'schilo_theme'
+     * ou 'schilo_serie'), regles dans Parcours & Themes > Configuration.
+     */
+    public function getRotationSettings(string $taxonomy): array
+    {
+        $defaults = self::ROTATION_DEFAULTS[$taxonomy] ?? ['enabled' => false, 'interval_days' => 7, 'count' => 4];
+        $saved    = get_option(self::ROTATION_OPTION, []);
+        $raw      = is_array($saved) ? ($saved[$taxonomy] ?? []) : [];
+
+        return [
+            'enabled'       => array_key_exists('enabled', $raw) ? !empty($raw['enabled']) : $defaults['enabled'],
+            'interval_days' => isset($raw['interval_days']) ? max(1, (int) $raw['interval_days']) : $defaults['interval_days'],
+            'count'         => isset($raw['count']) ? max(1, (int) $raw['count']) : $defaults['count'],
+        ];
+    }
+
+    public function saveRotationSettings(array $settings): void
+    {
+        $clean = [];
+        foreach (self::TAXONOMIES as $taxonomy) {
+            $raw = (array) ($settings[$taxonomy] ?? []);
+            $clean[$taxonomy] = [
+                'enabled'       => !empty($raw['enabled']),
+                'interval_days' => max(1, (int) ($raw['interval_days'] ?? 7)),
+                'count'         => max(1, (int) ($raw['count'] ?? 4)),
+            ];
+        }
+        update_option(self::ROTATION_OPTION, $clean, false);
+    }
+
+    /**
+     * Selectionne, parmi un pool ordonne de term_id, la fenetre a afficher
+     * "maintenant" sur l'accueil pour une taxonomie donnee. Si la rotation est
+     * desactivee ou que le pool est trop petit pour tourner, renvoie simplement
+     * les N premiers termes du pool (comportement historique, sans rotation).
+     *
+     * @param int[] $pool_term_ids Termes deja ordonnes (ordre manuel ou popularite).
+     * @return int[] Sous-ensemble ordonne de term_id a afficher.
+     */
+    public function getRotatedTermIds(string $taxonomy, array $pool_term_ids): array
+    {
+        $settings = $this->getRotationSettings($taxonomy);
+        $count    = $settings['count'];
+        $total    = count($pool_term_ids);
+
+        if ($total === 0) {
+            return [];
+        }
+
+        $window_count = (int) floor($total / $count);
+        if (!$settings['enabled'] || $count >= $total || $window_count < 1) {
+            return array_slice($pool_term_ids, 0, $count);
+        }
+
+        $interval_seconds = $settings['interval_days'] * DAY_IN_SECONDS;
+        $slot   = (int) floor(time() / $interval_seconds);
+        $window = $slot % $window_count;
+
+        return array_slice($pool_term_ids, $window * $count, $count);
     }
 
     /* =========================================================
@@ -573,6 +652,81 @@ class ClassementService
     }
 
     /**
+     * Compare le classement DEJA enregistre (avant ce chantier ou avant un
+     * changement de regle ulterieur) aux regles par prefixe ACTUELLEMENT
+     * configurees, pour reperer une derive : un article classe alors que son
+     * prefixe est desormais "exclu", ou une limite depassee dans un terme.
+     * L'enforcement (checkPrefixRulesForTaxonomy) ne s'applique qu'aux
+     * NOUVEAUX enregistrements — rien ne "nettoie" automatiquement l'existant
+     * si une regle change apres coup, d'ou cet audit en lecture seule.
+     *
+     * Retourne ['exclu' => [...], 'limite' => [...]] (voir usage dans
+     * classement-audit.php pour le detail des cles de chaque entree).
+     */
+    public function auditPrefixRuleViolations(): array
+    {
+        global $wpdb;
+        $rules  = $this->getPrefixRules();
+        $result = ['exclu' => [], 'limite' => []];
+
+        $exclu_prefixes  = array_keys(array_filter($rules, fn($r) => $r['role'] === 'exclu'));
+        $limite_prefixes = array_keys(array_filter($rules, fn($r) => $r['limite'] > 0));
+
+        foreach (self::TAXONOMIES as $taxonomy) {
+            if (!empty($exclu_prefixes)) {
+                $placeholders = implode(',', array_fill(0, count($exclu_prefixes), '%s'));
+                $rows = $wpdb->get_results($wpdb->prepare("
+                    SELECT wi.post_id, wi.titre, wi.prefix, tt.term_id, t.name AS term_name
+                    FROM {$this->table} wi
+                    JOIN {$wpdb->term_relationships} tr ON tr.object_id = wi.post_id
+                    JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = %s
+                    JOIN {$wpdb->terms} t ON t.term_id = tt.term_id
+                    WHERE wi.prefix IN ($placeholders)
+                    ORDER BY wi.post_id
+                ", $taxonomy, ...$exclu_prefixes));
+                foreach ($rows as $row) {
+                    $result['exclu'][] = [
+                        'post_id'   => (int) $row->post_id,
+                        'titre'     => $row->titre,
+                        'prefix'    => $row->prefix,
+                        'taxonomy'  => $taxonomy,
+                        'term_id'   => (int) $row->term_id,
+                        'term_name' => $row->term_name,
+                    ];
+                }
+            }
+
+            if (!empty($limite_prefixes)) {
+                $placeholders = implode(',', array_fill(0, count($limite_prefixes), '%s'));
+                $rows = $wpdb->get_results($wpdb->prepare("
+                    SELECT tt.term_id, t.name AS term_name, wi.prefix, COUNT(*) AS n
+                    FROM {$this->table} wi
+                    JOIN {$wpdb->term_relationships} tr ON tr.object_id = wi.post_id
+                    JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = %s
+                    JOIN {$wpdb->terms} t ON t.term_id = tt.term_id
+                    WHERE wi.prefix IN ($placeholders)
+                    GROUP BY tt.term_id, wi.prefix
+                ", $taxonomy, ...$limite_prefixes));
+                foreach ($rows as $row) {
+                    $limite = $rules[$row->prefix]['limite'] ?? 0;
+                    if ((int) $row->n > $limite) {
+                        $result['limite'][] = [
+                            'taxonomy'  => $taxonomy,
+                            'term_id'   => (int) $row->term_id,
+                            'term_name' => $row->term_name,
+                            'prefix'    => $row->prefix,
+                            'count'     => (int) $row->n,
+                            'limite'    => $limite,
+                        ];
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Tente de rattacher un article "Complement" (ex: une Annexe) a l'article
      * "Principal" du meme terme de parcours qui le reference, via le champ
      * deja indexe articles_lies (texte libre, parfois bruite). Compare les
@@ -750,8 +904,11 @@ class ClassementService
 
     /**
      * Appelle Claude ou OpenAI avec le prompt donne et renvoie le texte brut de la reponse.
+     * Public : reutilise par d'autres fonctionnalites IA du theme (ex: description
+     * de categorie WP dans SettingsPage) qui n'ont pas besoin du reste du pipeline
+     * de classement (JSON multi-termes, taxonomies schilo_*).
      */
-    private function callIaRaw(string $provider, string $prompt, int $max_tokens = 1024): string|\WP_Error
+    public function callIaRaw(string $provider, string $prompt, int $max_tokens = 1024): string|\WP_Error
     {
         $config = get_option('schilo_ia_config', []);
 

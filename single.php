@@ -301,7 +301,7 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
         <a href="<?php echo esc_url( home_url( '/' ) ); ?>">Accueil</a>
         <?php if ( $primary_cat ) : ?>
           <span aria-hidden="true">›</span>
-          <a href="<?php echo esc_url( get_category_link( $primary_cat ) ); ?>"><?php echo esc_html( $primary_cat->name ); ?></a>
+          <a href="<?php echo esc_url( get_category_link( $primary_cat ) ); ?>"><?php echo esc_html( schilo_strip_category_number( $primary_cat->name ) ); ?></a>
         <?php endif; ?>
         <?php if ( $per_code ) : ?>
           <span aria-hidden="true">›</span>
@@ -485,7 +485,7 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
           <?php foreach ( $cats as $cat ) : ?>
             <a href="<?php echo esc_url( get_category_link( $cat ) ); ?>"
                class="schilo-sidebar-theme-tag">
-              <?php echo esc_html( $cat->name ); ?>
+              <?php echo esc_html( schilo_strip_category_number( $cat->name ) ); ?>
             </a>
           <?php endforeach; ?>
           <?php foreach ( $display_tags as $dtag ) : ?>

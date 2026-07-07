@@ -46,6 +46,9 @@ class ClassementPage
             case 'config':
                 include SCHILO_BUILDER_PATH . 'views/admin/classement-config.php';
                 break;
+            case 'audit':
+                include SCHILO_BUILDER_PATH . 'views/admin/classement-audit.php';
+                break;
             default:
                 include SCHILO_BUILDER_PATH . 'views/admin/classement-page.php';
         }

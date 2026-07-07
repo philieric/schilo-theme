@@ -6,7 +6,7 @@ defined( 'ABSPATH' ) || exit;
 
 // ── Infos de la taxonomie courante ──────────────────────────────
 $term        = get_queried_object();
-$term_name   = $term instanceof WP_Term ? $term->name   : get_bloginfo( 'name' );
+$term_name   = $term instanceof WP_Term ? schilo_strip_category_number( $term->name ) : get_bloginfo( 'name' );
 $term_desc   = $term instanceof WP_Term ? term_description() : '';
 $term_count  = $term instanceof WP_Term ? (int) $term->count : 0;
 $parent_term = ( $term instanceof WP_Term && $term->parent )
@@ -48,9 +48,13 @@ $sort_options = [
     'comment-desc'  => __( 'Plus commentés', 'schilo' ),
 ];
 $allowed_sorts = array_keys( $sort_options );
+// Les categories affichent leurs articles du plus ancien au plus recent par defaut
+// (comportement historique) ; les autres archives restent triees du plus recent
+// au plus ancien. Doit rester coherent avec Schilo_Setup::apply_archive_sort().
+$default_sort  = is_category() ? 'date-asc' : 'date-desc';
 $current_sort  = isset( $_GET['schilo_sort'] ) && in_array( $_GET['schilo_sort'], $allowed_sorts, true )
     ? sanitize_key( $_GET['schilo_sort'] )
-    : 'date-desc';
+    : $default_sort;
 
 // ── Articles par page ────────────────────────────────────────────
 $pp_options  = [ 10, 20, 50, -1 ]; // -1 = tous
@@ -79,7 +83,7 @@ get_header();
             <nav class="schilo-archive-breadcrumb" aria-label="<?php esc_attr_e( 'Fil d\'Ariane', 'schilo' ); ?>">
                 <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Accueil', 'schilo' ); ?></a>
                 <i class="ti ti-chevron-right" aria-hidden="true"></i>
-                <a href="<?php echo esc_url( get_term_link( $parent_term ) ); ?>"><?php echo esc_html( $parent_term->name ); ?></a>
+                <a href="<?php echo esc_url( get_term_link( $parent_term ) ); ?>"><?php echo esc_html( schilo_strip_category_number( $parent_term->name ) ); ?></a>
                 <i class="ti ti-chevron-right" aria-hidden="true"></i>
                 <span aria-current="page"><?php echo esc_html( $term_name ); ?></span>
             </nav>
@@ -140,7 +144,7 @@ get_header();
                         <select id="schilo-archive-sort"
                                 class="schilo-archive-select"
                                 data-param="schilo_sort"
-                                data-default="date-desc"
+                                data-default="<?php echo esc_attr( $default_sort ); ?>"
                                 data-base-url="<?php echo esc_url( $base_url ); ?>"
                                 data-current-pp="<?php echo esc_attr( $current_pp !== 10 ? $current_pp : '' ); ?>">
                             <?php foreach ( $sort_options as $key => $label ) : ?>
@@ -247,7 +251,7 @@ get_header();
                             <?php if ( $cat ) : ?>
                                 <a href="<?php echo esc_url( get_category_link( $cat->term_id ) ); ?>"
                                    class="schilo-archive-card__cat">
-                                    <?php echo esc_html( $cat->name ); ?>
+                                    <?php echo esc_html( schilo_strip_category_number( $cat->name ) ); ?>
                                 </a>
                             <?php endif; ?>
 
