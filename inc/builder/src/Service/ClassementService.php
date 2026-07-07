@@ -96,11 +96,15 @@ class ClassementService
             'enabled'       => array_key_exists('enabled', $raw) ? !empty($raw['enabled']) : $defaults['enabled'],
             'interval_days' => isset($raw['interval_days']) ? max(1, (int) $raw['interval_days']) : $defaults['interval_days'],
             'count'         => isset($raw['count']) ? max(1, (int) $raw['count']) : $defaults['count'],
+            'offset'        => isset($raw['offset']) ? (int) $raw['offset'] : 0,
         ];
     }
 
     public function saveRotationSettings(array $settings): void
     {
+        $existing = get_option(self::ROTATION_OPTION, []);
+        if (!is_array($existing)) $existing = [];
+
         $clean = [];
         foreach (self::TAXONOMIES as $taxonomy) {
             $raw = (array) ($settings[$taxonomy] ?? []);
@@ -108,9 +112,32 @@ class ClassementService
                 'enabled'       => !empty($raw['enabled']),
                 'interval_days' => max(1, (int) ($raw['interval_days'] ?? 7)),
                 'count'         => max(1, (int) ($raw['count'] ?? 4)),
+                // Le decalage manuel (bouton "Forcer la rotation") n'est pas un
+                // champ du formulaire de reglages — on le preserve tel quel.
+                'offset'        => (int) ($existing[$taxonomy]['offset'] ?? 0),
             ];
         }
         update_option(self::ROTATION_OPTION, $clean, false);
+    }
+
+    /**
+     * Force le passage immediat a la fenetre suivante pour une taxonomie
+     * donnee (bouton "Forcer la rotation maintenant" de l'ecran Configuration),
+     * sans attendre l'intervalle configure. N'a d'effet visible que si la
+     * rotation est activee pour cette taxonomie.
+     */
+    public function forceRotationNow(string $taxonomy): void
+    {
+        if (!$this->isValidTaxonomy($taxonomy)) return;
+
+        $saved = get_option(self::ROTATION_OPTION, []);
+        if (!is_array($saved)) $saved = [];
+
+        $current = $this->getRotationSettings($taxonomy);
+        $current['offset'] = $current['offset'] + 1;
+        $saved[$taxonomy]  = $current;
+
+        update_option(self::ROTATION_OPTION, $saved, false);
     }
 
     /**
@@ -138,7 +165,7 @@ class ClassementService
         }
 
         $interval_seconds = $settings['interval_days'] * DAY_IN_SECONDS;
-        $slot   = (int) floor(time() / $interval_seconds);
+        $slot   = (int) floor(time() / $interval_seconds) + $settings['offset'];
         $window = $slot % $window_count;
 
         return array_slice($pool_term_ids, $window * $count, $count);
