@@ -121,7 +121,7 @@ $default_prov = get_option('schilo_indexation_default_provider', 'claude');
         </select>
         <div class="sia-toolbar-actions">
             <button type="button" id="sia-btn-batch-ia" class="button button-primary">
-                <span class="dashicons dashicons-superhero" style="font-size:15px;height:15px;width:15px;vertical-align:middle;margin-right:3px;"></span>
+                <span class="dashicons dashicons-superhero" style="font-size:15px;height:15px;width:15px;vertical-align:middle;margin-right:3px;margin-top:1px;"></span>
                 Indexer la selection
             </button>
             <button type="button" id="sia-btn-select-all" class="button">Tout selectionner</button>

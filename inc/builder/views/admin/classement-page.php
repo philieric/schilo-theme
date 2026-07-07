@@ -81,7 +81,7 @@ $filter_url = function (array $override) use ($base_url, $statut, $prefix) {
             <option value="openai">ChatGPT</option>
         </select>
         <button type="button" id="scl-btn-batch-ia" class="button button-primary">
-            <span class="dashicons dashicons-superhero" style="vertical-align:middle;margin-top:-2px;"></span>
+            <span class="dashicons dashicons-superhero" style="vertical-align:middle;margin-top:2px;"></span>
             Classer la sélection en lot
         </button>
         <button type="button" id="scl-btn-select-all" class="button">Tout sélectionner</button>
