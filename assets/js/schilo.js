@@ -228,8 +228,11 @@ Schilo.ArchiveView = (function () {
         });
     }
 
-    function _buildArchiveUrl(baseUrl, params) {
-        var defaults = { schilo_sort: 'date-desc', schilo_pp: '10' };
+    function _buildArchiveUrl(baseUrl, selects) {
+        /* Le tri par defaut differe selon le contexte (categories : plus ancien
+           d'abord, autres archives : plus recent d'abord) — lu depuis data-default
+           sur chaque select plutot que code en dur, pour rester coherent avec le
+           defaut applique cote serveur (Schilo_Setup::apply_archive_sort). */
         var urlParts = baseUrl.split('?');
         var base     = urlParts[0];
 
@@ -244,12 +247,13 @@ Schilo.ArchiveView = (function () {
             });
         }
 
-        var keys = Object.keys(defaults);
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            var val = String(params[key] || '');
-            if (val && val !== defaults[key]) {
-                kept.push(encodeURIComponent(key) + '=' + encodeURIComponent(val));
+        for (var i = 0; i < selects.length; i++) {
+            var sel   = selects[i];
+            var param = sel.dataset.param;
+            var def   = sel.dataset.default || '';
+            var val   = String(sel.value || '');
+            if (param && val && val !== def) {
+                kept.push(encodeURIComponent(param) + '=' + encodeURIComponent(val));
             }
         }
         return base + (kept.length ? '?' + kept.join('&') : '');
@@ -299,13 +303,8 @@ Schilo.ArchiveView = (function () {
         );
         selects.forEach(function (sel) {
             sel.addEventListener('change', function () {
-                var baseUrl   = sel.dataset.baseUrl || window.location.href;
-                var sortSel   = document.getElementById('schilo-archive-sort');
-                var ppSel     = document.getElementById('schilo-archive-pp');
-                window.location.href = _buildArchiveUrl(baseUrl, {
-                    schilo_sort: sortSel ? sortSel.value : 'date-desc',
-                    schilo_pp:   ppSel   ? ppSel.value   : '10'
-                });
+                var baseUrl = sel.dataset.baseUrl || window.location.href;
+                window.location.href = _buildArchiveUrl(baseUrl, selects);
             });
         });
     }
