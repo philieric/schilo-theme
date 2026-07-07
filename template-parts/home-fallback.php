@@ -210,6 +210,7 @@ if ( taxonomy_exists( 'schilo_theme' ) ) {
             $themes[] = [
                 'ev'    => $theme_evs[ $index % count( $theme_evs ) ],
                 'title' => $theme_term->name,
+                'desc'  => wp_strip_all_tags( $theme_term->description ),
                 'meta'  => sprintf( _n( '%d fiche', '%d fiches', $theme_term->count, 'schilo' ), $theme_term->count ),
                 'url'   => get_term_link( $theme_term, 'schilo_theme' ),
             ];
@@ -423,6 +424,9 @@ $category_description_fallbacks = [
                        class="schilo-home-resource schilo-home-resource--<?php echo esc_attr( $theme['ev'] ); ?>"
                        data-letter="<?php echo esc_attr( $theme_letter ); ?>">
                         <strong><?php echo esc_html( $theme['title'] ); ?></strong>
+                        <?php if ( ! empty( $theme['desc'] ) ) : ?>
+                            <span class="schilo-home-resource__desc"><?php echo esc_html( wp_trim_words( $theme['desc'], 16, '…' ) ); ?></span>
+                        <?php endif; ?>
                         <span class="schilo-home-resource__meta"><?php echo esc_html( $theme['meta'] ); ?></span>
                         <span class="schilo-home-resource__link">
                             <?php esc_html_e( 'Découvrir', 'schilo' ); ?>
