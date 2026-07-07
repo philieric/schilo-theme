@@ -136,14 +136,6 @@
     border-bottom: 1px solid var(--scl-border);
 }
 .scl-val-footer { display: flex; align-items: center; gap: 10px; padding: 16px 0 40px; }
-.scl-taxo-status-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 8px 0;
-}
-.scl-taxo-status-row + .scl-taxo-status-row { border-top: 1px solid var(--scl-border); }
 
 .scl-term-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; }
 .scl-term-child { margin-left: 24px; color: var(--scl-grey); }
