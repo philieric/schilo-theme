@@ -109,7 +109,7 @@ class Schilo_Setup {
 
     public static function apply_archive_sort( WP_Query $query ): void {
         if ( is_admin() || ! $query->is_main_query() ) return;
-        if ( ! ( $query->is_category() || $query->is_tag() || $query->is_archive() ) ) return;
+        if ( ! ( $query->is_category() || $query->is_tag() || $query->is_archive() || $query->is_search() ) ) return;
 
         $allowed_sorts = [
             'date-desc'     => [ 'orderby' => 'date',          'order' => 'DESC' ],
