@@ -75,7 +75,17 @@ Schilo.Lang = (function () {
         var link = _findGlink(code);
         if (link) {
             var events = ['pointerover', 'pointerenter', 'mouseover', 'mouseenter'];
+
+            /* popup.js n'attache son ecouteur pointerenter (qui charge le script
+               translate.google.com/translate_a/element.js via load_tlib()) que sur
+               le conteneur .gtranslate_wrapper, jamais sur les liens de langue
+               eux-memes. Or pointerenter/mouseenter ne remontent pas par bulles
+               comme pointerover/mouseover : les declencher uniquement sur le lien
+               ne fait donc jamais charger le moteur de traduction. Cible aussi le
+               wrapper en plus du lien. */
+            var wrapper = document.querySelector('.gtranslate_wrapper');
             for (var i = 0; i < events.length; i++) {
+                if (wrapper) wrapper.dispatchEvent(new MouseEvent(events[i], { bubbles: true, cancelable: true }));
                 link.dispatchEvent(new MouseEvent(events[i], { bubbles: true, cancelable: true }));
             }
             setTimeout(function () {
