@@ -1,3 +1,36 @@
+<?php
+/**
+ * Recupere le sous-ensemble "de la semaine" (rotation periodique — Parcours &
+ * Themes > Configuration) pour une taxonomie de premier niveau, meme logique
+ * que template-parts/home-fallback.php. Retourne un tableau de WP_Term, vide
+ * si la taxonomie/le service n'est pas disponible (le footer retombe alors
+ * sur le menu WordPress statique correspondant, voir plus bas).
+ */
+if ( ! function_exists( 'schilo_footer_rotated_terms' ) ) :
+function schilo_footer_rotated_terms( string $taxonomy, \Schilo\Builder\Service\ClassementService $service ): array {
+    if ( ! taxonomy_exists( $taxonomy ) ) return [];
+
+    $pool = get_terms( [
+        'taxonomy'   => $taxonomy,
+        'parent'     => 0,
+        'hide_empty' => true,
+        'orderby'    => 'meta_value_num',
+        'meta_key'   => 'schilo_ordre',
+        'order'      => 'ASC',
+    ] );
+    if ( is_wp_error( $pool ) || empty( $pool ) ) return [];
+
+    $pool_by_id  = array_column( $pool, null, 'term_id' );
+    $rotated_ids = $service->getRotatedTermIds( $taxonomy, wp_list_pluck( $pool, 'term_id' ) );
+
+    return array_values( array_filter( array_map( fn( $id ) => $pool_by_id[ $id ] ?? null, $rotated_ids ) ) );
+}
+endif;
+
+$schilo_footer_classement = new \Schilo\Builder\Service\ClassementService();
+$schilo_footer_parcours   = schilo_footer_rotated_terms( 'schilo_parcours', $schilo_footer_classement );
+$schilo_footer_themes     = schilo_footer_rotated_terms( 'schilo_theme', $schilo_footer_classement );
+?>
 <footer class="schilo-footer" role="contentinfo">
   <div class="schilo-footer__inner">
     <div class="schilo-footer__grid">
@@ -15,19 +48,35 @@
         </p>
       </div>
 
-      <!-- Menu footer 1 : Parcours -->
+      <!-- Menu footer 1 : Parcours de la semaine (rotation) -->
       <div>
         <div class="schilo-footer__col-title"><?php esc_html_e( 'Parcours', 'schilo' ); ?></div>
         <nav class="schilo-footer__links" aria-label="<?php esc_attr_e( 'Parcours', 'schilo' ); ?>">
-          <?php wp_nav_menu( [ 'theme_location' => 'footer-1', 'container' => false, 'fallback_cb' => false, 'items_wrap' => '%3$s' ] ); ?>
+          <?php if ( $schilo_footer_parcours ) : ?>
+            <?php foreach ( $schilo_footer_parcours as $schilo_footer_term ) : ?>
+              <a href="<?php echo esc_url( get_term_link( $schilo_footer_term, 'schilo_parcours' ) ); ?>">
+                <?php echo esc_html( $schilo_footer_term->name ); ?>
+              </a>
+            <?php endforeach; ?>
+          <?php else : ?>
+            <?php wp_nav_menu( [ 'theme_location' => 'footer-1', 'container' => false, 'fallback_cb' => false, 'items_wrap' => '%3$s' ] ); ?>
+          <?php endif; ?>
         </nav>
       </div>
 
-      <!-- Menu footer 2 : Thèmes -->
+      <!-- Menu footer 2 : Themes de la semaine (rotation) -->
       <div>
         <div class="schilo-footer__col-title"><?php esc_html_e( 'Thèmes', 'schilo' ); ?></div>
         <nav class="schilo-footer__links" aria-label="<?php esc_attr_e( 'Thèmes', 'schilo' ); ?>">
-          <?php wp_nav_menu( [ 'theme_location' => 'footer-2', 'container' => false, 'fallback_cb' => false, 'items_wrap' => '%3$s' ] ); ?>
+          <?php if ( $schilo_footer_themes ) : ?>
+            <?php foreach ( $schilo_footer_themes as $schilo_footer_term ) : ?>
+              <a href="<?php echo esc_url( get_term_link( $schilo_footer_term, 'schilo_theme' ) ); ?>">
+                <?php echo esc_html( $schilo_footer_term->name ); ?>
+              </a>
+            <?php endforeach; ?>
+          <?php else : ?>
+            <?php wp_nav_menu( [ 'theme_location' => 'footer-2', 'container' => false, 'fallback_cb' => false, 'items_wrap' => '%3$s' ] ); ?>
+          <?php endif; ?>
         </nav>
       </div>
 
