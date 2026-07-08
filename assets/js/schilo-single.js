@@ -48,6 +48,54 @@
   }
 
   ready(function () {
+    function refreshDefinitionFrequency() {
+      var candidates = document.querySelectorAll('[data-schilo-definition-candidate]');
+      if (!candidates.length) return;
+
+      var article = document.getElementById('schilo-single-main') || document.querySelector('main');
+      var textLength = article ? article.textContent.replace(/\s+/g, ' ').trim().length : 0;
+      var width = window.innerWidth || document.documentElement.clientWidth || 1200;
+      var charactersPerTrigger = width <= 600 ? 1400 : (width <= 1024 ? 1800 : 2400);
+      var desiredCount = Math.max(1, Math.min(6, Math.ceil(textLength / charactersPerTrigger)));
+      var groups = {};
+
+      candidates.forEach(function (candidate) {
+        var key = candidate.getAttribute('data-schilo-definition-candidate');
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(candidate);
+      });
+
+      Object.keys(groups).forEach(function (key) {
+        var group = groups[key];
+        var activeCount = Math.min(desiredCount, group.length);
+        var selected = {};
+
+        if (activeCount === 1) {
+          selected[0] = true;
+        } else {
+          for (var position = 0; position < activeCount; position++) {
+            selected[Math.round(position * (group.length - 1) / (activeCount - 1))] = true;
+          }
+        }
+
+        group.forEach(function (candidate, index) {
+          var active = Boolean(selected[index]);
+          candidate.classList.toggle('is-visible', active);
+          candidate.classList.toggle('is-passive', !active);
+          candidate.disabled = !active;
+          candidate.setAttribute('aria-disabled', active ? 'false' : 'true');
+          candidate.tabIndex = active ? 0 : -1;
+        });
+      });
+    }
+
+    refreshDefinitionFrequency();
+    var definitionResizeTimer = null;
+    window.addEventListener('resize', function () {
+      window.clearTimeout(definitionResizeTimer);
+      definitionResizeTimer = window.setTimeout(refreshDefinitionFrequency, 180);
+    });
+
     var definitionModals = document.querySelectorAll('.schilo-definition-modal');
     if (definitionModals.length) {
       var activeDefinitionModal = null;
