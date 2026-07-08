@@ -6,6 +6,8 @@ use Schilo\Builder\Admin\BuilderMetabox;
 use Schilo\Builder\Admin\SettingsPage;
 use Schilo\Builder\Front\ContentRenderer;
 use Schilo\Builder\Front\RelatedArticlesShortcode;
+use Schilo\Builder\Front\ContextualDefinitionRenderer;
+use Schilo\Builder\Admin\ContextualDefinitionsPage;
 use Schilo\Builder\Service\ArticleTitleNumberer;
 use Schilo\Builder\Service\CategoryAssigner;
 
@@ -52,6 +54,7 @@ class Plugin
 
             $settingsPage = new SettingsPage();
             $settingsPage->register();
+            (new ContextualDefinitionsPage())->register();
 
             $titleNumberer = new ArticleTitleNumberer();
             add_filter('wp_insert_post_data', array($titleNumberer, 'filterPostData'), 20, 2);
@@ -225,6 +228,8 @@ class Plugin
 
         $front = new ContentRenderer();
         $front->register();
+
+        (new ContextualDefinitionRenderer())->register();
 
         $relatedArticlesShortcode = new RelatedArticlesShortcode();
         $relatedArticlesShortcode->register();
