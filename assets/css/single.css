@@ -67,6 +67,22 @@
   font-size: .8em;
 }
 
+.schilo-definition-trigger.is-passive {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: inherit;
+  cursor: text;
+  pointer-events: none;
+}
+
+.schilo-definition-trigger.is-passive i,
+.schilo-definition-trigger.is-passive .schilo-sr-only {
+  display: none;
+}
+
 .schilo-definition-modal {
   position: fixed;
   inset: 0;
