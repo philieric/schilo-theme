@@ -6,9 +6,12 @@
    (150-250 mots) : la largeur reduite de .schilo-hero__desc (calibree pour
    1-2 phrases sur les autres heros du site) les rendrait trop etroites et
    hautes. Feuille chargee apres schilo-main : la surcharge s'applique donc
-   uniquement sur ces pages (voir class-schilo-assets.php). */
+   uniquement sur ces pages (voir class-schilo-assets.php). Largeur en % (et
+   non en px) pour occuper au moins 70% du hero quelle que soit la taille
+   d'ecran, plutot qu'un plafond fixe qui laisse un grand vide a droite sur
+   les ecrans larges. */
 .schilo-hero__desc {
-  max-width: 760px;
+  max-width: 70%;
 }
 
 /* Les descriptions sont rendues via wpautop() (voir
@@ -89,6 +92,10 @@
 
 @media (max-width: 782px) {
   .schilo-parcours-tabnav { overflow-x: auto; }
+
+  /* Sous ce seuil, .schilo-hero__inner est deja proche de la pleine largeur :
+     conserver 70% rendrait le texte inutilement etroit sur mobile/tablette. */
+  .schilo-hero__desc { max-width: 100%; }
 }
 
 .schilo-parcours-grid {
@@ -517,6 +524,7 @@
   position: absolute;
   top: .9rem;
   right: 1.1rem;
+  z-index: 2;
   width: 2.1rem;
   height: 2.1rem;
   border-radius: 50%;

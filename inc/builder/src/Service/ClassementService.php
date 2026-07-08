@@ -96,11 +96,15 @@ class ClassementService
             'enabled'       => array_key_exists('enabled', $raw) ? !empty($raw['enabled']) : $defaults['enabled'],
             'interval_days' => isset($raw['interval_days']) ? max(1, (int) $raw['interval_days']) : $defaults['interval_days'],
             'count'         => isset($raw['count']) ? max(1, (int) $raw['count']) : $defaults['count'],
+            'offset'        => isset($raw['offset']) ? (int) $raw['offset'] : 0,
         ];
     }
 
     public function saveRotationSettings(array $settings): void
     {
+        $existing = get_option(self::ROTATION_OPTION, []);
+        if (!is_array($existing)) $existing = [];
+
         $clean = [];
         foreach (self::TAXONOMIES as $taxonomy) {
             $raw = (array) ($settings[$taxonomy] ?? []);
@@ -108,9 +112,32 @@ class ClassementService
                 'enabled'       => !empty($raw['enabled']),
                 'interval_days' => max(1, (int) ($raw['interval_days'] ?? 7)),
                 'count'         => max(1, (int) ($raw['count'] ?? 4)),
+                // Le decalage manuel (bouton "Forcer la rotation") n'est pas un
+                // champ du formulaire de reglages — on le preserve tel quel.
+                'offset'        => (int) ($existing[$taxonomy]['offset'] ?? 0),
             ];
         }
         update_option(self::ROTATION_OPTION, $clean, false);
+    }
+
+    /**
+     * Force le passage immediat a la fenetre suivante pour une taxonomie
+     * donnee (bouton "Forcer la rotation maintenant" de l'ecran Configuration),
+     * sans attendre l'intervalle configure. N'a d'effet visible que si la
+     * rotation est activee pour cette taxonomie.
+     */
+    public function forceRotationNow(string $taxonomy): void
+    {
+        if (!$this->isValidTaxonomy($taxonomy)) return;
+
+        $saved = get_option(self::ROTATION_OPTION, []);
+        if (!is_array($saved)) $saved = [];
+
+        $current = $this->getRotationSettings($taxonomy);
+        $current['offset'] = $current['offset'] + 1;
+        $saved[$taxonomy]  = $current;
+
+        update_option(self::ROTATION_OPTION, $saved, false);
     }
 
     /**
@@ -138,7 +165,7 @@ class ClassementService
         }
 
         $interval_seconds = $settings['interval_days'] * DAY_IN_SECONDS;
-        $slot   = (int) floor(time() / $interval_seconds);
+        $slot   = (int) floor(time() / $interval_seconds) + $settings['offset'];
         $window = $slot % $window_count;
 
         return array_slice($pool_term_ids, $window * $count, $count);
@@ -421,7 +448,11 @@ class ClassementService
         $name = trim($name);
         if ($name === '') return new \WP_Error('empty_name', 'Nom de terme vide.');
 
-        $existing = get_term_by('name', $name, $taxonomy);
+        // Recherche tolerante (exacte puis casse/accents/espaces), SCOPEE au parent
+        // demande : evite qu'une etape "Introduction a Luc" cree sous un parent ne
+        // matche une homonyme sous un autre parent, tout en rattrapant les variantes
+        // d'accents/casse qui creaient jusqu'ici des doublons.
+        $existing = $this->findTermByNameScoped($taxonomy, $name, $parent);
         if ($existing) {
             if ($description !== '' && $description !== $existing->description) {
                 $this->updateTermDescription((int) $existing->term_id, $taxonomy, $description);
@@ -430,6 +461,96 @@ class ClassementService
         }
 
         return $this->createTerm($taxonomy, $name, $parent, 0, $description);
+    }
+
+    /**
+     * Normalise un nom de terme pour la deduplication (minuscules, accents
+     * retires, espaces reduits). Reutilise l'esprit de matchDescriptionByName().
+     */
+    private function normalizeTermName(string $name): string
+    {
+        $name = remove_accents($name);
+        $name = mb_strtolower(trim($name));
+        return preg_replace('/\s+/u', ' ', $name);
+    }
+
+    /**
+     * Cherche un terme existant par nom, restreint aux termes ayant le parent
+     * demande ($parent). Tente d'abord l'egalite stricte, puis une comparaison
+     * normalisee (voir normalizeTermName). Renvoie le WP_Term ou null.
+     */
+    private function findTermByNameScoped(string $taxonomy, string $name, int $parent): ?\WP_Term
+    {
+        $candidates = $this->getTerms($taxonomy, max(0, $parent));
+        if (empty($candidates)) return null;
+
+        foreach ($candidates as $t) {
+            if ($t->name === $name) return $t;
+        }
+        $needle = $this->normalizeTermName($name);
+        foreach ($candidates as $t) {
+            if ($this->normalizeTermName($t->name) === $needle) return $t;
+        }
+        return null;
+    }
+
+    /**
+     * Resout un nom potentiellement hierarchique ("Parent > Etape > Sous-etape")
+     * en term_id de la FEUILLE, en creant/reutilisant chaque niveau avec le bon
+     * parent. Accepte les separateurs ">", "&gt;" (stocke encode) et "›".
+     * Un nom sans separateur = un seul niveau (comportement d'avant). C'est le
+     * correctif central du bug de fragmentation : l'IA renvoie souvent l'etape
+     * sous forme "Parent > Etape", qui creait jusqu'ici un terme plat en double
+     * au lieu de rattacher a la vraie etape existante.
+     */
+    public function resolveHierarchicalTermPath(string $taxonomy, string $rawName): int
+    {
+        $segments = preg_split('/\s*(?:&gt;|›|>)\s*/u', trim($rawName));
+        $segments = array_values(array_filter(array_map('trim', (array) $segments), fn($s) => $s !== ''));
+        if (empty($segments)) return 0;
+
+        $parent_id = 0;
+        foreach ($segments as $seg) {
+            $term = $this->findOrCreateTerm($taxonomy, $seg, $parent_id);
+            if (is_wp_error($term)) return $parent_id;
+            $parent_id = (int) $term['term_id'];
+        }
+        return $parent_id;
+    }
+
+    /**
+     * Fusionne un terme source dans un terme cible : reassigne tous les articles
+     * du source vers la cible (en ajout, sans toucher aux autres termes du post),
+     * en preservant l'ordre par terme (_schilo_ordre_{term_id}), puis supprime le
+     * terme source. Renvoie le nombre d'articles deplaces. Reutilisable pour la
+     * consolidation des termes fragmentes/doublons.
+     */
+    public function mergeTermInto(int $sourceTermId, int $targetTermId, string $taxonomy): int
+    {
+        if ($sourceTermId <= 0 || $targetTermId <= 0 || $sourceTermId === $targetTermId) return 0;
+        if (!$this->isValidTaxonomy($taxonomy)) return 0;
+
+        $post_ids = get_objects_in_term($sourceTermId, $taxonomy);
+        if (is_wp_error($post_ids)) $post_ids = [];
+
+        $moved = 0;
+        foreach ($post_ids as $post_id) {
+            $post_id = (int) $post_id;
+            wp_set_object_terms($post_id, [$targetTermId], $taxonomy, true);
+
+            $target_order = get_post_meta($post_id, '_schilo_ordre_' . $targetTermId, true);
+            if ($target_order === '') {
+                $src_order = get_post_meta($post_id, '_schilo_ordre_' . $sourceTermId, true);
+                if ($src_order !== '') {
+                    update_post_meta($post_id, '_schilo_ordre_' . $targetTermId, (int) $src_order);
+                }
+            }
+            delete_post_meta($post_id, '_schilo_ordre_' . $sourceTermId);
+            $moved++;
+        }
+
+        wp_delete_term($sourceTermId, $taxonomy);
+        return $moved;
     }
 
     /* =========================================================
@@ -807,8 +928,10 @@ class ClassementService
         $parcours_ids = [];
         foreach ((array) ($suggestion['parcours'] ?? []) as $name) {
             if (!is_string($name) || trim($name) === '') continue;
-            $term = $this->findOrCreateTerm('schilo_parcours', $name, 0);
-            if (!is_wp_error($term)) $parcours_ids[] = (int) $term['term_id'];
+            // Passe par le resolveur hierarchique : si l'IA renvoie "Parent > Etape",
+            // l'article est rattache a la vraie etape nichee, pas a un terme plat en double.
+            $term_id = $this->resolveHierarchicalTermPath('schilo_parcours', $name);
+            if ($term_id > 0) $parcours_ids[] = $term_id;
         }
 
         $serie_ids = [];
@@ -1029,14 +1152,18 @@ class ClassementService
              . "- Parcours indexe (indice) : " . ($indexed['parcours'] ?? '') . "\n"
              . "- Serie indexee (indice) : " . ($indexed['serie'] ?? '') . "\n"
              . "- Ordre serie indexe (indice) : " . ($indexed['ordre_serie'] ?? 0) . "\n\n"
-             . "Parcours existants (parent > etape) :\n" . $lister('schilo_parcours') . "\n\n"
-             . "Themes existants (theme > sous-theme) :\n" . $lister('schilo_theme') . "\n\n"
+             . "Parcours existants (hierarchie indentee : un parcours, puis ses etapes en dessous) :\n" . $lister('schilo_parcours') . "\n\n"
+             . "Themes existants (theme, puis sous-themes en dessous) :\n" . $lister('schilo_theme') . "\n\n"
              . "Series existantes :\n" . $lister('schilo_serie') . "\n\n"
+             . "IMPORTANT pour \"parcours\" : renvoie le nom EXACT d'une etape (ou d'un parcours) tel "
+             . "qu'ecrit ci-dessus, SANS jamais le prefixer de son parent — ecris \"Introduction a Luc\", "
+             . "PAS \"Synopse des Evangiles > Introduction a Luc\". N'invente un nouveau parcours/etape "
+             . "que si vraiment aucun existant ne convient.\n"
              . "Retourne UNIQUEMENT un JSON avec exactement ces champs :\n"
              . "{\n"
              . "  \"theme\": \"nom exact d'un theme existant, ou nouveau nom si aucun ne convient, ou vide\",\n"
              . "  \"sous_theme\": \"nom exact d'un sous-theme existant sous ce theme, ou nouveau nom, ou vide\",\n"
-             . "  \"parcours\": [\"nom exact d'un ou plusieurs parcours/etapes existants, ou nouveaux noms\"],\n"
+             . "  \"parcours\": [\"nom exact d'une ou plusieurs etapes/parcours existants, ou nouveaux noms\"],\n"
              . "  \"serie\": \"nom exact d'une serie existante, ou nouveau nom, ou vide\",\n"
              . "  \"ordre\": 0\n"
              . "}\n"

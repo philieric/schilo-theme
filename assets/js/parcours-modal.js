@@ -1,6 +1,18 @@
 (function () {
     'use strict';
 
+    // Deplace chaque modale "resume detaille" en dehors de sa carte d'origine
+    // (.schilo-parcours-article), directement sous <body>. Ces cartes ont
+    // overflow:hidden + un transform au survol (parcours.css), or un transform
+    // sur un ancetre transforme la modale position:fixed en un positionnement
+    // relatif a cet ancetre au lieu du viewport : des que la carte est survolee,
+    // la modale se retrouve recadree/clippee sur la carte, provoquant un effet
+    // de va-et-vient interieur/exterieur en boucle et un bouton fermer decale.
+    var resumeModals = document.querySelectorAll('.schilo-resume-modal');
+    for (var m = 0; m < resumeModals.length; m++) {
+        document.body.appendChild(resumeModals[m]);
+    }
+
     var openModal = null;
 
     function open(modal) {
