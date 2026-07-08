@@ -30,6 +30,11 @@
 
 /* ── Barre d'onglets (étapes / sous-thèmes) — calque de .schilo-single-tabnav ── */
 .schilo-parcours-tabnav {
+  /* Sticky PERMANENT (pas active par JS trop tard : sur mobile ca ne
+     rattrape pas l'element deja defile). Se cale sous la barre de navigation
+     globale (elle aussi sticky/top:0) via --schilo-nav-h. */
+  position: sticky;
+  top: var(--schilo-nav-h, 56px);
   background: var(--schilo-bg-card, #fff);
   border-bottom: 1px solid var(--schilo-border, #e2e8f0);
   z-index: 200;
@@ -37,10 +42,6 @@
 }
 
 .schilo-parcours-tabnav.is-sticky {
-  position: sticky;
-  /* Se cale sous la barre de navigation globale (elle aussi sticky/top:0)
-     pour eviter que les deux se superposent une fois toutes deux "collees". */
-  top: var(--schilo-nav-h, 56px);
   box-shadow: 0 2px 12px rgba(0,0,0,.08);
 }
 
@@ -91,7 +92,9 @@
 [id^="sec-"] { scroll-margin-top: calc(var(--schilo-nav-h, 56px) + 52px); }
 
 @media (max-width: 782px) {
-  .schilo-parcours-tabnav { overflow-x: auto; }
+  /* Pas d'overflow sur .schilo-parcours-tabnav : un element a la fois
+     position:sticky ET overflow scrollable casse le sticky sur mobile.
+     Le scroll horizontal des onglets est gere par .schilo-tabnav-list. */
 
   /* Sous ce seuil, .schilo-hero__inner est deja proche de la pleine largeur :
      conserver 70% rendrait le texte inutilement etroit sur mobile/tablette. */
