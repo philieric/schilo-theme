@@ -5,6 +5,7 @@ use Schilo\Builder\Service\ClassementService;
 
 $service = new ClassementService();
 $saved   = false;
+$forced_taxonomy = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['scl_config_nonce'])) {
     if (wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['scl_config_nonce'])), 'schilo_classement_config')
@@ -43,6 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['scl_config_nonce'])) 
             ];
         }
         $service->saveRotationSettings($rotation);
+
+        $force = sanitize_key($_POST['scl_force_rotation'] ?? '');
+        if (in_array($force, ClassementService::TAXONOMIES, true)) {
+            $service->forceRotationNow($force);
+            $forced_taxonomy = $force;
+        }
 
         $saved = true;
     }
@@ -84,7 +91,9 @@ foreach (ClassementService::TAXONOMIES as $tax) {
         <a href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-classement&tab=audit')); ?>" class="scl-tab">Audit</a>
     </nav>
 
-    <?php if ($saved) : ?>
+    <?php if ($saved && $forced_taxonomy !== '') : ?>
+    <div class="notice notice-success is-dismissible"><p>Configuration enregistrée — rotation forcée pour « <?php echo esc_html($rotation_labels[$forced_taxonomy] ?? $forced_taxonomy); ?> ».</p></div>
+    <?php elseif ($saved) : ?>
     <div class="notice notice-success is-dismissible"><p>Configuration enregistrée.</p></div>
     <?php endif; ?>
 
@@ -216,7 +225,8 @@ foreach (ClassementService::TAXONOMIES as $tax) {
                     <th>Section</th>
                     <th style="width:120px;">Activer</th>
                     <th style="width:220px;">Fréquence</th>
-                    <th style="width:220px;">Nombre affiché</th>
+                    <th style="width:180px;">Nombre affiché</th>
+                    <th style="width:180px;">Rotation manuelle</th>
                 </tr></thead>
                 <tbody>
                     <?php foreach ($rotation_labels as $tax => $label) :
@@ -243,6 +253,13 @@ foreach (ClassementService::TAXONOMIES as $tax) {
                             <input type="number" min="1" step="1"
                                 name="scl_rotation[<?php echo esc_attr($tax); ?>][count]"
                                 value="<?php echo esc_attr($r['count']); ?>" style="width:70px;">
+                        </td>
+                        <td>
+                            <button type="submit" name="scl_force_rotation" value="<?php echo esc_attr($tax); ?>"
+                                class="button button-secondary" <?php disabled(!$r['enabled']); ?>
+                                title="<?php echo $r['enabled'] ? esc_attr__('Passe immédiatement au lot suivant, sans attendre la fréquence configurée.', 'schilo') : esc_attr__('Activez la rotation pour cette section afin de pouvoir la forcer.', 'schilo'); ?>">
+                                Forcer maintenant
+                            </button>
                         </td>
                     </tr>
                     <?php endforeach; ?>
