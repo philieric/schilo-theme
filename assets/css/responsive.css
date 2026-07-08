@@ -532,7 +532,13 @@
 /* Empêcher le débordement horizontal */
 @media (max-width: 600px) {
   html, body {
+    /* overflow-x:hidden sur html/body cree un conteneur de defilement et
+       CASSE position:sticky sur mobile (iOS Safari) -> la tabnav et le header
+       ne restaient pas colles. overflow-x:clip clippe le debordement SANS
+       creer ce conteneur, donc le sticky refonctionne. (hidden garde en
+       fallback pour les navigateurs sans support de clip.) */
     overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100%;
   }
 
