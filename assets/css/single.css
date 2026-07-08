@@ -361,6 +361,14 @@ body.schilo-definition-open { overflow: hidden; }
 
 /* ── Barre d'onglets ──────────────────────────────────────────────── */
 .schilo-single-tabnav {
+  /* Sticky PERMANENT (et non active par JS une fois le hero sorti) : sur
+     mobile, activer position:sticky trop tard ne "rattrape" pas l'element
+     deja defile hors du viewport. En sticky des le depart, le navigateur
+     gere nativement le collage — comme le header .schilo-nav (compat.css).
+     top = hauteur du nav global (lui aussi sticky/top:0) pour se caler juste
+     dessous sans le recouvrir, quel que soit le z-index. */
+  position: sticky;
+  top: var(--schilo-nav-h, 56px);
   background: var(--schilo-bg-card);
   border-bottom: 1px solid var(--schilo-border);
   z-index: 200;
@@ -368,8 +376,6 @@ body.schilo-definition-open { overflow: hidden; }
 }
 
 .schilo-single-tabnav.is-sticky {
-  position: sticky;
-  top: 0;
   box-shadow: 0 2px 12px rgba(0,0,0,.08);
 }
 
@@ -444,7 +450,9 @@ body.schilo-definition-open { overflow: hidden; }
 }
 
 /* ── Section base ─────────────────────────────────────────────────── */
-[id^="sec-"] { scroll-margin-top: 52px; }
+/* Ancrage : sous le nav global (sticky) + la tabnav (sticky), sinon le titre
+   de section se cache derriere les deux barres au clic sur un onglet. */
+[id^="sec-"] { scroll-margin-top: calc(var(--schilo-nav-h, 56px) + 52px); }
 
 .schilo-section {
   position: relative;
