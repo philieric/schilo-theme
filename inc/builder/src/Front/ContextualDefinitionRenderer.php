@@ -7,6 +7,7 @@ use Schilo\Builder\Service\ContextualDefinitionService;
 class ContextualDefinitionRenderer
 {
     private array $matched = array();
+    private bool $includeBiblicalReferences = true;
 
     public function register(): void
     {
@@ -18,13 +19,19 @@ class ContextualDefinitionRenderer
     {
         if (!is_singular('post') || !in_the_loop() || !is_main_query()) return $content;
         $currentId = (int)get_the_ID();
+        $service = new ContextualDefinitionService();
+        $settings = $service->getSettings();
+        $this->includeBiblicalReferences = !empty($settings['include_biblical_references']);
 
-        foreach ((new ContextualDefinitionService())->getDefinitions() as $definition) {
+        foreach ($service->getDefinitions() as $definition) {
             if ($currentId === $definition['source_id']) continue;
             foreach ($definition['terms'] as $term) {
-                $pattern = '/(?<![\pL\pN])(' . preg_quote($term, '/') . ')(?![\pL\pN])/iu';
+                $quotedTerm = preg_quote($term, '/');
+                $quotedTerm = str_replace("'", "['’]", $quotedTerm);
+                $quotedTerm = str_replace('\\ ', '[\s\p{P}]+', $quotedTerm);
+                $pattern = '/(?<![\pL\pN])(' . $quotedTerm . ')(?![\pL\pN])/iu';
                 $modalId = 'schilo-definition-modal-' . $definition['source_id'];
-                [$content, $replaced] = $this->replaceFirstEligibleOccurrence($content, $pattern, $modalId, $definition['code']);
+                [$content, $replaced] = $this->replaceEligibleOccurrences($content, $pattern, $modalId, $definition['code']);
                 if ($replaced) {
                     $this->matched[$definition['source_id']] = $definition;
                     break;
@@ -72,7 +79,7 @@ class ContextualDefinitionRenderer
         return $body !== '' ? $body : wpautop(wp_kses_post($source->post_content));
     }
 
-    private function replaceFirstEligibleOccurrence(string $content, string $pattern, string $modalId, string $code): array
+    private function replaceEligibleOccurrences(string $content, string $pattern, string $modalId, string $code): array
     {
         $parts = preg_split('/(<[^>]+>)/u', $content, -1, PREG_SPLIT_DELIM_CAPTURE);
         if (!is_array($parts)) return array($content, false);
@@ -80,14 +87,20 @@ class ContextualDefinitionRenderer
         $excludedTags = array('a', 'button', 'script', 'style', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6');
         $stack = array();
         $excludedDepth = 0;
-        $replaced = false;
+        $replacementCount = 0;
+        $maxCandidates = 12;
 
         foreach ($parts as $index => $part) {
             if ($part === '' || $part[0] !== '<') {
-                if ($replaced || $excludedDepth > 0 || !preg_match($pattern, $part)) continue;
-                $button = '<button type="button" class="schilo-definition-trigger" data-schilo-definition-open="' . esc_attr($modalId) . '" aria-haspopup="dialog" aria-controls="' . esc_attr($modalId) . '"><span>$1</span><i class="ti ti-book-2" aria-hidden="true"></i><span class="schilo-sr-only"> — afficher la définition ' . esc_html($code) . '</span></button>';
-                $parts[$index] = preg_replace($pattern, $button, $part, 1);
-                $replaced = true;
+                if ($replacementCount >= $maxCandidates || $excludedDepth > 0 || !preg_match($pattern, $part)) continue;
+                $remaining = $maxCandidates - $replacementCount;
+                $parts[$index] = preg_replace_callback($pattern, function (array $match) use ($modalId, $code, &$replacementCount): string {
+                    $isActive = $replacementCount === 0;
+                    $replacementCount++;
+                    $classes = 'schilo-definition-trigger schilo-definition-candidate ' . ($isActive ? 'is-visible' : 'is-passive');
+                    $inactiveAttributes = $isActive ? '' : ' disabled aria-disabled="true" tabindex="-1"';
+                    return '<button type="button" class="' . esc_attr($classes) . '" data-schilo-definition-open="' . esc_attr($modalId) . '" data-schilo-definition-candidate="' . esc_attr($modalId) . '" aria-haspopup="dialog" aria-controls="' . esc_attr($modalId) . '"' . $inactiveAttributes . '><span>' . esc_html($match[1]) . '</span><i class="ti ti-book-2" aria-hidden="true"></i><span class="schilo-sr-only"> — afficher la définition ' . esc_html($code) . '</span></button>';
+                }, $part, $remaining);
                 continue;
             }
 
@@ -103,11 +116,13 @@ class ContextualDefinitionRenderer
             if ($isVoid) continue;
 
             $excluded = in_array($tag, $excludedTags, true)
-                || (bool)preg_match('/\bclass\s*=\s*(["\'])[^"\']*\b(?:bvc-container|usx-version-switcher|schilo-definition-trigger)\b[^"\']*\1/i', $part);
+                || (bool)preg_match('/\bclass\s*=\s*(["\'])[^"\']*\bschilo-definition-trigger\b[^"\']*\1/i', $part)
+                || (!$this->includeBiblicalReferences
+                    && (bool)preg_match('/\bclass\s*=\s*(["\'])[^"\']*\b(?:bvc-container|usx-version-switcher)\b[^"\']*\1/i', $part));
             $stack[] = array('excluded' => $excluded);
             if ($excluded) $excludedDepth++;
         }
 
-        return array(implode('', $parts), $replaced);
+        return array(implode('', $parts), $replacementCount > 0);
     }
 }

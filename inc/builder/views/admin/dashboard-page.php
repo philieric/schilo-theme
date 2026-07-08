@@ -46,6 +46,20 @@
             <strong>Disponible</strong>
         </a>
 
+        <a class="schilo-dashboard-card" href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-definitions')); ?>">
+            <span class="dashicons dashicons-book-alt"></span>
+            <h2>Définitions</h2>
+            <p>Configurer les fiches de définition, leurs déclencheurs automatiques et les variantes proposées.</p>
+            <strong>Disponible</strong>
+        </a>
+
+        <a class="schilo-dashboard-card" href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-classement')); ?>">
+            <span class="dashicons dashicons-networking"></span>
+            <h2>Parcours &amp; Thèmes</h2>
+            <p>Gérer le classement des articles, les parcours de lecture, les thèmes et leurs règles.</p>
+            <strong>Disponible</strong>
+        </a>
+
         <a class="schilo-dashboard-card" href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-outils')); ?>">
             <span class="dashicons dashicons-admin-tools"></span>
             <h2>Outils</h2>
