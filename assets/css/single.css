@@ -1026,7 +1026,9 @@ body.schilo-definition-open { overflow: hidden; }
     overflow-y: visible;
   }
 
-  .schilo-single-tabnav { overflow-x: auto; }
+  /* Pas d'overflow ici : un element a la fois position:sticky ET overflow
+     scrollable casse le sticky sur mobile (iOS Safari). Le defilement
+     horizontal des onglets est deja gere par .schilo-tabnav-list. */
   .schilo-single-hero { min-height: 260px; }
   .schilo-single-hero__inner { padding-top: 2rem; padding-bottom: 1.75rem; }
 }

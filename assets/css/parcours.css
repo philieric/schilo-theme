@@ -91,7 +91,9 @@
 [id^="sec-"] { scroll-margin-top: calc(var(--schilo-nav-h, 56px) + 52px); }
 
 @media (max-width: 782px) {
-  .schilo-parcours-tabnav { overflow-x: auto; }
+  /* Pas d'overflow sur .schilo-parcours-tabnav : un element a la fois
+     position:sticky ET overflow scrollable casse le sticky sur mobile.
+     Le scroll horizontal des onglets est gere par .schilo-tabnav-list. */
 
   /* Sous ce seuil, .schilo-hero__inner est deja proche de la pleine largeur :
      conserver 70% rendrait le texte inutilement etroit sur mobile/tablette. */
