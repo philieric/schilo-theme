@@ -48,6 +48,50 @@
   }
 
   ready(function () {
+    var definitionModals = document.querySelectorAll('.schilo-definition-modal');
+    if (definitionModals.length) {
+      var activeDefinitionModal = null;
+      var lastDefinitionTrigger = null;
+
+      function closeDefinition() {
+        if (!activeDefinitionModal) return;
+        activeDefinitionModal.classList.remove('is-open');
+        activeDefinitionModal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('schilo-definition-open');
+        if (lastDefinitionTrigger) lastDefinitionTrigger.focus();
+        activeDefinitionModal = null;
+      }
+
+      function openDefinition(trigger) {
+        var modalId = trigger.getAttribute('data-schilo-definition-open');
+        var definitionModal = modalId ? document.getElementById(modalId) : null;
+        if (!definitionModal) return;
+        var definitionPanel = definitionModal.querySelector('.schilo-definition-modal__panel');
+        lastDefinitionTrigger = trigger;
+        activeDefinitionModal = definitionModal;
+        definitionModal.classList.add('is-open');
+        definitionModal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('schilo-definition-open');
+        if (definitionPanel) definitionPanel.focus();
+      }
+
+      document.addEventListener('click', function (event) {
+        var trigger = event.target.closest('[data-schilo-definition-open]');
+        if (trigger) {
+          event.preventDefault();
+          openDefinition(trigger);
+          return;
+        }
+        if (event.target.closest('[data-schilo-definition-close]')) closeDefinition();
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && activeDefinitionModal) {
+          closeDefinition();
+        }
+      });
+    }
+
     var tabnav = document.getElementById('schilo-tabnav');
     if (!tabnav) return;
 
