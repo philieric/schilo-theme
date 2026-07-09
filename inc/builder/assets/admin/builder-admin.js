@@ -37,7 +37,7 @@
                 wpautop: true,
                 plugins: 'charmap colorpicker compat3x directionality fullscreen hr image lists media paste tabfocus textcolor wordpress wpeditimage wpemoji wpgallery wplink wptextpattern',
                 toolbar1: 'schilo_h1,schilo_h2,schilo_h3,schilo_h4,schilo_h5,schilo_h6,schilo_p,bold,italic,underline,bullist,numlist,blockquote,alignleft,aligncenter,alignright,link,unlink,pastetext,undo,redo',
-                toolbar2: 'strikethrough,hr,forecolor,removeformat,charmap,outdent,indent',
+                toolbar2: 'strikethrough,hr,forecolor,removeformat,charmap,outdent,indent,schilo_shortcodes',
                 height: 500
             },
             quicktags: true,
@@ -533,7 +533,7 @@
             tinymce: {
                 wpautop: true,
                 toolbar1: 'schilo_h1,schilo_h2,schilo_h3,schilo_h4,schilo_h5,schilo_h6,schilo_p,bold,italic,underline,bullist,numlist,blockquote,alignleft,aligncenter,alignright,link,unlink,pastetext,undo,redo',
-                toolbar2: '',
+                toolbar2: 'schilo_shortcodes',
                 height: 130
             },
             quicktags: true,
