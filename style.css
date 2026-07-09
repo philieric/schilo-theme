@@ -213,7 +213,11 @@ blockquote {
   border-bottom: 1px solid var(--schilo-border);
   position: sticky;
   top: 0;
-  z-index: 200;
+  /* Doit toujours passer au-dessus des tabnav sticky de page (parcours.css,
+     single.css : z-index:200 aussi) : a egalite de z-index, l'ordre du DOM
+     tranche, et la tabnav (plus bas dans la page) l'emportait sur le header
+     — recouvrant au passage le menu de langue qui y est imbrique. */
+  z-index: 300;
   height: var(--schilo-nav-h);
 }
 
