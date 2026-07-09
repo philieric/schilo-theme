@@ -47,7 +47,7 @@ $editorId = 'schilo_section_editor_' . (int) $index . '_' . md5($section->getTyp
             'quicktags' => true,
             'tinymce' => array(
                 'toolbar1' => 'schilo_h1,schilo_h2,schilo_h3,schilo_h4,schilo_h5,schilo_h6,schilo_p,bold,italic,underline,bullist,numlist,blockquote,alignleft,aligncenter,alignright,link,unlink,pastetext,undo,redo',
-                'toolbar2' => '',
+                'toolbar2' => 'schilo_shortcodes',
                 'resize'   => true,
                 'height'   => 400,
             ),

@@ -4,14 +4,14 @@
  */
 defined( 'ABSPATH' ) || exit;
 
-define( 'SCHILO_VERSION', '1.1.21' );
+define( 'SCHILO_VERSION', '1.1.22' );
 define( 'SCHILO_DIR',     get_template_directory() );
 define( 'SCHILO_URI',     get_template_directory_uri() );
 define( 'SCHILO_ASSETS',  SCHILO_URI . '/assets' );
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Schilo Builder (intÃƒÂ©grÃƒÂ© au thÃƒÂ¨me) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ( ! defined( 'SCHILO_BUILDER_VERSION' ) ) {
-    define( 'SCHILO_BUILDER_VERSION', '1.7.7' );
+    define( 'SCHILO_BUILDER_VERSION', '1.7.8' );
     define( 'SCHILO_BUILDER_PATH',    SCHILO_DIR . '/inc/builder/' );
     define( 'SCHILO_BUILDER_URL',     SCHILO_URI . '/inc/builder/' );
 
