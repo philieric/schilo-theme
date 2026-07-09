@@ -1,0 +1,93 @@
+/* Schilo — Modale de proposition des références bibliques détectées */
+
+#schilo-bibref-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, .55);
+    padding: 24px;
+}
+
+.schilo-bibref-modal {
+    width: 100%;
+    max-width: 640px;
+    max-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--se-card, #fff);
+    border-radius: var(--se-r, 8px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
+    padding: 24px;
+    overflow: hidden;
+}
+
+.schilo-bibref-modal h2 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    color: var(--se-text, #1e293b);
+}
+
+.schilo-bibref-modal > p {
+    margin: 0 0 14px;
+    color: var(--se-muted, #64748b);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.schilo-bibref-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.schilo-bibref-table-wrap {
+    overflow-y: auto;
+    border: 1px solid var(--se-border, #e2e8f0);
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.schilo-bibref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.schilo-bibref-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--se-bg, #f8fafc);
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--se-border, #e2e8f0);
+}
+
+.schilo-bibref-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--se-border, #e2e8f0);
+    vertical-align: middle;
+}
+
+.schilo-bibref-table tr:last-child td { border-bottom: none; }
+
+.schilo-bibref-text {
+    font-family: monospace;
+    color: var(--se-text, #1e293b);
+}
+
+.schilo-bibref-section {
+    color: var(--se-muted, #64748b);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.schilo-bibref-table select { max-width: 220px; }
+
+.schilo-bibref-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}

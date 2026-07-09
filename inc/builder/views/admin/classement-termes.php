@@ -33,6 +33,7 @@ $desc_placeholder = "Description affichée sur la page publique ({$word_range['m
         <a href="<?php echo esc_url($base_url); ?>" class="scl-tab scl-tab-active">Termes</a>
         <a href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-classement&tab=config')); ?>" class="scl-tab">Configuration</a>
         <a href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-classement&tab=audit')); ?>" class="scl-tab">Audit</a>
+        <a href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-classement&tab=doublons')); ?>" class="scl-tab">Doublons</a>
     </nav>
 
     <div class="scl-val-bloc" style="display:block;">

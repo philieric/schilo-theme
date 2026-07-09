@@ -4,14 +4,14 @@
  */
 defined( 'ABSPATH' ) || exit;
 
-define( 'SCHILO_VERSION', '1.1.20' );
+define( 'SCHILO_VERSION', '1.1.22' );
 define( 'SCHILO_DIR',     get_template_directory() );
 define( 'SCHILO_URI',     get_template_directory_uri() );
 define( 'SCHILO_ASSETS',  SCHILO_URI . '/assets' );
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Schilo Builder (intÃƒÂ©grÃƒÂ© au thÃƒÂ¨me) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ( ! defined( 'SCHILO_BUILDER_VERSION' ) ) {
-    define( 'SCHILO_BUILDER_VERSION', '1.7.7' );
+    define( 'SCHILO_BUILDER_VERSION', '1.7.8' );
     define( 'SCHILO_BUILDER_PATH',    SCHILO_DIR . '/inc/builder/' );
     define( 'SCHILO_BUILDER_URL',     SCHILO_URI . '/inc/builder/' );
 
@@ -41,11 +41,13 @@ require_once SCHILO_DIR . '/inc/classes/class-schilo-visitors.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-bible.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-featured.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-search-suggest.php';
+require_once SCHILO_DIR . '/inc/classes/class-schilo-translator.php';
 require_once SCHILO_DIR . '/template-parts/nav-walker.php';
 
 Schilo_Setup::init();
 Schilo_Assets::init();
 Schilo_Search_Suggest::init();
+Schilo_Translator::init();
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Favicon SVG (ti-flame sur fond #121c2e) Ã¢â‚¬â€ front + admin Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 add_action( 'wp_head',    'schilo_inject_favicon' );
@@ -132,6 +134,27 @@ add_action( 'admin_enqueue_scripts', function ( string $hook ): void {
         SCHILO_VERSION,
         true
     );
+
+    // Detection des references bibliques en texte libre (proposition de
+    // shortcode avant enregistrement) — necessite les tables du plugin
+    // Usx-import (voir schilo_get_bible_book_titles()).
+    $bib_book_titles = schilo_get_bible_book_titles();
+    if ( ! empty( $bib_book_titles ) ) {
+        wp_enqueue_style(
+            'schilo-bib-ref-detect',
+            SCHILO_ASSETS . '/css/admin-bib-ref-detect.css',
+            [],
+            SCHILO_VERSION
+        );
+        wp_enqueue_script(
+            'schilo-bib-ref-detect',
+            SCHILO_ASSETS . '/js/admin-bib-ref-detect.js',
+            [],
+            SCHILO_VERSION,
+            true
+        );
+        wp_localize_script( 'schilo-bib-ref-detect', 'schiloBibBooks', $bib_book_titles );
+    }
 } );
 
 // -- Admin : nettoyage automatique du collage Word dans l'editeur classique --

@@ -66,3 +66,40 @@ function schilo_ev_badge( string $ev, string $size = '32px' ): void {
 function schilo_strip_category_number( string $name ): string {
     return preg_replace( '/^\d+\s*-\s*/u', '', $name );
 }
+
+/**
+ * Masque une clé API pour l'affichage admin (garde les 6 derniers caractères).
+ */
+if ( ! function_exists( 'schilo_mask_key' ) ) :
+function schilo_mask_key( string $k ): string {
+    if ( strlen( $k ) < 8 ) return $k ? str_repeat( '*', strlen( $k ) ) : '';
+    return str_repeat( '*', strlen( $k ) - 6 ) . substr( $k, -6 );
+}
+endif;
+
+/**
+ * Titres canoniques des 66 livres bibliques (table de référence du plugin
+ * Usx-import, wp_usx_book_ref), utilisés pour détecter les références
+ * bibliques tapées en texte libre dans l'éditeur (proposition de shortcode
+ * [bib]/[bvc]/[brc]/[bnv] avant enregistrement — voir admin-bib-ref-detect.js).
+ * Mis en cache 1 jour : cette table ne change quasiment jamais.
+ */
+function schilo_get_bible_book_titles(): array {
+    global $wpdb;
+    $table = $wpdb->prefix . 'usx_book_ref';
+    if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" ) !== $table ) {
+        return [];
+    }
+
+    $cached = get_transient( 'schilo_bible_book_titles' );
+    if ( is_array( $cached ) ) {
+        return $cached;
+    }
+
+    $titles = $wpdb->get_col( "SELECT canon_title FROM {$table} WHERE canon_title != '' ORDER BY CHAR_LENGTH(canon_title) DESC" );
+    $titles = array_values( array_unique( array_filter( array_map( 'trim', $titles ) ) ) );
+
+    set_transient( 'schilo_bible_book_titles', $titles, DAY_IN_SECONDS );
+
+    return $titles;
+}

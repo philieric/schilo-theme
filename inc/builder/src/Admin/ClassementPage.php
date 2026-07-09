@@ -31,6 +31,7 @@ class ClassementPage
         add_action('wp_ajax_schilo_classement_propose_term_descriptions', [$this, 'ajaxProposeTermDescriptions']);
         add_action('wp_ajax_schilo_classement_generate_term_description', [$this, 'ajaxGenerateTermDescription']);
         add_action('wp_ajax_schilo_classement_apply_terms',     [$this, 'ajaxApplyTermCuration']);
+        add_action('wp_ajax_schilo_classement_merge_term',      [$this, 'ajaxMergeDuplicateTerm']);
     }
 
     public function renderPage(): void
@@ -48,6 +49,9 @@ class ClassementPage
                 break;
             case 'audit':
                 include SCHILO_BUILDER_PATH . 'views/admin/classement-audit.php';
+                break;
+            case 'doublons':
+                include SCHILO_BUILDER_PATH . 'views/admin/classement-doublons.php';
                 break;
             default:
                 include SCHILO_BUILDER_PATH . 'views/admin/classement-page.php';
@@ -428,5 +432,28 @@ class ClassementPage
 
         $summary = $this->service->applyTermCuration($suggestion);
         wp_send_json_success($summary);
+    }
+
+    /* =========================================================
+       AJAX - Fusion de termes en double (page "Doublons")
+    ========================================================= */
+
+    public function ajaxMergeDuplicateTerm(): void
+    {
+        check_ajax_referer('schilo_classement', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Acces refuse.'], 403);
+        }
+
+        $taxonomy  = sanitize_key($_POST['taxonomy'] ?? '');
+        $source_id = absint($_POST['source_id'] ?? 0);
+        $target_id = absint($_POST['target_id'] ?? 0);
+
+        if (!$this->service->isValidTaxonomy($taxonomy) || !$source_id || !$target_id || $source_id === $target_id) {
+            wp_send_json_error(['message' => 'Parametres invalides.']);
+        }
+
+        $moved = $this->service->mergeTermInto($source_id, $target_id, $taxonomy);
+        wp_send_json_success(['moved' => $moved]);
     }
 }

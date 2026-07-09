@@ -475,6 +475,57 @@ class ClassementService
     }
 
     /**
+     * Comme normalizeTermName(), en retirant en plus un article francais en
+     * tete ("le "/"la "/"les "/"l'") — attrape les quasi-doublons du type
+     * "Sermon sur la montagne" / "Le sermon sur la montagne" que
+     * normalizeTermName() seul ne detecte pas (issus du classement IA en
+     * texte libre, cf. [[project-roadmap]]).
+     */
+    private function normalizeTermNameLoose(string $name): string
+    {
+        $n = $this->normalizeTermName($name);
+        $n = preg_replace('/^(le|la|les)\s+/u', '', $n);
+        $n = preg_replace('/^l[\'’]\s*/u', '', $n);
+        return trim($n);
+    }
+
+    /**
+     * Detecte les groupes de termes probablement en double au sein d'une
+     * taxonomie : meme parent (les taxonomies hierarchiques schilo_parcours/
+     * schilo_theme ne comparent qu'a l'interieur d'une meme branche) et meme
+     * nom une fois normalise (accents/casse/espaces + article en tete).
+     * Chaque groupe est trie par nombre d'articles decroissant (le premier
+     * terme est la suggestion de terme "canonique" a conserver).
+     *
+     * @return array<int, \WP_Term[]> Liste de groupes de 2+ termes.
+     */
+    public function findDuplicateGroups(string $taxonomy): array
+    {
+        if (!$this->isValidTaxonomy($taxonomy)) return [];
+
+        // Requete directe (pas getTerms()) : celle-ci trie par meta 'schilo_ordre'
+        // et exclut de fait tout terme qui n'a pas cette meta (jointure interne
+        // WP sur meta_value_num), ce qui masquerait de vrais doublons crees
+        // sans passer par createTerm().
+        $terms = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false]);
+        if (is_wp_error($terms)) return [];
+
+        $groups = [];
+        foreach ($terms as $term) {
+            $key = $term->parent . '|' . $this->normalizeTermNameLoose($term->name);
+            $groups[$key][] = $term;
+        }
+
+        $duplicates = [];
+        foreach ($groups as $group) {
+            if (count($group) < 2) continue;
+            usort($group, fn($a, $b) => $b->count <=> $a->count);
+            $duplicates[] = $group;
+        }
+        return $duplicates;
+    }
+
+    /**
      * Cherche un terme existant par nom, restreint aux termes ayant le parent
      * demande ($parent). Tente d'abord l'egalite stricte, puis une comparaison
      * normalisee (voir normalizeTermName). Renvoie le WP_Term ou null.

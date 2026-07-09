@@ -62,6 +62,129 @@ class WPBakeryMigrationService
         return $status ? (string) $status : 'not_migrated';
     }
 
+    /**
+     * Condition SQL commune : articles "candidats" a la migration, identifies
+     * par un prefixe a 3 lettres majuscules en tete de titre (ex: "PER355 - ...").
+     * Coherent avec PrefixDetector::detectFromTitle() (le detail des chiffres
+     * apres le prefixe n'a pas besoin d'etre reproduit ici, seul le prefixe
+     * lettre compte pour le filtre SQL).
+     */
+    private function candidateWhereClause()
+    {
+        return "p.post_type = 'post' AND p.post_status IN ('publish','draft') AND p.post_title REGEXP '^[A-Z]{3}'";
+    }
+
+    /**
+     * Compteurs globaux (total / migres / non migres) pour la barre de stats
+     * de l'ecran Migration > Liste.
+     */
+    public function getCounts()
+    {
+        global $wpdb;
+
+        $total = (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$wpdb->posts} p WHERE " . $this->candidateWhereClause()
+        );
+
+        $migrated = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->posts} p
+             INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key = %s AND pm.meta_value = 'migrated'
+             WHERE " . $this->candidateWhereClause(),
+            self::STATUS_META_KEY
+        ));
+
+        return array(
+            'total'        => $total,
+            'migrated'     => $migrated,
+            'not_migrated' => $total - $migrated,
+        );
+    }
+
+    /**
+     * Nombre d'articles candidats par prefixe (pour les pastilles de filtre).
+     */
+    public function getPrefixCounts()
+    {
+        global $wpdb;
+
+        $rows = $wpdb->get_results(
+            "SELECT LEFT(post_title, 3) as pfx, COUNT(*) as n
+             FROM {$wpdb->posts} p
+             WHERE " . $this->candidateWhereClause() . "
+             GROUP BY pfx ORDER BY pfx ASC",
+            ARRAY_A
+        );
+
+        $out = array();
+        foreach ($rows as $row) {
+            $out[$row['pfx']] = (int) $row['n'];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Liste paginee/filtrable des articles candidats a la migration, pour
+     * l'ecran Migration > Liste (equivalent de ClassementService::getList()
+     * pour Parcours & Themes).
+     */
+    public function getMigrationList($perPage, $paged, $prefix = '', $status = '')
+    {
+        global $wpdb;
+
+        $perPage = max(1, (int) $perPage);
+        $paged   = max(1, (int) $paged);
+        $offset  = ($paged - 1) * $perPage;
+
+        $where  = $this->candidateWhereClause();
+        $params = array(self::STATUS_META_KEY);
+
+        if ($prefix !== '') {
+            $where   .= ' AND p.post_title LIKE %s';
+            $params[] = $wpdb->esc_like($prefix) . '%';
+        }
+
+        if ($status === 'migrated') {
+            $where .= " AND pm.meta_value = 'migrated'";
+        } elseif ($status === 'not_migrated') {
+            $where .= " AND (pm.meta_value IS NULL OR pm.meta_value != 'migrated')";
+        }
+
+        $joinSql = "LEFT JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key = %s";
+
+        $total = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->posts} p {$joinSql} WHERE {$where}",
+            $params
+        ));
+
+        $listParams   = $params;
+        $listParams[] = $perPage;
+        $listParams[] = $offset;
+
+        $ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT p.ID FROM {$wpdb->posts} p {$joinSql} WHERE {$where}
+             ORDER BY p.post_title ASC LIMIT %d OFFSET %d",
+            $listParams
+        ));
+
+        $prefixDetector = new PrefixDetector();
+        $rows = array();
+
+        foreach ($ids as $id) {
+            $id    = (int) $id;
+            $title = get_the_title($id);
+            $rows[] = array(
+                'post_id' => $id,
+                'title'   => $title,
+                'prefix'  => $prefixDetector->detectFromTitle($title),
+                'status'  => $this->getMigrationStatus($id),
+                'date'    => (string) get_post_meta($id, self::DATE_META_KEY, true),
+            );
+        }
+
+        return array('rows' => $rows, 'total' => $total);
+    }
+
     public function previewMigration($postId)
     {
         $post = get_post((int) $postId);

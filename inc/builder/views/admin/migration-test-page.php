@@ -23,6 +23,11 @@
 <div class="wrap schilo-builder-settings">
     <h1>Schilo Builder — Migration (test extracteurs)</h1>
 
+    <nav class="scl-tabs">
+        <a href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-migration-test')); ?>" class="scl-tab">Liste</a>
+        <a href="<?php echo esc_url(add_query_arg('tab', 'test', admin_url('admin.php?page=schilo-builder-migration-test'))); ?>" class="scl-tab scl-tab-active">Test / Mapping</a>
+    </nav>
+
     <p class="schilo-admin-back">
         <a href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder')); ?>" class="button">
             ← Retour au tableau de bord
@@ -64,7 +69,7 @@
             <ul class="schilo-migration-prefix-list">
                 <?php foreach ($availablePrefixes as $prefixOption) : ?>
                     <li>
-                        <a href="<?php echo esc_url(add_query_arg(array('schilo_test_prefix' => $prefixOption, 'schilo_test_post' => false), admin_url('admin.php?page=schilo-builder-migration-test'))); ?>"
+                        <a href="<?php echo esc_url(add_query_arg(array('tab' => 'test', 'schilo_test_prefix' => $prefixOption, 'schilo_test_post' => false), admin_url('admin.php?page=schilo-builder-migration-test'))); ?>"
                            class="<?php echo $prefixOption === $selectedPrefix ? 'is-active' : ''; ?>">
                             <?php echo esc_html($prefixOption); ?>
                         </a>
@@ -78,6 +83,7 @@
                 <h2>Choisir un article <?php echo esc_html($selectedPrefix); ?> à tester</h2>
                 <form method="get" action="">
                     <input type="hidden" name="page" value="schilo-builder-migration-test">
+                    <input type="hidden" name="tab" value="test">
                     <input type="hidden" name="schilo_test_prefix" value="<?php echo esc_attr($selectedPrefix); ?>">
                     <select name="schilo_test_post">
                         <option value="">— Choisir un article (<?php echo esc_html(count($candidates)); ?> disponible(s)) —</option>
@@ -122,7 +128,7 @@
                                     <td>
                                         <?php if ($testPost) : ?>
                                             <a class="button"
-                                               href="<?php echo esc_url(add_query_arg(array('schilo_test_prefix' => $selectedPrefix, 'schilo_test_post' => $testPost->ID, 'schilo_test_model' => $modelIdOption), admin_url('admin.php?page=schilo-builder-migration-test'))); ?>">
+                                               href="<?php echo esc_url(add_query_arg(array('tab' => 'test', 'schilo_test_prefix' => $selectedPrefix, 'schilo_test_post' => $testPost->ID, 'schilo_test_model' => $modelIdOption), admin_url('admin.php?page=schilo-builder-migration-test'))); ?>">
                                                 Charger sur cet article
                                             </a>
                                         <?php endif; ?>
