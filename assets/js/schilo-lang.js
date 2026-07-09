@@ -3,8 +3,15 @@
  * Namespace : Schilo
  * Classe    : Schilo.Lang
  *
- * Sélecteur de langue intégré — pilote GTranslate en arrière-plan
- * via un clic simulé sur ses liens natifs [data-gt-lang].
+ * Sélecteur de langue intégré — redirige vers le proxy de traduction
+ * translate.google.com (https://translate.google.com/translate?u=...).
+ *
+ * Le widget gratuit de GTranslate (google.translate.TranslateElement,
+ * piloté via un clic simulé sur ses liens caches) depend d'un mecanisme
+ * cookies tiers/iframe pour peupler sa liste de langues, or Chrome, Edge
+ * et Safari bloquent desormais ce mecanisme par defaut : le select reste
+ * vide et la traduction ne se declenche jamais. Le proxy translate.goog,
+ * lui, ne depend pas des cookies tiers et fonctionne de maniere fiable.
  */
 
 var Schilo = Schilo || {};
@@ -44,62 +51,35 @@ Schilo.Lang = (function () {
        MÉTHODES PRIVÉES
     ──────────────────────────────────────────── */
 
-    function _readCookieLang() {
-        var m = document.cookie.match('(^|;) ?googtrans=([^;]*)(;|$)');
-        if (!m || !m[2]) return null;
-        var parts = m[2].split('/');
-        return parts[2] || null;
-    }
-
-    function _clearCookies() {
-        var exp  = 'expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+    /* Reconstruit l'URL "reelle" (schilo.org) meme si la page est deja
+       affichee via le proxy *.translate.goog (ex: schilo-org.translate.goog) */
+    function _realUrl() {
         var host = location.hostname;
-        document.cookie = 'googtrans=; ' + exp + ';';
-        document.cookie = 'googtrans=; ' + exp + '; domain=' + host + ';';
-        document.cookie = 'googtrans=; ' + exp + '; domain=.' + host + ';';
+        var m    = host.match(/^(.*)\.translate\.goog$/);
+        if (m) host = m[1].replace(/-/g, '.');
+        return location.protocol + '//' + host + location.pathname;
     }
 
-    function _findGlink(code) {
-        return document.querySelector('a[data-gt-lang="' + code + '"]');
+    /* Langue actuellement affichee, deduite de l'URL (pas de cookie ici) */
+    function _currentLangFromUrl() {
+        if (!/\.translate\.goog$/.test(location.hostname)) return _config.defaultLang;
+        var m = location.search.match(/[?&]_x_tr_tl=([^&]+)/);
+        return m ? decodeURIComponent(m[1]) : _config.defaultLang;
     }
 
     function _triggerLang(code) {
-        /* Retour au français */
+        var target = _realUrl();
+
+        /* Retour au français : on quitte le proxy translate.goog */
         if (!code || code === _config.defaultLang) {
-            _clearCookies();
-            location.reload();
+            location.href = target;
             return;
         }
 
-        /* Clic sur le lien natif GTranslate (avec ses listeners déjà attachés) */
-        var link = _findGlink(code);
-        if (link) {
-            var events = ['pointerover', 'pointerenter', 'mouseover', 'mouseenter'];
-
-            /* popup.js n'attache son ecouteur pointerenter (qui charge le script
-               translate.google.com/translate_a/element.js via load_tlib()) que sur
-               le conteneur .gtranslate_wrapper, jamais sur les liens de langue
-               eux-memes. Or pointerenter/mouseenter ne remontent pas par bulles
-               comme pointerover/mouseover : les declencher uniquement sur le lien
-               ne fait donc jamais charger le moteur de traduction. Cible aussi le
-               wrapper en plus du lien. */
-            var wrapper = document.querySelector('.gtranslate_wrapper');
-            for (var i = 0; i < events.length; i++) {
-                if (wrapper) wrapper.dispatchEvent(new MouseEvent(events[i], { bubbles: true, cancelable: true }));
-                link.dispatchEvent(new MouseEvent(events[i], { bubbles: true, cancelable: true }));
-            }
-            setTimeout(function () {
-                link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-            }, 50);
-            return;
-        }
-
-        /* Fallback : cookie + reload */
-        var val  = '/' + _config.defaultLang + '/' + code;
-        var host = location.hostname;
-        document.cookie = 'googtrans=' + val + '; path=/';
-        document.cookie = 'googtrans=' + val + '; path=/; domain=.' + host;
-        location.reload();
+        /* Redirige vers le proxy de traduction Google (fonctionne sans
+           dependre des cookies tiers, contrairement au widget GTranslate) */
+        location.href = 'https://translate.google.com/translate?sl=' + _config.defaultLang +
+            '&tl=' + encodeURIComponent(code) + '&u=' + encodeURIComponent(target);
     }
 
     function _getLangDef(code) {
@@ -171,7 +151,7 @@ Schilo.Lang = (function () {
         _state.wrapper = document.getElementById('schilo-lang-selector');
         if (!_state.wrapper) return;
 
-        _state.currentLang = _readCookieLang() || _config.defaultLang;
+        _state.currentLang = _currentLangFromUrl();
         var activeDef = _getLangDef(_state.currentLang);
 
         /* Bouton */
@@ -281,11 +261,8 @@ Schilo.Lang = (function () {
 
     function init() {
         _hideNativeWidget();
-        /* Attendre 500ms que GTranslate ait injecté ses liens */
-        setTimeout(function () {
-            _buildSelector();
-            _bindEvents();
-        }, 500);
+        _buildSelector();
+        _bindEvents();
     }
 
     /* ── API publique ── */
