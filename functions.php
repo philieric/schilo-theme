@@ -4,7 +4,7 @@
  */
 defined( 'ABSPATH' ) || exit;
 
-define( 'SCHILO_VERSION', '1.1.20' );
+define( 'SCHILO_VERSION', '1.1.21' );
 define( 'SCHILO_DIR',     get_template_directory() );
 define( 'SCHILO_URI',     get_template_directory_uri() );
 define( 'SCHILO_ASSETS',  SCHILO_URI . '/assets' );
@@ -134,6 +134,27 @@ add_action( 'admin_enqueue_scripts', function ( string $hook ): void {
         SCHILO_VERSION,
         true
     );
+
+    // Detection des references bibliques en texte libre (proposition de
+    // shortcode avant enregistrement) — necessite les tables du plugin
+    // Usx-import (voir schilo_get_bible_book_titles()).
+    $bib_book_titles = schilo_get_bible_book_titles();
+    if ( ! empty( $bib_book_titles ) ) {
+        wp_enqueue_style(
+            'schilo-bib-ref-detect',
+            SCHILO_ASSETS . '/css/admin-bib-ref-detect.css',
+            [],
+            SCHILO_VERSION
+        );
+        wp_enqueue_script(
+            'schilo-bib-ref-detect',
+            SCHILO_ASSETS . '/js/admin-bib-ref-detect.js',
+            [],
+            SCHILO_VERSION,
+            true
+        );
+        wp_localize_script( 'schilo-bib-ref-detect', 'schiloBibBooks', $bib_book_titles );
+    }
 } );
 
 // -- Admin : nettoyage automatique du collage Word dans l'editeur classique --
