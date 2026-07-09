@@ -54,11 +54,39 @@ Schilo.Lang = (function () {
         btn            : null,
         dropdown       : null,
         isOpen         : false,
-        translatedNodes: []   // {node, original} — mode Microsoft, pour le retour au francais
+        translatedNodes: [],  // {node, original} — mode Microsoft, pour le retour au francais
+        noticeTimeout  : null
     };
 
     function _provider() {
         return (typeof schiloTranslator !== 'undefined') ? schiloTranslator.activeProvider : 'google';
+    }
+
+    function _microsoftReady() {
+        return typeof schiloTranslator !== 'undefined' && !!schiloTranslator.microsoftReady;
+    }
+
+    /* Petit message discret pres du selecteur — jamais de redirection de
+       secours vers Google : si Microsoft est le fournisseur choisi mais
+       n'est pas encore configure/active, on reste sur la page. */
+    function _showNotice(msg) {
+        if (!_state.wrapper) return;
+        var el = _state.wrapper.querySelector('#schilo-lang-notice');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'schilo-lang-notice';
+            el.style.cssText =
+                'position:absolute!important;top:calc(100% + 6px)!important;right:0!important;' +
+                'left:auto!important;background:#fff3cd!important;border:1px solid #ffe69c!important;' +
+                'color:#664d03!important;font-size:12px!important;padding:8px 12px!important;' +
+                'border-radius:8px!important;box-shadow:0 4px 12px rgba(0,0,0,.12)!important;' +
+                'white-space:nowrap!important;z-index:99999!important;';
+            _state.wrapper.appendChild(el);
+        }
+        el.textContent = msg;
+        el.style.display = 'block';
+        clearTimeout(_state.noticeTimeout);
+        _state.noticeTimeout = setTimeout(function () { el.style.display = 'none'; }, 4000);
     }
 
     /* ────────────────────────────────────────────
@@ -91,8 +119,15 @@ Schilo.Lang = (function () {
             return;
         }
 
-        if (provider === 'microsoft' && typeof schiloTranslator !== 'undefined' && schiloTranslator.microsoftReady) {
-            _triggerMicrosoft(code);
+        if (provider === 'microsoft') {
+            /* Jamais de repli silencieux vers Google : si Microsoft est
+               choisi mais pas encore configuré/activé, on reste sur la
+               page et on prévient l'utilisateur. */
+            if (_microsoftReady()) {
+                _triggerMicrosoft(code);
+            } else {
+                _showNotice('Traduction non configurée pour le moment.');
+            }
             return;
         }
 
@@ -405,6 +440,15 @@ Schilo.Lang = (function () {
             if (!opt) return;
             var code = opt.getAttribute('data-lang');
             if (!code) return;
+
+            /* Microsoft choisi mais pas encore prêt : on ne change rien à
+               l'affichage (le drapeau resterait sur une langue non
+               réellement traduite) et on prévient au lieu de basculer. */
+            if (code !== _config.defaultLang && _provider() === 'microsoft' && !_microsoftReady()) {
+                _close();
+                _showNotice('Traduction non configurée pour le moment.');
+                return;
+            }
 
             _setActiveOption(code);
             _updateBtn(_getLangDef(code));
