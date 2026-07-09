@@ -121,6 +121,14 @@ class Schilo_Assets {
             'version'  => SCHILO_VERSION,
         ] );
 
+        $translator_config = class_exists( 'Schilo_Translator' ) ? Schilo_Translator::get_config() : [];
+        wp_localize_script( 'schilo-lang', 'schiloTranslator', [
+            'activeProvider' => $translator_config['active_provider'] ?? 'google',
+            'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
+            'nonce'          => wp_create_nonce( 'schilo_translate' ),
+            'microsoftReady' => ! empty( $translator_config['microsoft']['enabled'] ) && ! empty( $translator_config['microsoft']['api_key'] ),
+        ] );
+
         wp_enqueue_script(
             'schilo-search-modal',
             SCHILO_ASSETS . '/js/search-modal.js',

@@ -55,11 +55,6 @@ $openai_model = $ia_config['openai']['model']   ?? 'gpt-4o';
 $def_prov     = $ia_config['default_provider']  ?? 'claude';
 $temperature  = $ia_config['temperature']       ?? 0.7;
 
-function schilo_mask_key( $k ) {
-    if ( strlen( $k ) < 8 ) return $k ? str_repeat( '*', strlen( $k ) ) : '';
-    return str_repeat( '*', strlen( $k ) - 6 ) . substr( $k, -6 );
-}
-
 $claude_models = array(
     'claude-sonnet-4-6'         => 'Claude Sonnet 4.6 (recommandé)',
     'claude-haiku-4-5-20251001' => 'Claude Haiku 4.5 (rapide / économique)',

@@ -66,3 +66,13 @@ function schilo_ev_badge( string $ev, string $size = '32px' ): void {
 function schilo_strip_category_number( string $name ): string {
     return preg_replace( '/^\d+\s*-\s*/u', '', $name );
 }
+
+/**
+ * Masque une clé API pour l'affichage admin (garde les 6 derniers caractères).
+ */
+if ( ! function_exists( 'schilo_mask_key' ) ) :
+function schilo_mask_key( string $k ): string {
+    if ( strlen( $k ) < 8 ) return $k ? str_repeat( '*', strlen( $k ) ) : '';
+    return str_repeat( '*', strlen( $k ) - 6 ) . substr( $k, -6 );
+}
+endif;

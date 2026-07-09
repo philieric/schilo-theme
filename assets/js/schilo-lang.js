@@ -3,15 +3,19 @@
  * Namespace : Schilo
  * Classe    : Schilo.Lang
  *
- * Sélecteur de langue intégré — redirige vers le proxy de traduction
- * translate.google.com (https://translate.google.com/translate?u=...).
+ * Sélecteur de langue intégré — deux fournisseurs possibles, choisis dans
+ * l'admin (Reglages > Traduction) via window.schiloTranslator.activeProvider :
  *
- * Le widget gratuit de GTranslate (google.translate.TranslateElement,
- * piloté via un clic simulé sur ses liens caches) depend d'un mecanisme
- * cookies tiers/iframe pour peupler sa liste de langues, or Chrome, Edge
- * et Safari bloquent desormais ce mecanisme par defaut : le select reste
- * vide et la traduction ne se declenche jamais. Le proxy translate.goog,
- * lui, ne depend pas des cookies tiers et fonctionne de maniere fiable.
+ *  - "google"    : redirige vers le proxy translate.google.com (gratuit, sans
+ *    cle, mais l'URL affichee devient temporairement un sous-domaine
+ *    *.translate.goog). Remplace le widget gratuit de GTranslate
+ *    (google.translate.TranslateElement), casse depuis que Chrome/Edge/Safari
+ *    bloquent par defaut le mecanisme cookies tiers/iframe dont il depend.
+ *
+ *  - "microsoft" : traduit le DOM sur place via l'API Azure Translator
+ *    (proxy server-side wp_ajax_schilo_translate, la cle Azure n'atteint
+ *    jamais le navigateur). Reste sur schilo.org, contrairement au mode
+ *    Google.
  */
 
 var Schilo = Schilo || {};
@@ -35,17 +39,27 @@ Schilo.Lang = (function () {
             { code: 'ru',    label: 'Русский',     flag: 'ru'    },
             { code: 'it',    label: 'Italiano',    flag: 'it'    },
             { code: 'nl',    label: 'Nederlands',  flag: 'nl'    },
-        ]
+        ],
+        /* Mode Microsoft : exclus du parcours DOM et des langues RTL */
+        excludeSelector: '#schilo-lang-selector, [translate="no"], .notranslate',
+        rtlLangs: ['ar'],
+        persistKey: 'schilo_lang_active',
+        msChunkSize: 80
     };
 
     /* ── État interne ── */
     var _state = {
-        currentLang: 'fr',
-        wrapper    : null,
-        btn        : null,
-        dropdown   : null,
-        isOpen     : false
+        currentLang    : 'fr',
+        wrapper        : null,
+        btn            : null,
+        dropdown       : null,
+        isOpen         : false,
+        translatedNodes: []   // {node, original} — mode Microsoft, pour le retour au francais
     };
+
+    function _provider() {
+        return (typeof schiloTranslator !== 'undefined') ? schiloTranslator.activeProvider : 'google';
+    }
 
     /* ────────────────────────────────────────────
        MÉTHODES PRIVÉES
@@ -68,6 +82,24 @@ Schilo.Lang = (function () {
     }
 
     function _triggerLang(code) {
+        var provider = _provider();
+
+        /* Retour au français */
+        if (!code || code === _config.defaultLang) {
+            if (provider === 'microsoft') { _restoreOriginal(); return; }
+            _triggerGoogle(code);
+            return;
+        }
+
+        if (provider === 'microsoft' && typeof schiloTranslator !== 'undefined' && schiloTranslator.microsoftReady) {
+            _triggerMicrosoft(code);
+            return;
+        }
+
+        _triggerGoogle(code);
+    }
+
+    function _triggerGoogle(code) {
         var target = _realUrl();
 
         /* Retour au français : on quitte le proxy translate.goog */
@@ -80,6 +112,127 @@ Schilo.Lang = (function () {
            dependre des cookies tiers, contrairement au widget GTranslate) */
         location.href = 'https://translate.google.com/translate?sl=' + _config.defaultLang +
             '&tl=' + encodeURIComponent(code) + '&u=' + encodeURIComponent(target);
+    }
+
+    /* ── Mode Microsoft : parcours du DOM ── */
+    function _collectTextNodes() {
+        var results = [];
+        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+            acceptNode: function (node) {
+                var parent = node.parentElement;
+                if (!parent) return NodeFilter.FILTER_REJECT;
+                var tag = parent.tagName;
+                if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT' || tag === 'TEXTAREA') {
+                    return NodeFilter.FILTER_REJECT;
+                }
+                if (parent.closest && parent.closest(_config.excludeSelector)) return NodeFilter.FILTER_REJECT;
+                if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+                return NodeFilter.FILTER_ACCEPT;
+            }
+        });
+        var n;
+        while ((n = walker.nextNode())) results.push({ node: n });
+        return results;
+    }
+
+    function _chunkNodes(nodes, size) {
+        var chunks = [];
+        for (var i = 0; i < nodes.length; i += size) {
+            var slice = nodes.slice(i, i + size);
+            slice.startIndex = i;
+            chunks.push(slice);
+        }
+        return chunks;
+    }
+
+    /* Appelle le proxy server-side (la clé Azure ne sort jamais du serveur) */
+    function _ajaxTranslate(texts, lang, cb) {
+        if (typeof schiloTranslator === 'undefined') { cb(true); return; }
+        var params = new URLSearchParams();
+        params.append('action', 'schilo_translate');
+        params.append('nonce', schiloTranslator.nonce);
+        params.append('target_lang', lang);
+        for (var i = 0; i < texts.length; i++) params.append('texts[]', texts[i]);
+
+        fetch(schiloTranslator.ajaxUrl, {
+            method : 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body   : params.toString()
+        }).then(function (r) { return r.json(); })
+          .then(function (r) {
+              if (r && r.success && r.data && Array.isArray(r.data.translations)) {
+                  cb(null, r.data.translations);
+              } else {
+                  cb(true);
+              }
+          })
+          .catch(function () { cb(true); });
+    }
+
+    function _applyTranslations(nodes, translations, code) {
+        _state.translatedNodes = [];
+        for (var i = 0; i < nodes.length; i++) {
+            var node = nodes[i].node;
+            var t    = translations[i];
+            if (!node.isConnected || typeof t !== 'string' || t === '') continue;
+            _state.translatedNodes.push({ node: node, original: node.nodeValue });
+            node.nodeValue = t;
+        }
+        document.documentElement.dir = (_config.rtlLangs.indexOf(code) !== -1) ? 'rtl' : 'ltr';
+        try { localStorage.setItem(_config.persistKey, code); } catch (e) {}
+    }
+
+    function _triggerMicrosoft(code) {
+        var nodes = _collectTextNodes();
+        if (!nodes.length) return;
+
+        var originals = nodes.map(function (item) { return item.node.nodeValue; });
+        var cacheKey  = 'schilo_tr_' + location.pathname + '_' + code;
+
+        try {
+            var raw = sessionStorage.getItem(cacheKey);
+            if (raw) {
+                var parsed = JSON.parse(raw);
+                if (parsed && Array.isArray(parsed.originals) && parsed.originals.length === originals.length &&
+                    parsed.originals.every(function (o, i) { return o === originals[i]; })) {
+                    _applyTranslations(nodes, parsed.translations, code);
+                    return;
+                }
+            }
+        } catch (e) {}
+
+        var chunks  = _chunkNodes(nodes, _config.msChunkSize);
+        var results = new Array(nodes.length);
+        var pending = chunks.length;
+        var failed  = false;
+
+        chunks.forEach(function (chunk) {
+            var texts = chunk.map(function (item) { return item.node.nodeValue; });
+            _ajaxTranslate(texts, code, function (err, translations) {
+                if (err) {
+                    failed = true;
+                } else {
+                    for (var i = 0; i < translations.length; i++) results[chunk.startIndex + i] = translations[i];
+                }
+                pending--;
+                if (pending === 0 && !failed) {
+                    _applyTranslations(nodes, results, code);
+                    try {
+                        sessionStorage.setItem(cacheKey, JSON.stringify({ originals: originals, translations: results }));
+                    } catch (e) {}
+                }
+            });
+        });
+    }
+
+    function _restoreOriginal() {
+        for (var i = 0; i < _state.translatedNodes.length; i++) {
+            var item = _state.translatedNodes[i];
+            if (item.node.isConnected) item.node.nodeValue = item.original;
+        }
+        _state.translatedNodes = [];
+        document.documentElement.dir = 'ltr';
+        try { localStorage.removeItem(_config.persistKey); } catch (e) {}
     }
 
     function _getLangDef(code) {
@@ -151,7 +304,13 @@ Schilo.Lang = (function () {
         _state.wrapper = document.getElementById('schilo-lang-selector');
         if (!_state.wrapper) return;
 
-        _state.currentLang = _currentLangFromUrl();
+        if (_provider() === 'microsoft') {
+            var stored = null;
+            try { stored = localStorage.getItem(_config.persistKey); } catch (e) {}
+            _state.currentLang = (stored && _getLangDef(stored).code === stored) ? stored : _config.defaultLang;
+        } else {
+            _state.currentLang = _currentLangFromUrl();
+        }
         var activeDef = _getLangDef(_state.currentLang);
 
         /* Bouton */
@@ -263,6 +422,13 @@ Schilo.Lang = (function () {
         _hideNativeWidget();
         _buildSelector();
         _bindEvents();
+
+        /* Persistance inter-navigation (mode Microsoft uniquement — le mode
+           Google reste "traduit" naturellement tant qu'on navigue sur le
+           domaine translate.goog, dont les liens internes restent proxies) */
+        if (_provider() === 'microsoft' && _state.currentLang !== _config.defaultLang) {
+            _triggerMicrosoft(_state.currentLang);
+        }
     }
 
     /* ── API publique ── */
