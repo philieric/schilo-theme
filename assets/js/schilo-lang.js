@@ -3,19 +3,23 @@
  * Namespace : Schilo
  * Classe    : Schilo.Lang
  *
- * Sélecteur de langue intégré — deux fournisseurs possibles, choisis dans
+ * Sélecteur de langue intégré — trois fournisseurs possibles, choisis dans
  * l'admin (Reglages > Traduction) via window.schiloTranslator.activeProvider :
  *
- *  - "google"    : redirige vers le proxy translate.google.com (gratuit, sans
- *    cle, mais l'URL affichee devient temporairement un sous-domaine
- *    *.translate.goog). Remplace le widget gratuit de GTranslate
- *    (google.translate.TranslateElement), casse depuis que Chrome/Edge/Safari
- *    bloquent par defaut le mecanisme cookies tiers/iframe dont il depend.
+ *  - "google"       : redirige vers le proxy translate.google.com (gratuit,
+ *    sans cle, mais l'URL affichee devient temporairement un sous-domaine
+ *    *.translate.goog — on quitte schilo.org). Remplace le widget gratuit de
+ *    GTranslate (google.translate.TranslateElement), casse depuis que
+ *    Chrome/Edge/Safari bloquent par defaut le mecanisme cookies
+ *    tiers/iframe dont il depend.
  *
- *  - "microsoft" : traduit le DOM sur place via l'API Azure Translator
- *    (proxy server-side wp_ajax_schilo_translate, la cle Azure n'atteint
- *    jamais le navigateur). Reste sur schilo.org, contrairement au mode
- *    Google.
+ *  - "microsoft" / "google_cloud" : traduisent le DOM sur place (Azure
+ *    Translator ou Google Cloud Translation, au choix dans l'admin), via le
+ *    proxy server-side wp_ajax_schilo_translate — la cle API n'atteint
+ *    jamais le navigateur. Restent sur schilo.org, contrairement au mode
+ *    "google" ci-dessus. Le front-end ne differencie pas les deux, seul
+ *    schiloTranslator.inPlaceReady importe ici : le PHP choisit quelle API
+ *    appeler.
  */
 
 var Schilo = Schilo || {};
@@ -40,11 +44,11 @@ Schilo.Lang = (function () {
             { code: 'it',    label: 'Italiano',    flag: 'it'    },
             { code: 'nl',    label: 'Nederlands',  flag: 'nl'    },
         ],
-        /* Mode Microsoft : exclus du parcours DOM et des langues RTL */
+        /* Mode "sur place" (Microsoft/Google Cloud) : exclus du parcours DOM et des langues RTL */
         excludeSelector: '#schilo-lang-selector, [translate="no"], .notranslate',
         rtlLangs: ['ar'],
         persistKey: 'schilo_lang_active',
-        msChunkSize: 80
+        chunkSize: 80
     };
 
     /* ── État interne ── */
@@ -54,7 +58,7 @@ Schilo.Lang = (function () {
         btn            : null,
         dropdown       : null,
         isOpen         : false,
-        translatedNodes: [],  // {node, original} — mode Microsoft, pour le retour au francais
+        translatedNodes: [],  // {node, original} — mode "sur place", pour le retour au francais
         noticeTimeout  : null
     };
 
@@ -62,12 +66,18 @@ Schilo.Lang = (function () {
         return (typeof schiloTranslator !== 'undefined') ? schiloTranslator.activeProvider : 'google';
     }
 
-    function _microsoftReady() {
-        return typeof schiloTranslator !== 'undefined' && !!schiloTranslator.microsoftReady;
+    /* "microsoft" et "google_cloud" partagent le meme comportement front-end
+       (traduction sur place via le proxy server-side) */
+    function _isInPlaceProvider(provider) {
+        return provider === 'microsoft' || provider === 'google_cloud';
+    }
+
+    function _inPlaceReady() {
+        return typeof schiloTranslator !== 'undefined' && !!schiloTranslator.inPlaceReady;
     }
 
     /* Petit message discret pres du selecteur — jamais de redirection de
-       secours vers Google : si Microsoft est le fournisseur choisi mais
+       secours vers Google : si un fournisseur "sur place" est choisi mais
        n'est pas encore configure/active, on reste sur la page. */
     function _showNotice(msg) {
         if (!_state.wrapper) return;
@@ -114,17 +124,17 @@ Schilo.Lang = (function () {
 
         /* Retour au français */
         if (!code || code === _config.defaultLang) {
-            if (provider === 'microsoft') { _restoreOriginal(); return; }
+            if (_isInPlaceProvider(provider)) { _restoreOriginal(); return; }
             _triggerGoogle(code);
             return;
         }
 
-        if (provider === 'microsoft') {
-            /* Jamais de repli silencieux vers Google : si Microsoft est
-               choisi mais pas encore configuré/activé, on reste sur la
-               page et on prévient l'utilisateur. */
-            if (_microsoftReady()) {
-                _triggerMicrosoft(code);
+        if (_isInPlaceProvider(provider)) {
+            /* Jamais de repli silencieux vers Google : si Microsoft/Google
+               Cloud est choisi mais pas encore configuré/activé, on reste
+               sur la page et on prévient l'utilisateur. */
+            if (_inPlaceReady()) {
+                _triggerInPlace(code);
             } else {
                 _showNotice('Traduction non configurée pour le moment.');
             }
@@ -149,7 +159,7 @@ Schilo.Lang = (function () {
             '&tl=' + encodeURIComponent(code) + '&u=' + encodeURIComponent(target);
     }
 
-    /* ── Mode Microsoft : parcours du DOM ── */
+    /* ── Mode "sur place" (Microsoft/Google Cloud) : parcours du DOM ── */
     function _collectTextNodes() {
         var results = [];
         var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
@@ -217,7 +227,7 @@ Schilo.Lang = (function () {
         try { localStorage.setItem(_config.persistKey, code); } catch (e) {}
     }
 
-    function _triggerMicrosoft(code) {
+    function _triggerInPlace(code) {
         var nodes = _collectTextNodes();
         if (!nodes.length) return;
 
@@ -236,7 +246,7 @@ Schilo.Lang = (function () {
             }
         } catch (e) {}
 
-        var chunks  = _chunkNodes(nodes, _config.msChunkSize);
+        var chunks  = _chunkNodes(nodes, _config.chunkSize);
         var results = new Array(nodes.length);
         var pending = chunks.length;
         var failed  = false;
@@ -339,7 +349,7 @@ Schilo.Lang = (function () {
         _state.wrapper = document.getElementById('schilo-lang-selector');
         if (!_state.wrapper) return;
 
-        if (_provider() === 'microsoft') {
+        if (_isInPlaceProvider(_provider())) {
             var stored = null;
             try { stored = localStorage.getItem(_config.persistKey); } catch (e) {}
             _state.currentLang = (stored && _getLangDef(stored).code === stored) ? stored : _config.defaultLang;
@@ -441,10 +451,11 @@ Schilo.Lang = (function () {
             var code = opt.getAttribute('data-lang');
             if (!code) return;
 
-            /* Microsoft choisi mais pas encore prêt : on ne change rien à
-               l'affichage (le drapeau resterait sur une langue non
-               réellement traduite) et on prévient au lieu de basculer. */
-            if (code !== _config.defaultLang && _provider() === 'microsoft' && !_microsoftReady()) {
+            /* Fournisseur "sur place" choisi mais pas encore prêt : on ne
+               change rien à l'affichage (le drapeau resterait sur une
+               langue non réellement traduite) et on prévient au lieu de
+               basculer. */
+            if (code !== _config.defaultLang && _isInPlaceProvider(_provider()) && !_inPlaceReady()) {
                 _close();
                 _showNotice('Traduction non configurée pour le moment.');
                 return;
@@ -467,11 +478,12 @@ Schilo.Lang = (function () {
         _buildSelector();
         _bindEvents();
 
-        /* Persistance inter-navigation (mode Microsoft uniquement — le mode
-           Google reste "traduit" naturellement tant qu'on navigue sur le
-           domaine translate.goog, dont les liens internes restent proxies) */
-        if (_provider() === 'microsoft' && _state.currentLang !== _config.defaultLang) {
-            _triggerMicrosoft(_state.currentLang);
+        /* Persistance inter-navigation (fournisseurs "sur place" uniquement
+           — le mode Google reste "traduit" naturellement tant qu'on navigue
+           sur le domaine translate.goog, dont les liens internes restent
+           proxies) */
+        if (_isInPlaceProvider(_provider()) && _inPlaceReady() && _state.currentLang !== _config.defaultLang) {
+            _triggerInPlace(_state.currentLang);
         }
     }
 

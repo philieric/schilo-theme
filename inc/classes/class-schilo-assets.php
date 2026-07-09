@@ -126,7 +126,9 @@ class Schilo_Assets {
             'activeProvider' => $translator_config['active_provider'] ?? 'google',
             'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
             'nonce'          => wp_create_nonce( 'schilo_translate' ),
-            'microsoftReady' => ! empty( $translator_config['microsoft']['enabled'] ) && ! empty( $translator_config['microsoft']['api_key'] ),
+            /* true si le fournisseur actif est "sur place" (Microsoft ou
+               Google Cloud) et correctement configuré/activé */
+            'inPlaceReady'   => class_exists( 'Schilo_Translator' ) && Schilo_Translator::is_in_place_ready( $translator_config ),
         ] );
 
         wp_enqueue_script(

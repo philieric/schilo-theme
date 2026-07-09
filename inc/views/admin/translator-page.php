@@ -1,6 +1,6 @@
 <?php
 /**
- * Vue : Réglages de traduction (Google / Microsoft Translator)
+ * Vue : Réglages de traduction (Google / Microsoft Translator / Google Cloud Translation)
  * Variables : $config, $saved
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -9,6 +9,8 @@ $active_provider = $config['active_provider'] ?? 'google';
 $ms_key          = $config['microsoft']['api_key'] ?? '';
 $ms_region       = $config['microsoft']['region']  ?? '';
 $ms_enabled      = ! empty( $config['microsoft']['enabled'] );
+$gc_key          = $config['google_cloud']['api_key'] ?? '';
+$gc_enabled      = ! empty( $config['google_cloud']['enabled'] );
 ?>
 
 <div class="wrap sia-wrap">
@@ -24,15 +26,18 @@ $ms_enabled      = ! empty( $config['microsoft']['enabled'] );
     <form method="post">
         <?php wp_nonce_field( 'schilo_save_translator_config', 'schilo_translator_nonce' ); ?>
 
-        <table class="form-table" style="max-width:700px;margin-bottom:20px">
+        <table class="form-table" style="max-width:900px;margin-bottom:20px">
             <tr>
                 <th style="width:200px">Fournisseur actif</th>
                 <td>
                     <label style="margin-right:20px">
                         <input type="radio" name="st_active_provider" value="google" <?php checked( $active_provider, 'google' ); ?>> Google (redirection)
                     </label>
-                    <label>
+                    <label style="margin-right:20px">
                         <input type="radio" name="st_active_provider" value="microsoft" <?php checked( $active_provider, 'microsoft' ); ?>> Microsoft Translator (sur place)
+                    </label>
+                    <label>
+                        <input type="radio" name="st_active_provider" value="google_cloud" <?php checked( $active_provider, 'google_cloud' ); ?>> Google Cloud Translation (sur place)
                     </label>
                 </td>
             </tr>
@@ -40,17 +45,17 @@ $ms_enabled      = ! empty( $config['microsoft']['enabled'] );
 
         <div class="sia-grid">
 
-            <!-- ══ GOOGLE ══ -->
+            <!-- ══ GOOGLE (redirection) ══ -->
             <div class="sia-card">
                 <div class="sia-card-header" style="border-left:4px solid #4285F4">
-                    <strong>Google Translate</strong>
+                    <strong>Google Translate (redirection)</strong>
                 </div>
                 <div class="sia-card-body">
                     <p class="description">
                         Redirige vers le proxy public <code>translate.google.com</code>. Gratuit,
                         sans clé, fonctionne immédiatement — mais l'URL affichée devient
                         temporairement un sous-domaine <code>*.translate.goog</code> pendant la
-                        consultation traduite.
+                        consultation traduite (on quitte schilo.org).
                     </p>
                 </div>
             </div>
@@ -77,7 +82,7 @@ $ms_enabled      = ! empty( $config['microsoft']['enabled'] );
                     </div>
                     <div class="sia-field">
                         <label>Région Azure</label>
-                        <input type="text" name="st_microsoft_region" class="regular-text"
+                        <input type="text" id="st_microsoft_region" name="st_microsoft_region" class="regular-text"
                                placeholder="ex: westeurope" value="<?php echo esc_attr( $ms_region ); ?>">
                     </div>
                     <div class="sia-field">
@@ -87,7 +92,7 @@ $ms_enabled      = ! empty( $config['microsoft']['enabled'] );
                         </label>
                     </div>
                     <div class="sia-test-row">
-                        <button type="button" class="button sia-test-ms">
+                        <button type="button" class="button sia-test" data-provider="microsoft" data-kf="st_microsoft_key" data-rf="st_microsoft_region">
                             <span class="dashicons dashicons-update sia-spin" style="display:none"></span>
                             Tester la connexion
                         </button>
@@ -101,6 +106,49 @@ $ms_enabled      = ! empty( $config['microsoft']['enabled'] );
                 </div>
             </div>
 
+            <!-- ══ GOOGLE CLOUD TRANSLATION ══ -->
+            <div class="sia-card" id="sia-card-google_cloud">
+                <div class="sia-card-header" style="border-left:4px solid #34a853">
+                    <strong>Google Cloud Translation</strong>
+                    <span class="sia-dot" id="sia-dot-google_cloud"></span>
+                </div>
+                <div class="sia-card-body">
+                    <div class="sia-field">
+                        <label>Clé API (Google Cloud)</label>
+                        <div class="sia-key-row">
+                            <input type="password" id="st_google_cloud_key" name="st_google_cloud_key"
+                                   class="regular-text sia-key-input"
+                                   placeholder="Clé API Google Cloud"
+                                   autocomplete="new-password"
+                                   value="<?php echo esc_attr( $gc_key ? schilo_mask_key( $gc_key ) : '' ); ?>"
+                                   data-changed="0">
+                            <button type="button" class="button sia-eye" data-target="st_google_cloud_key"><span class="dashicons dashicons-visibility"></span></button>
+                        </div>
+                        <p class="description">
+                            Créée dans la <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">console Google Cloud</a>
+                            (API "Cloud Translation" activée, clé restreinte à cette API). Pas de région à renseigner.
+                        </p>
+                    </div>
+                    <div class="sia-field">
+                        <label>
+                            <input type="checkbox" name="st_google_cloud_enabled" value="1" <?php checked( $gc_enabled ); ?>>
+                            Activer Google Cloud Translation
+                        </label>
+                    </div>
+                    <div class="sia-test-row">
+                        <button type="button" class="button sia-test" data-provider="google_cloud" data-kf="st_google_cloud_key" data-rf="">
+                            <span class="dashicons dashicons-update sia-spin" style="display:none"></span>
+                            Tester la connexion
+                        </button>
+                        <span class="sia-result" id="sia-res-google_cloud"></span>
+                    </div>
+                    <p class="description" style="margin-top:10px">
+                        Facturation activée requise côté Google Cloud (offre gratuite mensuelle
+                        disponible) — le quota réel reste visible dans la console.
+                    </p>
+                </div>
+            </div>
+
         </div><!-- .sia-grid -->
 
         <p class="submit">
@@ -110,7 +158,7 @@ $ms_enabled      = ! empty( $config['microsoft']['enabled'] );
 </div>
 
 <style>
-.sia-wrap .sia-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0; }
+.sia-wrap .sia-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin:16px 0; }
 .sia-wrap .sia-card { background:#fff; border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.06); }
 .sia-wrap .sia-card-header { display:flex; align-items:center; gap:10px; padding:12px 16px; background:#f8fafc; border-bottom:1px solid #e2e8f0; }
 .sia-wrap .sia-dot { width:10px; height:10px; border-radius:50%; background:#d1d5db; margin-left:auto; flex-shrink:0; transition:background .3s; }
@@ -128,7 +176,7 @@ $ms_enabled      = ! empty( $config['microsoft']['enabled'] );
 .sia-wrap .sia-result.err { color:#dc2626; }
 @keyframes sia-spin { to { transform:rotate(360deg); } }
 .sia-spinning { animation:sia-spin .8s linear infinite; }
-@media (max-width:700px) { .sia-wrap .sia-grid { grid-template-columns:1fr; } }
+@media (max-width:1000px) { .sia-wrap .sia-grid { grid-template-columns:1fr; } }
 </style>
 
 <script>
@@ -148,14 +196,15 @@ $ms_enabled      = ! empty( $config['microsoft']['enabled'] );
         $(this).attr('data-changed', '1');
     });
 
-    $(document).on('click', '.sia-test-ms', function(){
-        var btn     = $(this);
-        var keyInp  = $('#st_microsoft_key');
-        var keyVal  = keyInp.attr('data-changed') === '1' ? keyInp.val() : '__USE_SAVED__';
-        var region  = $('input[name="st_microsoft_region"]').val();
-        var spinner = btn.find('.sia-spin');
-        var result  = $('#sia-res-microsoft');
-        var dot     = $('#sia-dot-microsoft');
+    $(document).on('click', '.sia-test', function(){
+        var btn      = $(this);
+        var provider = btn.data('provider');
+        var keyInp   = $('#' + btn.data('kf'));
+        var keyVal   = keyInp.attr('data-changed') === '1' ? keyInp.val() : '__USE_SAVED__';
+        var region   = btn.data('rf') ? $('#' + btn.data('rf')).val() : '';
+        var spinner  = btn.find('.sia-spin');
+        var result   = $('#sia-res-' + provider);
+        var dot      = $('#sia-dot-' + provider);
 
         btn.prop('disabled', true);
         spinner.show().addClass('sia-spinning');
@@ -163,10 +212,11 @@ $ms_enabled      = ! empty( $config['microsoft']['enabled'] );
         dot.removeClass('ok err');
 
         $.post(ajaxUrl, {
-            action:  'schilo_test_translator',
-            nonce:   testNonce,
-            api_key: keyVal,
-            region:  region
+            action:   'schilo_test_translator',
+            nonce:    testNonce,
+            provider: provider,
+            api_key:  keyVal,
+            region:   region
         }, function(r){
             if (r && r.success) {
                 result.text('✓ ' + (r.data.message || 'Connexion OK')).addClass('ok');

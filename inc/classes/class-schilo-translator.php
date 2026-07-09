@@ -1,13 +1,20 @@
 <?php
 /**
- * Fournisseur de traduction configurable (Google ou Microsoft Translator).
+ * Fournisseur de traduction configurable (Google redirection, Microsoft
+ * Translator, ou Google Cloud Translation).
  *
- * Google : redirection cote client vers le proxy translate.google.com
- * (gere entierement dans assets/js/schilo-lang.js, aucune cle requise).
+ * "google"       : redirection cote client vers le proxy translate.google.com
+ *                  (gere entierement dans assets/js/schilo-lang.js, aucune
+ *                  cle requise, mais quitte temporairement schilo.org).
  *
- * Microsoft : traduction du DOM sur place, via l'API Azure Translator.
- * La cle Azure n'est lue que cote serveur (ici) et n'atteint jamais le
- * navigateur — le front-end (schilo-lang.js) n'appelle que admin-ajax.php.
+ * "microsoft"    : traduction du DOM sur place, via l'API Azure Translator.
+ * "google_cloud" : traduction du DOM sur place, via l'API Google Cloud
+ *                  Translation v2. Meme principe que Microsoft (texte par
+ *                  texte, cote serveur), reste sur schilo.org.
+ *
+ * Pour les deux fournisseurs "sur place", la cle API n'est lue que cote
+ * serveur (ici) et n'atteint jamais le navigateur — le front-end
+ * (schilo-lang.js) n'appelle que admin-ajax.php.
  */
 defined( 'ABSPATH' ) || exit;
 
@@ -18,7 +25,9 @@ class Schilo_Translator {
     const RATE_LIMIT_PER_HOUR = 60;
     const MAX_TEXTS           = 200;
     const MAX_CHARS           = 100000;
-    const MS_CHUNK_SIZE       = 80;
+    const CHUNK_SIZE          = 80;
+
+    const IN_PLACE_PROVIDERS = [ 'microsoft', 'google_cloud' ];
 
     /* Codes acceptes, alignes sur _config.langs dans assets/js/schilo-lang.js */
     const ALLOWED_LANGS = [ 'fr', 'en', 'es', 'de', 'pt', 'ar', 'zh-CN', 'ru', 'it', 'nl' ];
@@ -40,7 +49,23 @@ class Schilo_Translator {
         return array_merge( [
             'active_provider' => 'google',
             'microsoft'       => [ 'api_key' => '', 'region' => '', 'enabled' => false ],
+            'google_cloud'    => [ 'api_key' => '', 'enabled' => false ],
         ], $config );
+    }
+
+    /**
+     * Le fournisseur actif est-il un fournisseur "sur place" correctement
+     * configure et active ?
+     */
+    public static function is_in_place_ready( array $config ): bool {
+        $provider = $config['active_provider'] ?? 'google';
+        if ( ! in_array( $provider, self::IN_PLACE_PROVIDERS, true ) ) return false;
+
+        $provider_config = $config[ $provider ] ?? [];
+        if ( empty( $provider_config['enabled'] ) || empty( $provider_config['api_key'] ) ) return false;
+        if ( $provider === 'microsoft' && empty( $provider_config['region'] ) ) return false;
+
+        return true;
     }
 
     /* ────────────────────────────────────────────
@@ -72,24 +97,33 @@ class Schilo_Translator {
         ) {
             $prev = $config;
 
-            $active_provider = in_array( $_POST['st_active_provider'] ?? '', [ 'google', 'microsoft' ], true )
+            $active_provider = in_array( $_POST['st_active_provider'] ?? '', [ 'google', 'microsoft', 'google_cloud' ], true )
                 ? $_POST['st_active_provider']
                 : 'google';
 
-            $key_raw = isset( $_POST['st_microsoft_key'] ) ? sanitize_text_field( wp_unslash( $_POST['st_microsoft_key'] ) ) : '';
-            $api_key = ( $key_raw !== '' && strpos( $key_raw, '*' ) === false )
-                ? $key_raw
+            $ms_key_raw = isset( $_POST['st_microsoft_key'] ) ? sanitize_text_field( wp_unslash( $_POST['st_microsoft_key'] ) ) : '';
+            $ms_api_key = ( $ms_key_raw !== '' && strpos( $ms_key_raw, '*' ) === false )
+                ? $ms_key_raw
                 : ( $prev['microsoft']['api_key'] ?? '' );
+            $ms_region  = isset( $_POST['st_microsoft_region'] ) ? sanitize_text_field( wp_unslash( $_POST['st_microsoft_region'] ) ) : ( $prev['microsoft']['region'] ?? '' );
+            $ms_enabled = ! empty( $_POST['st_microsoft_enabled'] );
 
-            $region  = isset( $_POST['st_microsoft_region'] ) ? sanitize_text_field( wp_unslash( $_POST['st_microsoft_region'] ) ) : ( $prev['microsoft']['region'] ?? '' );
-            $enabled = ! empty( $_POST['st_microsoft_enabled'] );
+            $gc_key_raw = isset( $_POST['st_google_cloud_key'] ) ? sanitize_text_field( wp_unslash( $_POST['st_google_cloud_key'] ) ) : '';
+            $gc_api_key = ( $gc_key_raw !== '' && strpos( $gc_key_raw, '*' ) === false )
+                ? $gc_key_raw
+                : ( $prev['google_cloud']['api_key'] ?? '' );
+            $gc_enabled = ! empty( $_POST['st_google_cloud_enabled'] );
 
             $config = [
                 'active_provider' => $active_provider,
                 'microsoft'       => [
-                    'api_key' => $api_key,
-                    'region'  => $region,
-                    'enabled' => $enabled,
+                    'api_key' => $ms_api_key,
+                    'region'  => $ms_region,
+                    'enabled' => $ms_enabled,
+                ],
+                'google_cloud'    => [
+                    'api_key' => $gc_api_key,
+                    'enabled' => $gc_enabled,
                 ],
             ];
             update_option( self::OPTION, $config, false );
@@ -109,22 +143,31 @@ class Schilo_Translator {
         }
         check_ajax_referer( 'schilo_test_translator', 'nonce' );
 
-        $config     = self::get_config();
-        $key_raw    = sanitize_text_field( wp_unslash( $_POST['api_key'] ?? '' ) );
-        $api_key    = ( $key_raw !== '' && $key_raw !== '__USE_SAVED__' ) ? $key_raw : ( $config['microsoft']['api_key'] ?? '' );
-        $region_raw = sanitize_text_field( wp_unslash( $_POST['region'] ?? '' ) );
-        $region     = $region_raw !== '' ? $region_raw : ( $config['microsoft']['region'] ?? '' );
+        $config   = self::get_config();
+        $provider = in_array( $_POST['provider'] ?? '', self::IN_PLACE_PROVIDERS, true ) ? $_POST['provider'] : 'microsoft';
+        $key_raw  = sanitize_text_field( wp_unslash( $_POST['api_key'] ?? '' ) );
+        $api_key  = ( $key_raw !== '' && $key_raw !== '__USE_SAVED__' ) ? $key_raw : ( $config[ $provider ]['api_key'] ?? '' );
 
-        if ( $api_key === '' || $region === '' ) {
-            wp_send_json_error( [ 'message' => 'Clé API et région requises.' ] );
+        if ( $provider === 'microsoft' ) {
+            $region_raw = sanitize_text_field( wp_unslash( $_POST['region'] ?? '' ) );
+            $region     = $region_raw !== '' ? $region_raw : ( $config['microsoft']['region'] ?? '' );
+
+            if ( $api_key === '' || $region === '' ) {
+                wp_send_json_error( [ 'message' => 'Clé API et région requises.' ] );
+            }
+            $result = self::call_microsoft( [ 'test' ], 'fr', $api_key, $region );
+        } else {
+            if ( $api_key === '' ) {
+                wp_send_json_error( [ 'message' => 'Clé API requise.' ] );
+            }
+            $result = self::call_google_cloud( [ 'test' ], 'fr', $api_key );
         }
 
-        $result = self::call_microsoft( [ 'test' ], 'fr', $api_key, $region );
         if ( is_wp_error( $result ) ) {
             wp_send_json_error( [ 'message' => $result->get_error_message() ] );
         }
 
-        wp_send_json_success( [ 'message' => 'Microsoft Translator connecté.' ] );
+        wp_send_json_success( [ 'message' => 'Connexion réussie.' ] );
     }
 
     /* ────────────────────────────────────────────
@@ -142,9 +185,10 @@ class Schilo_Translator {
         check_ajax_referer( 'schilo_translate', 'nonce' );
 
         $config = self::get_config();
-        if ( empty( $config['microsoft']['enabled'] ) || empty( $config['microsoft']['api_key'] ) || empty( $config['microsoft']['region'] ) ) {
-            wp_send_json_error( [ 'message' => 'Traduction Microsoft non configurée.' ] );
+        if ( ! self::is_in_place_ready( $config ) ) {
+            wp_send_json_error( [ 'message' => 'Traduction non configurée.' ] );
         }
+        $provider = $config['active_provider'];
 
         $target_lang = sanitize_text_field( wp_unslash( $_POST['target_lang'] ?? '' ) );
         if ( ! in_array( $target_lang, self::ALLOWED_LANGS, true ) ) {
@@ -166,13 +210,16 @@ class Schilo_Translator {
             wp_send_json_error( [ 'message' => 'Trop de requêtes, réessayez plus tard.' ], 429 );
         }
 
-        $cache_key = 'schilo_tr_' . md5( $target_lang . '|' . implode( "\x1F", $texts ) );
+        $cache_key = 'schilo_tr_' . $provider . '_' . md5( $target_lang . '|' . implode( "\x1F", $texts ) );
         $cached    = get_transient( $cache_key );
         if ( is_array( $cached ) ) {
             wp_send_json_success( [ 'translations' => $cached, 'cached' => true ] );
         }
 
-        $result = self::call_microsoft( $texts, $target_lang, $config['microsoft']['api_key'], $config['microsoft']['region'] );
+        $result = ( $provider === 'microsoft' )
+            ? self::call_microsoft( $texts, $target_lang, $config['microsoft']['api_key'], $config['microsoft']['region'] )
+            : self::call_google_cloud( $texts, $target_lang, $config['google_cloud']['api_key'] );
+
         if ( is_wp_error( $result ) ) {
             wp_send_json_error( [ 'message' => $result->get_error_message() ] );
         }
@@ -192,7 +239,7 @@ class Schilo_Translator {
     private static function call_microsoft( array $texts, string $lang, string $api_key, string $region ) {
         $translations = [];
 
-        foreach ( array_chunk( $texts, self::MS_CHUNK_SIZE ) as $chunk ) {
+        foreach ( array_chunk( $texts, self::CHUNK_SIZE ) as $chunk ) {
             $body = array_map( function ( $t ) { return [ 'Text' => $t ]; }, $chunk );
 
             $response = wp_remote_post(
@@ -220,6 +267,50 @@ class Schilo_Translator {
 
             foreach ( $data as $item ) {
                 $translations[] = $item['translations'][0]['text'] ?? '';
+            }
+        }
+
+        return $translations;
+    }
+
+    /* ────────────────────────────────────────────
+       Appel Google Cloud Translation API v2 (server-side)
+    ──────────────────────────────────────────── */
+
+    /**
+     * @param string[] $texts
+     * @return string[]|WP_Error  Traductions dans le meme ordre que $texts.
+     */
+    private static function call_google_cloud( array $texts, string $lang, string $api_key ) {
+        $translations = [];
+
+        foreach ( array_chunk( $texts, self::CHUNK_SIZE ) as $chunk ) {
+            $response = wp_remote_post(
+                'https://translation.googleapis.com/language/translate/v2?key=' . rawurlencode( $api_key ),
+                [
+                    'headers' => [ 'Content-Type' => 'application/json' ],
+                    'body'    => wp_json_encode( [
+                        'q'      => array_values( $chunk ),
+                        'target' => $lang,
+                        'source' => 'fr',
+                        'format' => 'text',
+                    ] ),
+                    'timeout' => 20,
+                ]
+            );
+
+            if ( is_wp_error( $response ) ) return $response;
+
+            $code = wp_remote_retrieve_response_code( $response );
+            $data = json_decode( wp_remote_retrieve_body( $response ), true );
+
+            if ( $code !== 200 || ! isset( $data['data']['translations'] ) ) {
+                $msg = $data['error']['message'] ?? 'Erreur Google Cloud Translation (HTTP ' . $code . ').';
+                return new WP_Error( 'schilo_translator_error', $msg );
+            }
+
+            foreach ( $data['data']['translations'] as $item ) {
+                $translations[] = $item['translatedText'] ?? '';
             }
         }
 
