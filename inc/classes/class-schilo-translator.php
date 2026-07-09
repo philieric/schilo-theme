@@ -47,9 +47,10 @@ class Schilo_Translator {
         if ( ! is_array( $config ) ) $config = [];
 
         return array_merge( [
-            'active_provider' => 'google',
-            'microsoft'       => [ 'api_key' => '', 'region' => '', 'enabled' => false ],
-            'google_cloud'    => [ 'api_key' => '', 'enabled' => false ],
+            'active_provider'  => 'google',
+            'selector_enabled' => true,
+            'microsoft'        => [ 'api_key' => '', 'region' => '', 'enabled' => false ],
+            'google_cloud'     => [ 'api_key' => '', 'enabled' => false ],
         ], $config );
     }
 
@@ -113,15 +114,17 @@ class Schilo_Translator {
                 ? $gc_key_raw
                 : ( $prev['google_cloud']['api_key'] ?? '' );
             $gc_enabled = ! empty( $_POST['st_google_cloud_enabled'] );
+            $selector_enabled = ! empty( $_POST['st_selector_enabled'] );
 
             $config = [
-                'active_provider' => $active_provider,
-                'microsoft'       => [
+                'active_provider'  => $active_provider,
+                'selector_enabled' => $selector_enabled,
+                'microsoft'        => [
                     'api_key' => $ms_api_key,
                     'region'  => $ms_region,
                     'enabled' => $ms_enabled,
                 ],
-                'google_cloud'    => [
+                'google_cloud'     => [
                     'api_key' => $gc_api_key,
                     'enabled' => $gc_enabled,
                 ],

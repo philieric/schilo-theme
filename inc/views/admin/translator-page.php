@@ -5,7 +5,8 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-$active_provider = $config['active_provider'] ?? 'google';
+$active_provider  = $config['active_provider'] ?? 'google';
+$selector_enabled = ! empty( $config['selector_enabled'] );
 $ms_key          = $config['microsoft']['api_key'] ?? '';
 $ms_region       = $config['microsoft']['region']  ?? '';
 $ms_enabled      = ! empty( $config['microsoft']['enabled'] );
@@ -25,6 +26,20 @@ $gc_enabled      = ! empty( $config['google_cloud']['enabled'] );
 
     <form method="post">
         <?php wp_nonce_field( 'schilo_save_translator_config', 'schilo_translator_nonce' ); ?>
+
+        <div class="sia-selector-toggle">
+            <div>
+                <strong>Sélecteur de langue sur le site</strong>
+                <p class="description" style="margin:2px 0 0">
+                    Désactivé, le bouton de langue n'apparaît plus du tout sur le site public
+                    (utile tant qu'aucun fournisseur n'est prêt).
+                </p>
+            </div>
+            <input type="hidden" name="st_selector_enabled" id="st_selector_enabled_input" value="<?php echo $selector_enabled ? '1' : '0'; ?>">
+            <button type="submit" class="button <?php echo $selector_enabled ? 'button-primary' : ''; ?>" id="sia-toggle-selector-btn">
+                <?php echo $selector_enabled ? '● Activé — cliquer pour désactiver' : '○ Désactivé — cliquer pour activer'; ?>
+            </button>
+        </div>
 
         <table class="form-table" style="max-width:900px;margin-bottom:20px">
             <tr>
@@ -177,6 +192,11 @@ $gc_enabled      = ! empty( $config['google_cloud']['enabled'] );
 @keyframes sia-spin { to { transform:rotate(360deg); } }
 .sia-spinning { animation:sia-spin .8s linear infinite; }
 @media (max-width:1000px) { .sia-wrap .sia-grid { grid-template-columns:1fr; } }
+.sia-selector-toggle {
+    display:flex; align-items:center; justify-content:space-between; gap:20px;
+    background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px 20px;
+    margin:16px 0 24px; max-width:900px;
+}
 </style>
 
 <script>
@@ -194,6 +214,13 @@ $gc_enabled      = ! empty( $config['google_cloud']['enabled'] );
 
     $(document).on('input', '.sia-key-input', function(){
         $(this).attr('data-changed', '1');
+    });
+
+    /* Bouton bascule : inverse la valeur cachée puis laisse le formulaire
+       se soumettre normalement (active/desactive en un clic) */
+    $('#sia-toggle-selector-btn').on('click', function(){
+        var input = $('#st_selector_enabled_input');
+        input.val(input.val() === '1' ? '0' : '1');
     });
 
     $(document).on('click', '.sia-test', function(){

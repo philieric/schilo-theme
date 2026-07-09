@@ -349,6 +349,23 @@ Schilo.Lang = (function () {
         _state.wrapper = document.getElementById('schilo-lang-selector');
         if (!_state.wrapper) return;
 
+        /* Bouton bascule admin ("Reglages > Traduction") : masque le
+           selecteur entierement, quel que soit le fournisseur.
+           Note : wp_localize_script serialise les booleens PHP en chaines
+           ("" pour false, "1" pour true), d'ou la coercion !! plutot
+           qu'une comparaison stricte a `false`. */
+        var selectorEnabled = (typeof schiloTranslator === 'undefined') || !!schiloTranslator.selectorEnabled;
+
+        /* Fournisseur "sur place" choisi mais pas configuré/activé : on ne
+           construit pas le bouton du tout (rien à cliquer) plutot que
+           d'afficher un selecteur non fonctionnel. */
+        if (!selectorEnabled || (_isInPlaceProvider(_provider()) && !_inPlaceReady())) {
+            _state.wrapper.style.display = 'none';
+            _state.wrapper.innerHTML = '';
+            return;
+        }
+        _state.wrapper.style.display = '';
+
         if (_isInPlaceProvider(_provider())) {
             var stored = null;
             try { stored = localStorage.getItem(_config.persistKey); } catch (e) {}
