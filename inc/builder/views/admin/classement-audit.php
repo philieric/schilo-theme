@@ -29,6 +29,7 @@ $has_any = !empty($violations['exclu']) || !empty($violations['limite']);
         <a href="<?php echo esc_url(add_query_arg('tab', 'termes', $base_url)); ?>" class="scl-tab">Termes</a>
         <a href="<?php echo esc_url(add_query_arg('tab', 'config', $base_url)); ?>" class="scl-tab">Configuration</a>
         <a href="<?php echo esc_url(add_query_arg('tab', 'audit', $base_url)); ?>" class="scl-tab scl-tab-active">Audit</a>
+        <a href="<?php echo esc_url(add_query_arg('tab', 'doublons', $base_url)); ?>" class="scl-tab">Doublons</a>
     </nav>
 
     <div class="scl-val-bloc" style="display:block;">
