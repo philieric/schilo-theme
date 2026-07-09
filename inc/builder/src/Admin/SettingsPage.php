@@ -90,8 +90,8 @@ class SettingsPage
 
         add_submenu_page(
             'schilo-builder',
-            'Migration (test)',
-            'Migration (test)',
+            'Migration',
+            'Migration',
             'manage_options',
             'schilo-builder-migration-test',
             array($this, 'renderMigrationTestPage')
@@ -198,8 +198,10 @@ class SettingsPage
             );
         }
 
-        // Assets specifiques a la page Classement
-        if (strpos((string) $hook, 'schilo-builder-classement') !== false) {
+        // Assets specifiques a la page Classement (et Migration > Liste, qui
+        // reutilise volontairement le meme vocabulaire de classes scl-*).
+        if (strpos((string) $hook, 'schilo-builder-classement') !== false
+            || strpos((string) $hook, 'schilo-builder-migration') !== false) {
             wp_enqueue_style(
                 'schilo-classement-admin',
                 SCHILO_BUILDER_URL . 'assets/admin/classement-admin.css',
@@ -445,6 +447,165 @@ class SettingsPage
     }
 
     public function renderMigrationTestPage()
+    {
+        $tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'liste';
+
+        if ($tab === 'test') {
+            $this->renderMigrationTestTab();
+        } else {
+            $this->renderMigrationListeTab();
+        }
+    }
+
+    /**
+     * Onglet "Liste" de Migration : tous les articles candidats (prefixe a 3
+     * lettres en tete de titre), filtrables par prefixe/statut, avec migration
+     * individuelle ou en lot — le modele de migration applique est resolu
+     * automatiquement depuis le prefixe de chaque article (voir
+     * MigrationModelService::getModelsForPrefix()), pas de configuration
+     * manuelle requise ici (celle-ci reste dans l'onglet "Test / Mapping").
+     */
+    private function renderMigrationListeTab()
+    {
+        $migrationService = new \Schilo\Builder\Service\WPBakeryMigrationService();
+        $modelService      = new MigrationModelService();
+        $listeResult       = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schilo_migration_liste_nonce'])
+            && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['schilo_migration_liste_nonce'])), 'schilo_migration_liste')
+            && current_user_can('manage_options')
+        ) {
+            $singleId = isset($_POST['single_post_id']) ? absint($_POST['single_post_id']) : 0;
+
+            if ($singleId > 0) {
+                // Clic individuel explicite ("Migrer"/"Remigrer" sur une ligne) :
+                // toujours agir, sans respecter la case "Forcer une nouvelle
+                // migration" qui ne s'applique qu'a la selection en lot.
+                $selectedIds  = array(array($singleId, false));
+            } else {
+                $skipMigrated = !isset($_POST['schilo_liste_redo']);
+                $selectedIds  = array_map(
+                    function ($id) use ($skipMigrated) { return array((int) $id, $skipMigrated); },
+                    array_filter(array_map('absint', (array) ($_POST['post_ids'] ?? array())))
+                );
+            }
+
+            if (!empty($selectedIds)) {
+                $listeResult = array('ok' => array(), 'skip' => array(), 'error' => array());
+
+                foreach ($selectedIds as $entry) {
+                    list($postId, $skipIfMigrated) = $entry;
+
+                    if ($skipIfMigrated && $migrationService->getMigrationStatus($postId) === 'migrated') {
+                        $listeResult['skip'][] = $postId;
+                        continue;
+                    }
+
+                    $result = $this->migratePostWithAutoModel($postId, $modelService);
+
+                    if (is_wp_error($result)) {
+                        $listeResult['error'][] = array('id' => $postId, 'msg' => $result->get_error_message());
+                    } else {
+                        $listeResult['ok'][] = $postId;
+                    }
+                }
+            }
+        }
+
+        $statut = isset($_GET['statut']) && in_array($_GET['statut'], array('migrated', 'not_migrated'), true)
+            ? sanitize_key($_GET['statut'])
+            : '';
+        $prefix = isset($_GET['prefix']) && preg_match('/^[A-Z]{3}$/', (string) $_GET['prefix'])
+            ? sanitize_text_field($_GET['prefix'])
+            : '';
+        $paged    = max(1, absint($_GET['paged'] ?? 1));
+        $per_page = 30;
+
+        $counts        = $migrationService->getCounts();
+        $prefixCounts  = $migrationService->getPrefixCounts();
+        $list          = $migrationService->getMigrationList($per_page, $paged, $prefix, $statut);
+        $rows          = $list['rows'];
+        $total         = $list['total'];
+        $total_pages   = (int) ceil($total / $per_page);
+
+        // Prefixes pour lesquels un modele de migration existe deja (sert a
+        // afficher "Migrer" ou un renvoi vers la configuration du modele).
+        $prefixesWithModel = array();
+        foreach (array_keys($prefixCounts) as $pfxOption) {
+            $prefixesWithModel[$pfxOption] = !empty($modelService->getModelsForPrefix($pfxOption));
+        }
+
+        include SCHILO_BUILDER_PATH . 'views/admin/migration-liste-page.php';
+    }
+
+    /**
+     * Migre un article en resolvant automatiquement le modele de migration a
+     * partir de son prefixe (PrefixDetector) — meme pipeline (extracteurs +
+     * MigrationModelService + MigrationApplier) que la migration en lot par
+     * prefixe existante, mais pour un post_id explicite plutot qu'un motif
+     * de titre. Renvoie true ou un WP_Error.
+     */
+    private function migratePostWithAutoModel($postId, MigrationModelService $modelService)
+    {
+        $postId = (int) $postId;
+        $post   = get_post($postId);
+
+        if (!$post || $post->post_type !== 'post') {
+            return new \WP_Error('not_found', 'Article introuvable.');
+        }
+
+        $prefixDetector = new \Schilo\Builder\Service\PrefixDetector();
+        $prefix = $prefixDetector->detectFromPostId($postId);
+
+        $models = $modelService->getModelsForPrefix($prefix);
+        if (empty($models)) {
+            return new \WP_Error('no_model', "Aucun modele de migration configure pour le prefixe {$prefix} (Migration > Test / Mapping).");
+        }
+        $model = reset($models);
+
+        $fetcher  = new MigrationContentFetcher();
+        $registry = new ExtractorRegistry();
+        $applier  = new MigrationApplier();
+
+        try {
+            $rendered = $fetcher->getRenderedContent($postId);
+        } catch (\Throwable $e) {
+            $rendered = '';
+        }
+
+        $source   = new MigrationSourceContent($postId, $rendered, $post->post_content);
+        $elements = $registry->extractAll($source);
+
+        $assignments      = $modelService->expandModelForElements($model, $elements);
+        $contentOverrides = $modelService->expandContentOverridesForElements($model, $elements);
+
+        foreach ($elements as &$element) {
+            if (isset($contentOverrides[$element['id']])) {
+                $element['content'] = $contentOverrides[$element['id']];
+            }
+        }
+        unset($element);
+
+        if (!get_post_meta($postId, \Schilo\Builder\Service\WPBakeryMigrationService::BACKUP_META_KEY, true)) {
+            update_post_meta($postId, \Schilo\Builder\Service\WPBakeryMigrationService::BACKUP_META_KEY, $post->post_content);
+        }
+
+        $applier->apply($postId, $prefix, $elements, $assignments, true);
+
+        update_post_meta($postId, \Schilo\Builder\Service\WPBakeryMigrationService::STATUS_META_KEY, 'migrated');
+        update_post_meta($postId, \Schilo\Builder\Service\WPBakeryMigrationService::DATE_META_KEY, current_time('mysql'));
+
+        return true;
+    }
+
+    /**
+     * Onglet "Test / Mapping" de Migration : formulaire historique (choix
+     * manuel d'un article + prefixe, extraction, correspondance element ->
+     * section, enregistrement en modele, migration en lot par motif de
+     * titre). Logique inchangee, seulement deplacee dans sa propre methode
+     * pour cohabiter avec l'onglet "Liste" ci-dessus.
+     */
+    private function renderMigrationTestTab()
     {
         $testPostId = isset($_GET['schilo_test_post']) ? (int) $_GET['schilo_test_post'] : 0;
         $selectedPrefix = isset($_GET['schilo_test_prefix']) ? strtoupper(sanitize_key(wp_unslash($_GET['schilo_test_prefix']))) : '';
