@@ -15,6 +15,13 @@ class Plugin
 {
     public function run()
     {
+        if (
+            !class_exists('\Sitemap_Par_Categorie', false)
+            && file_exists(SCHILO_BUILDER_PATH . 'sitemap/sitemap-par-categorie.php')
+        ) {
+            require_once SCHILO_BUILDER_PATH . 'sitemap/sitemap-par-categorie.php';
+        }
+
         // Taxonomies de classement (parcours/theme/serie) : doivent exister sur
         // TOUTE requete (front compris, pour les archives et tax_query), donc
         // hookees en dehors du bloc is_admin() ci-dessous.
