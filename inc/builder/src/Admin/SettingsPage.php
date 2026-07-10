@@ -1020,7 +1020,7 @@ class SettingsPage
         }
 
         $tool    = isset($_POST['tool']) ? sanitize_key($_POST['tool']) : '';
-        $allowed = array('inherit_cat', 'delete_cats', 'delete_media', 'raccourcis', 'ia_config', 'doublons_prefixe', 'liens_ids', 'reorder_sections');
+        $allowed = array('inherit_cat', 'delete_cats', 'delete_media', 'raccourcis', 'ia_config', 'doublons_prefixe', 'liens_ids', 'reorder_sections', 'legacy_code');
         if (!in_array($tool, $allowed, true)) {
             wp_die('Outil inconnu.', '', 400);
         }
@@ -1057,6 +1057,7 @@ class SettingsPage
         $result_doublons_prefixe = null;
         $result_liens_ids        = null;
         $result_reorder_sections = null;
+        $result_legacy_code      = null;
         $selected_parent_id      = 0;
         $active_tool             = '';
 
@@ -1133,6 +1134,15 @@ class SettingsPage
                 $active_tool             = 'reorder_sections';
                 $dry                     = (int) ($_POST['schilo_reorder_sections_dry'] ?? 1) === 1;
                 $result_reorder_sections = $this->runReorderSections($dry);
+            }
+
+            if (
+                $action === 'scan_legacy_code'
+                && isset($_POST['schilo_legacy_code_nonce'])
+                && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['schilo_legacy_code_nonce'])), 'schilo_scan_legacy_code')
+            ) {
+                $active_tool        = 'legacy_code';
+                $result_legacy_code = $this->runScanLegacyCode();
             }
         }
 
@@ -1673,6 +1683,93 @@ class SettingsPage
 
         return array(
             'message' => "{$mode} : {$count} article(s)" . ($dry ? ' seraient réordonnés.' : ' réordonnés.'),
+            'items'   => $items,
+        );
+    }
+
+    /**
+     * Scanne les sections (_schilo_builder_sections) de tous les articles pour
+     * détecter des résidus de code des anciens systèmes (WPBakery, Divi,
+     * Wikilogy) qui auraient survécu à la migration — shortcodes non nettoyés
+     * ([vc_...], [et_pb_...], [wikilogy_...]) ou, plus fréquent en pratique,
+     * du HTML déjà rendu (ex: <div class="wpb_text_column">) que le nettoyage
+     * de shortcodes (WPBakeryMigrationService::cleanBakeryContent()) ne
+     * détecte pas puisqu'il ne cible que la syntaxe [vc_...]. Lecture seule,
+     * ne modifie rien : sert uniquement de vérification avant désinstallation
+     * de ces plugins/thème (voir project-plugins dans la mémoire du projet).
+     */
+    private function runScanLegacyCode()
+    {
+        global $wpdb;
+
+        $patterns = array(
+            'WPBakery' => '/\[\/?vc_[a-z0-9_\-]*\]|\bwpb_[a-z0-9_\-]+/i',
+            'Divi'     => '/\[\/?et_pb_[a-z0-9_\-]*\]|\bet_pb_[a-z0-9_\-]+/i',
+            'Wikilogy' => '/\[\/?wikilogy_[a-z0-9_\-]*\]|\bwikilogy[a-z0-9_\-]*/i',
+        );
+
+        $rows = $wpdb->get_results("
+            SELECT p.ID, p.post_title, pm.meta_value
+            FROM {$wpdb->posts} p
+            INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key = '_schilo_builder_sections'
+            WHERE p.post_status = 'publish'
+            ORDER BY p.ID ASC
+        ");
+
+        $items = array();
+
+        foreach ($rows as $row) {
+            $sections = maybe_unserialize($row->meta_value);
+            if (!is_array($sections)) continue;
+
+            foreach ($sections as $i => $sec) {
+                if (!is_array($sec)) continue;
+
+                $fields = array('content' => isset($sec['content']) ? (string) $sec['content'] : '');
+                if (isset($sec['data']) && is_array($sec['data'])) {
+                    foreach ($sec['data'] as $fieldKey => $fieldVal) {
+                        if (is_string($fieldVal)) {
+                            $fields['data.' . $fieldKey] = $fieldVal;
+                        }
+                    }
+                }
+
+                foreach ($fields as $fieldName => $text) {
+                    if ($text === '') continue;
+
+                    foreach ($patterns as $label => $regex) {
+                        if (preg_match($regex, $text, $m, PREG_OFFSET_CAPTURE)) {
+                            $pos     = $m[0][1];
+                            $extract = trim(substr($text, max(0, $pos - 60), 160));
+
+                            $items[] = array(
+                                'post_id' => (int) $row->ID,
+                                'title'   => html_entity_decode((string) $row->post_title, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                                'source'  => $label,
+                                'section' => ($sec['type'] ?? '?') . ' (' . $fieldName . ')',
+                                'extract' => $extract,
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        $bySource = array();
+        foreach ($items as $it) {
+            $bySource[$it['source']] = ($bySource[$it['source']] ?? 0) + 1;
+        }
+        $summary = array();
+        foreach ($bySource as $label => $count) {
+            $summary[] = "{$count} extrait(s) {$label}";
+        }
+
+        $count = count($items);
+
+        return array(
+            'message' => $count > 0
+                ? "{$count} résidu(s) détecté(s) : " . implode(', ', $summary) . '.'
+                : 'Aucun résidu WPBakery, Divi ou Wikilogy détecté.',
             'items'   => $items,
         );
     }

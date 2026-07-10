@@ -58,6 +58,11 @@ $tools = array(
         'label' => 'Réordonner les sections',
         'desc'  => 'Remettre les sections migrées dans l\'ordre du template',
     ),
+    'legacy_code' => array(
+        'icon'  => 'dashicons-shield',
+        'label' => 'Résidus WPBakery/Divi/Wikilogy',
+        'desc'  => 'Vérifier qu\'aucun code des anciens systèmes ne subsiste',
+    ),
 );
 ?>
 
