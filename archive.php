@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 // ── Infos de la taxonomie courante ──────────────────────────────
 $term        = get_queried_object();
 $term_name   = $term instanceof WP_Term ? schilo_strip_category_number( $term->name ) : get_bloginfo( 'name' );
-$term_desc   = $term instanceof WP_Term ? term_description() : '';
+$term_desc   = $term instanceof WP_Term ? schilo_clean_term_description( (string) $term->description ) : '';
 $term_count  = $term instanceof WP_Term ? (int) $term->count : 0;
 $parent_term = ( $term instanceof WP_Term && $term->parent )
     ? get_term( $term->parent, $term->taxonomy )
@@ -102,7 +102,7 @@ get_header();
             <div class="schilo-archive-hero__content">
                 <h1 class="schilo-archive-hero__title"><?php echo esc_html( $term_name ); ?></h1>
                 <?php if ( $term_desc ) : ?>
-                    <div class="schilo-archive-hero__desc"><?php echo wp_kses_post( $term_desc ); ?></div>
+                    <div class="schilo-archive-hero__desc"><?php echo wp_kses_post( wpautop( esc_html( $term_desc ) ) ); ?></div>
                 <?php endif; ?>
             </div>
         </div>
@@ -226,6 +226,7 @@ get_header();
                         $per_code    = $m[1];
                         $clean_title = preg_replace( '/^[A-Z]+\d+\s*[\x{2013}\x{2014}\-]+\s*/u', '', $raw_title );
                     }
+                    $clean_excerpt = schilo_clean_legacy_builder_text( get_the_excerpt() );
                     ?>
                     <article <?php post_class( 'schilo-archive-card' ); ?> id="post-<?php the_ID(); ?>">
 
@@ -259,7 +260,9 @@ get_header();
                                 <a href="<?php the_permalink(); ?>"><?php echo esc_html( $clean_title ); ?></a>
                             </h2>
 
-                            <p class="schilo-archive-card__excerpt"><?php echo wp_trim_words( get_the_excerpt(), 22, '…' ); ?></p>
+                            <?php if ( $clean_excerpt ) : ?>
+                                <p class="schilo-archive-card__excerpt"><?php echo esc_html( wp_trim_words( $clean_excerpt, 22, '…' ) ); ?></p>
+                            <?php endif; ?>
 
                             <footer class="schilo-archive-card__footer">
                                 <div class="schilo-archive-card__meta">
