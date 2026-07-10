@@ -1020,7 +1020,7 @@ class SettingsPage
         }
 
         $tool    = isset($_POST['tool']) ? sanitize_key($_POST['tool']) : '';
-        $allowed = array('inherit_cat', 'delete_cats', 'delete_media', 'raccourcis', 'ia_config', 'doublons_prefixe', 'liens_ids');
+        $allowed = array('inherit_cat', 'delete_cats', 'delete_media', 'raccourcis', 'ia_config', 'doublons_prefixe', 'liens_ids', 'reorder_sections');
         if (!in_array($tool, $allowed, true)) {
             wp_die('Outil inconnu.', '', 400);
         }
@@ -1056,6 +1056,7 @@ class SettingsPage
         $result_raccourcis       = null;
         $result_doublons_prefixe = null;
         $result_liens_ids        = null;
+        $result_reorder_sections = null;
         $selected_parent_id      = 0;
         $active_tool             = '';
 
@@ -1122,6 +1123,16 @@ class SettingsPage
                 $active_tool      = 'liens_ids';
                 $dry              = (int) ($_POST['schilo_liens_ids_dry'] ?? 1) === 1;
                 $result_liens_ids = $this->runMigrateLiensArticlesIds($dry);
+            }
+
+            if (
+                $action === 'reorder_sections'
+                && isset($_POST['schilo_reorder_sections_nonce'])
+                && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['schilo_reorder_sections_nonce'])), 'schilo_reorder_sections')
+            ) {
+                $active_tool             = 'reorder_sections';
+                $dry                     = (int) ($_POST['schilo_reorder_sections_dry'] ?? 1) === 1;
+                $result_reorder_sections = $this->runReorderSections($dry);
             }
         }
 
@@ -1573,6 +1584,96 @@ class SettingsPage
         return array(
             'message'    => "{$mode} : {$count} doublon(s) de préfixe" . ($dry ? ' seraient renumérotés en cascade.' : ' renumérotés en cascade.') . $linksMsg,
             'duplicates' => $duplicates,
+        );
+    }
+
+    /**
+     * Réordonne les sections (_schilo_builder_sections) des articles migrés pour
+     * qu'elles suivent l'ordre attendu du template de leur préfixe (TemplateService).
+     * Corrige un biais systématique de la migration : le pipeline d'extracteurs
+     * (ExtractorRegistry) ajoute chaque section trouvée dans un ordre fixe qui ne
+     * correspond pas a l'ordre d'affichage voulu (ex: "Détails" apres "Commentaires"
+     * au lieu d'avant). Le contenu de chaque section n'est jamais modifié, seule sa
+     * position dans le tableau change.
+     */
+    private function runReorderSections($dry)
+    {
+        global $wpdb;
+
+        $rows = $wpdb->get_results("
+            SELECT p.ID, p.post_title
+            FROM {$wpdb->posts} p
+            INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key = '_schilo_builder_sections'
+            WHERE p.post_type = 'post'
+              AND p.post_status = 'publish'
+            ORDER BY p.ID ASC
+        ");
+
+        $templateService = new TemplateService();
+        $items = array();
+
+        foreach ($rows as $row) {
+            $title = html_entity_decode((string) $row->post_title, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+            if (!preg_match('/^([A-Za-z]{3})(\d+)/u', trim($title), $m)) {
+                continue;
+            }
+            $prefix = strtoupper($m[1]);
+
+            $template = $templateService->getTemplateForPrefix($prefix);
+            $canonical = !empty($template['sections']) && is_array($template['sections'])
+                ? array_values($template['sections'])
+                : array();
+            if (empty($canonical)) continue;
+            $canonicalPos = array_flip($canonical);
+
+            $postId = (int) $row->ID;
+            $sections = get_post_meta($postId, '_schilo_builder_sections', true);
+            if (!is_array($sections) || count($sections) < 2) continue;
+
+            $before = array();
+            foreach ($sections as $sec) {
+                $before[] = is_array($sec) && isset($sec['type']) ? $sec['type'] : '';
+            }
+
+            // Tri stable : position canonique en priorité, sinon position d'origine
+            // (poussee apres tous les types reconnus) pour ne jamais perdre un type
+            // inattendu et garder son ordre relatif d'origine.
+            $indexed = array();
+            foreach ($sections as $i => $sec) {
+                $type = is_array($sec) && isset($sec['type']) ? $sec['type'] : '';
+                $rank = isset($canonicalPos[$type]) ? $canonicalPos[$type] : (count($canonical) + $i);
+                $indexed[] = array('rank' => $rank, 'orig' => $i, 'sec' => $sec, 'type' => $type);
+            }
+            usort($indexed, function ($a, $b) {
+                if ($a['rank'] !== $b['rank']) return $a['rank'] <=> $b['rank'];
+                return $a['orig'] <=> $b['orig'];
+            });
+
+            $after = array_map(function ($x) { return $x['type']; }, $indexed);
+
+            if ($after === $before) continue;
+
+            $items[] = array(
+                'post_id' => $postId,
+                'title'   => $title,
+                'prefix'  => $prefix,
+                'before'  => $before,
+                'after'   => $after,
+            );
+
+            if (!$dry) {
+                $reordered = array_map(function ($x) { return $x['sec']; }, $indexed);
+                update_post_meta($postId, '_schilo_builder_sections', $reordered);
+            }
+        }
+
+        $count = count($items);
+        $mode  = $dry ? 'Simulation' : 'Corrigés';
+
+        return array(
+            'message' => "{$mode} : {$count} article(s)" . ($dry ? ' seraient réordonnés.' : ' réordonnés.'),
+            'items'   => $items,
         );
     }
 
