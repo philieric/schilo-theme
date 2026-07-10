@@ -352,252 +352,45 @@ class Sitemap_Par_Categorie {
             /* ════════════════════════════════════════════════════════
                VARIABLES DE THÈME — Schilo
                Modifiez ici pour adapter aux couleurs de n\'importe quel site.
-               Le mode sombre est géré automatiquement via .spc-dark.
+               Le module suit toujours le thème clair Schilo (pas de mode
+               sombre : le reste du site n\'en a pas non plus).
             ════════════════════════════════════════════════════════ */
             :root {
-                --spc-accent:        #56548C;
-                --spc-accent-dark:   #3a3870;
-                --spc-accent-light:  #6e6ba0;
-                --spc-accent-pale:   #f4f3ff;
-                --spc-accent-border: #c5c3e8;
+                --spc-accent:        var(--schilo-accent, #2872d4);
+                --spc-accent-dark:   var(--schilo-accent-dark, #0e3f88);
+                --spc-accent-light:  var(--schilo-accent, #2872d4);
+                --spc-accent-pale:   var(--schilo-accent-pale, #e2eefb);
+                --spc-accent-border: var(--schilo-border-mid, #c8d0dc);
 
-                --spc-bg:            #ffffff;
-                --spc-bg-2:          #fafbfc;
-                --spc-bg-3:          #eef0f5;
-                --spc-border:        #dde0e8;
-                --spc-border-light:  #eef0f5;
+                --spc-bg:            var(--schilo-bg-card, #ffffff);
+                --spc-bg-2:          var(--schilo-bg-muted, #f4f6f9);
+                --spc-bg-3:          var(--schilo-bg-page, #eef0f4);
+                --spc-border:        var(--schilo-border, #dde2ea);
+                --spc-border-light:  var(--schilo-border, #dde2ea);
 
-                --spc-text:          #222;
-                --spc-text-2:        #444;
-                --spc-text-muted:    #888;
-                --spc-text-faint:    #bbb;
+                --spc-text:          var(--schilo-text-primary, #1a2230);
+                --spc-text-2:        var(--schilo-text-secondary, #556070);
+                --spc-text-muted:    var(--schilo-text-muted, #8a96a8);
+                --spc-text-faint:    var(--schilo-text-hint, #b0bac8);
 
-                --spc-node-1:        linear-gradient(135deg, #56548C, #3a3870);
-                --spc-node-2:        linear-gradient(135deg, #6e6ba0, #56548C);
-                --spc-node-3:        linear-gradient(135deg, #8e8cb8, #6e6ba0);
-                --spc-node-misc-bg:  #f0eff8;
-                --spc-node-misc-fg:  #56548C;
+                --spc-node-1:        var(--schilo-bg-dark, #1e2a3a);
+                --spc-node-2:        var(--schilo-bg-mid, #273548);
+                --spc-node-3:        var(--schilo-accent-dark, #0e3f88);
+                --spc-node-misc-bg:  var(--schilo-bg-muted, #f4f6f9);
+                --spc-node-misc-fg:  var(--schilo-text-secondary, #556070);
 
-                --spc-shadow:        rgba(86,84,140,0.08);
-                --spc-shadow-hover:  rgba(86,84,140,0.18);
+                --spc-shadow:        rgba(30,42,58,0.08);
+                --spc-shadow-hover:  rgba(30,42,58,0.16);
                 --spc-highlight:     #fff3a3;
                 --spc-new-badge:     #e74c3c;
 
-                --spc-radius:        8px;
-                --spc-radius-sm:     5px;
-                --spc-transition:    .15s;
+                --spc-radius:        var(--schilo-radius-md, 10px);
+                --spc-radius-sm:     var(--schilo-radius-sm, 6px);
+                --spc-transition:    var(--schilo-transition, 150ms ease);
             }
-
-            /* ── MODE SOMBRE ── */
-            /* ═══════════════════════════════════════════════
-               MODE SOMBRE — variables + overrides complets
-            ═══════════════════════════════════════════════ */
-            .spc-dark {
-                /* Fonds */
-                --spc-bg:            #1e1e2e;
-                --spc-bg-2:          #181825;
-                --spc-bg-3:          #2a2a3e;
-                --spc-border:        #3a3a5c;
-                --spc-border-light:  #2d2d48;
-
-                /* Textes — tous clairs et lisibles */
-                --spc-text:          #cdd6f4;
-                --spc-text-2:        #bac2de;
-                --spc-text-muted:    #7f849c;
-                --spc-text-faint:    #585b70;
-
-                /* Accent — conservé mais adapté */
-                --spc-accent:        #89b4fa;
-                --spc-accent-dark:   #74c7ec;
-                --spc-accent-light:  #b4befe;
-                --spc-accent-pale:   #24243e;
-                --spc-accent-border: #45475a;
-
-                /* Nœuds accordéon */
-                --spc-node-1:        linear-gradient(135deg, #45475a, #313244);
-                --spc-node-2:        linear-gradient(135deg, #585b70, #45475a);
-                --spc-node-3:        linear-gradient(135deg, #6c7086, #585b70);
-                --spc-node-misc-bg:  #24243e;
-                --spc-node-misc-fg:  #89b4fa;
-
-                /* Ombres */
-                --spc-shadow:        rgba(0,0,0,0.4);
-                --spc-shadow-hover:  rgba(0,0,0,0.6);
-                --spc-highlight:     #3d3500;
-                --spc-new-badge:     #f38ba8;
-            }
-
-            /* Sidebar en mode sombre */
-            .spc-dark .sitemap-summary {
-                background: var(--spc-bg-2);
-            }
-            .spc-dark .sitemap-summary li a {
-                color: var(--spc-text-2);
-            }
-            .spc-dark .sitemap-summary li a:hover {
-                background: var(--spc-accent-pale);
-                color: var(--spc-accent);
-            }
-            .spc-dark .sitemap-summary li a.active {
-                background: var(--spc-accent);
-                color: #1e1e2e;
-            }
-            .spc-dark .sitemap-summary li a .nav-count {
-                background: var(--spc-bg-3);
-                color: var(--spc-text-muted);
-            }
-            .spc-dark .sitemap-summary li a.active .nav-count {
-                background: rgba(30,30,46,0.35);
-                color: #1e1e2e;
-            }
-
-            /* Barre de recherche en mode sombre */
-            .spc-dark .spc-search-wrap {
-                background: var(--spc-bg-2);
-                border-color: var(--spc-border);
-            }
-            .spc-dark .spc-search-input {
-                color: var(--spc-text);
-            }
-            .spc-dark .spc-search-input::placeholder {
-                color: var(--spc-text-faint);
-            }
-
-            /* Topbar titre en mode sombre */
-            .spc-dark .spc-topbar {
-                border-bottom-color: var(--spc-accent);
-            }
-            .spc-dark .spc-topbar-title {
-                color: var(--spc-accent-light);
-            }
-            .spc-dark .spc-breadcrumb span {
-                color: var(--spc-accent);
-            }
-
-            /* Boutons expand/share/view en mode sombre */
-            .spc-dark .spc-expand-btn,
-            .spc-dark .spc-share-btn {
-                background: var(--spc-accent-pale);
-                border-color: var(--spc-accent-border);
-                color: var(--spc-accent);
-            }
-            .spc-dark .spc-expand-btn:hover,
-            .spc-dark .spc-share-btn:hover {
-                background: var(--spc-accent);
-                color: #1e1e2e;
-            }
-            .spc-dark .spc-view-toggle {
-                border-color: var(--spc-border);
-            }
-            .spc-dark .spc-view-btn {
-                background: var(--spc-accent-pale);
-                color: var(--spc-text-muted);
-            }
-            .spc-dark .spc-view-btn:hover {
-                background: var(--spc-bg-3);
-                color: var(--spc-accent);
-            }
-            .spc-dark .spc-view-btn.active {
-                background: var(--spc-accent);
-                color: #1e1e2e;
-            }
-            .spc-dark .spc-theme-btn {
-                background: var(--spc-accent-pale);
-                border-color: var(--spc-accent-border);
-                color: var(--spc-accent);
-            }
-            .spc-dark .spc-theme-btn:hover {
-                background: var(--spc-accent);
-                color: #1e1e2e;
-            }
-
-            /* Articles en mode sombre */
-            .spc-dark .spc-article {
-                border-bottom-color: var(--spc-border-light);
-            }
-            .spc-dark .spc-article:hover {
-                background: var(--spc-accent-pale);
-            }
-            .spc-dark .spc-article-title {
-                color: var(--spc-text);
-            }
-            .spc-dark .spc-article-title:hover {
-                color: var(--spc-accent);
-            }
-            .spc-dark .spc-article-date {
-                color: var(--spc-text-muted);
-            }
-            .spc-dark .spc-thumb-ph-list,
-            .spc-dark .spc-thumb-ph-grid {
-                background: var(--spc-bg-3);
-            }
-
-            /* Accordéon en mode sombre */
-            .spc-dark .spc-node-body {
-                border-left-color: var(--spc-border);
-            }
-            .spc-dark .spc-node-misc > .spc-node-header,
-            .spc-dark .spc-node-misc.spc-depth-1 > .spc-node-header,
-            .spc-dark .spc-node-misc.spc-depth-2 > .spc-node-header,
-            .spc-dark .spc-node-misc.spc-depth-3 > .spc-node-header {
-                background: var(--spc-node-misc-bg);
-                color: var(--spc-node-misc-fg);
-                border-color: var(--spc-accent-border);
-            }
-
-            /* Grille en mode sombre */
-            .spc-dark .spc-view-grid .spc-article {
-                background: var(--spc-bg-2);
-                border-color: var(--spc-border);
-            }
-            .spc-dark .spc-view-grid .spc-article:hover {
-                background: var(--spc-bg-2);
-            }
-
-            /* Tooltip en mode sombre */
-            .spc-dark .spc-tooltip-box {
-                background: var(--spc-bg-2);
-                border-color: var(--spc-border);
-                color: var(--spc-text-2);
-            }
-            .spc-dark .spc-tooltip-box::before {
-                background: var(--spc-bg-2);
-                border-color: var(--spc-border);
-            }
-
-            /* Badge Nouveau en mode sombre */
-            .spc-dark .spc-badge-new {
-                background: var(--spc-new-badge);
-                color: #1e1e2e;
-            }
-
-            /* ── BOUTON THÈME (toggle clair/sombre) ── */
-            .spc-theme-toggle {
-                display: flex;
-                align-items: center;
-                gap: .4rem;
-                margin-bottom: .85rem;
-                justify-content: flex-end;
-            }
-            .spc-theme-btn {
-                display: flex;
-                align-items: center;
-                gap: .35rem;
-                padding: .3rem .7rem;
-                background: var(--spc-accent-pale);
-                border: 1px solid var(--spc-accent-border);
-                border-radius: 20px;
-                cursor: pointer;
-                font-size: .78rem;
-                color: var(--spc-accent);
-                font-weight: 500;
-                transition: background var(--spc-transition), color var(--spc-transition);
-                line-height: 1;
-            }
-            .spc-theme-btn:hover { background: var(--spc-accent); color: #fff; }
-            .spc-theme-label { pointer-events: none; }
 
             /* ── LAYOUT ── */
+            .spc-sitemap-root { color:var(--spc-text); font-family:var(--schilo-font-sans, inherit); }
             .sitemap-wrapper { display:flex; align-items:flex-start; gap:0; font-family:inherit; }
 
             /* ── BARRE DE RECHERCHE ── */
@@ -612,9 +405,29 @@ class Sitemap_Par_Categorie {
             }
             .spc-search-wrap:focus-within {
                 border-color: var(--spc-accent);
-                box-shadow: 0 0 0 3px rgba(86,84,140,.12);
+                box-shadow: 0 0 0 3px var(--schilo-accent-pale, rgba(40,114,212,.12));
             }
-            .spc-search-icon { color: var(--spc-text-faint); font-size: 1rem; flex-shrink: 0; }
+            .spc-search-icon {
+                width:10px;
+                height:10px;
+                border:1.5px solid var(--spc-text-faint);
+                border-radius:50%;
+                color:transparent;
+                font-size:0;
+                flex-shrink: 0;
+                position:relative;
+            }
+            .spc-search-icon::after {
+                content:"";
+                position:absolute;
+                width:5px;
+                height:1.5px;
+                background:var(--spc-text-faint);
+                right:-4px;
+                bottom:-2px;
+                transform:rotate(45deg);
+                border-radius:999px;
+            }
             .spc-search-input {
                 flex: 1; border: none; outline: none; font-size: .88rem;
                 background: transparent; color: var(--spc-text);
@@ -632,8 +445,8 @@ class Sitemap_Par_Categorie {
                 max-height: calc(100vh - 100px); overflow-y: auto;
                 background: var(--spc-bg);
                 border: 1px solid var(--spc-border);
-                border-radius: 10px;
-                box-shadow: 0 2px 12px var(--spc-shadow);
+                border-radius: var(--schilo-radius-lg, 14px);
+                box-shadow: var(--schilo-shadow-sm, 0 2px 12px var(--spc-shadow));
                 margin-right: 1.5rem;
                 scrollbar-width: thin;
                 scrollbar-color: var(--spc-accent) var(--spc-bg-3);
@@ -647,7 +460,7 @@ class Sitemap_Par_Categorie {
                 display:flex; align-items:center; gap:.5rem;
                 padding:.6rem 1rem;
                 color: var(--spc-text-2);
-                text-decoration:none; font-size:1rem;
+                text-decoration:none; font-size:.92rem;
                 transition: background var(--spc-transition), color var(--spc-transition), padding-left var(--spc-transition);
                 cursor:pointer; border-left: 3px solid transparent;
             }
@@ -659,9 +472,17 @@ class Sitemap_Par_Categorie {
                 background: var(--spc-accent); color:#fff;
                 font-weight:600; border-left-color:var(--spc-accent-dark);
             }
-            .sitemap-summary li:first-child a::before { content:"🗂️"; }
-            .sitemap-summary li:not(:first-child) a::before { content:"📁"; font-size:.9em; }
-            .sitemap-summary li a.active::before { filter:brightness(10); }
+            .sitemap-summary li:first-child a::before,
+            .sitemap-summary li:not(:first-child) a::before {
+                content:"";
+                width:7px;
+                height:7px;
+                border-radius:50%;
+                background:var(--spc-accent);
+                opacity:.55;
+                flex-shrink:0;
+            }
+            .sitemap-summary li a.active::before { background:#fff; opacity:.9; }
             .sitemap-summary li a .nav-count {
                 margin-left:auto; background:var(--spc-bg-3); color:var(--spc-text-muted);
                 font-size:.75rem; padding:1px 6px; border-radius:10px; min-width:22px; text-align:center;
@@ -678,14 +499,16 @@ class Sitemap_Par_Categorie {
             .spc-topbar {
                 display:flex; align-items:center; justify-content:space-between;
                 gap:.75rem; margin-bottom:1.1rem; padding-bottom:.8rem;
-                border-bottom: 2px solid var(--spc-accent); flex-wrap:wrap;
+                border-bottom: 1px solid var(--spc-border); flex-wrap:wrap;
             }
             .spc-topbar-title {
-                font-size:1.1em; font-weight:700; color:var(--spc-accent-dark);
+                font-size:clamp(20px, 3vw, 26px);
+                font-weight:500;
+                color:var(--schilo-text-primary, var(--spc-text));
                 display:flex; align-items:center; gap:.4rem; margin:0;
+                font-family:var(--schilo-font-sans, inherit);
+                letter-spacing:-.01em;
             }
-            .spc-dark .spc-topbar-title { color: var(--spc-accent-light); }
-
             /* Fil d\'Ariane */
             .spc-breadcrumb {
                 font-size:.78rem; color:var(--spc-text-muted);
@@ -738,11 +561,19 @@ class Sitemap_Par_Categorie {
                 display:flex; align-items:center; gap:.5rem;
                 padding:.55rem .9rem;
                 background: var(--spc-node-1);
-                color:#fff; border-radius:7px; cursor:pointer;
+                color:#fff; border-radius:var(--spc-radius-sm); cursor:pointer;
                 user-select:none; font-weight:600; font-size:.92em;
                 transition:opacity var(--spc-transition);
             }
             .spc-node-header:hover { opacity:.9; }
+            .spc-node-dot {
+                width:8px;
+                height:8px;
+                border-radius:50%;
+                background:currentColor;
+                opacity:.55;
+                flex-shrink:0;
+            }
             .spc-depth-2>.spc-node-header { background:var(--spc-node-2); font-size:.88em; padding:.45rem .85rem; }
             .spc-depth-3>.spc-node-header, .spc-depth-4>.spc-node-header { background:var(--spc-node-3); font-size:.85em; padding:.4rem .8rem; }
             .spc-node-misc>.spc-node-header,
@@ -799,8 +630,17 @@ class Sitemap_Par_Categorie {
                 display:flex; align-items:center; justify-content:center;
                 font-size:1.05em; color:var(--spc-text-faint);
             }
+            .spc-thumb-ph-list::before,
+            .spc-thumb-ph-grid::before {
+                content:"";
+                width:34%;
+                height:44%;
+                border:1px solid currentColor;
+                border-radius:3px;
+                opacity:.55;
+            }
             .spc-article-info { flex:1; min-width:0; display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
-            .spc-article-title { text-decoration:none; color:var(--spc-text); line-height:1.35; }
+            .spc-article-title { text-decoration:none; color:var(--spc-text); line-height:1.35; font-weight:500; }
             .spc-article-title:hover { color:var(--spc-accent); text-decoration:underline; }
 
             /* Tooltip */
@@ -867,12 +707,33 @@ class Sitemap_Par_Categorie {
             .spc-no-results { display:none; text-align:center; padding:2rem 1rem; color:var(--spc-text-muted); font-style:italic; font-size:.9rem; }
             .spc-no-results.visible { display:block; }
 
+            /* ── BOUTON BASCULE CATÉGORIES (mobile uniquement) ── */
+            .spc-summary-toggle {
+                display: none;
+                width: 100%;
+                align-items: center;
+                justify-content: space-between;
+                gap: .5rem;
+                padding: .65rem .9rem;
+                background: var(--spc-node-1);
+                color: #fff;
+                border: none;
+                font-size: .9rem;
+                font-weight: 600;
+                font-family: inherit;
+                cursor: pointer;
+            }
+            .spc-summary-toggle__icon { transition: transform var(--spc-transition); }
+            .spc-summary-toggle[aria-expanded="true"] .spc-summary-toggle__icon { transform: rotate(180deg); }
+
             /* ── RESPONSIVE ── */
             @media(max-width:900px){.spc-view-grid .spc-articles{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}}
             @media(max-width:768px){
                 .sitemap-wrapper{flex-direction:column}
                 .sitemap-summary{width:100%;min-width:unset;position:static;max-height:none;margin-right:0;margin-bottom:1rem;border-radius:var(--spc-radius);overflow:hidden}
-                .sitemap-summary>ul{display:flex;flex-wrap:wrap;gap:4px;padding:.5rem}
+                .spc-summary-toggle{display:flex}
+                .sitemap-summary>ul{display:none;flex-wrap:wrap;gap:4px;padding:.5rem;max-height:55vh;overflow-y:auto}
+                .sitemap-summary.spc-summary-open>ul{display:flex}
                 .sitemap-summary>ul>li{border-bottom:none}
                 .sitemap-summary li a{border:1px solid var(--spc-border);border-radius:6px;font-size:.8rem;padding:.38rem .65rem;border-left:3px solid transparent}
                 .sitemap-summary li a .nav-count{display:none}
@@ -885,11 +746,6 @@ class Sitemap_Par_Categorie {
 
         wp_register_script('sitemap-par-categorie-script', false);
         wp_enqueue_script('sitemap-par-categorie-script');
-        /* Passer les options de thème au JS via wp_localize_script */
-        $theme_option = get_option('sitemap_par_categorie_theme', 'auto');
-        wp_localize_script('sitemap-par-categorie-script', 'spcFront', [
-            'theme' => $theme_option,
-        ]);
         wp_add_inline_script('sitemap-par-categorie-script', '
         document.addEventListener("DOMContentLoaded", function() {
 
@@ -897,37 +753,14 @@ class Sitemap_Par_Categorie {
             var container = document.querySelector(".sitemap-categories");
             if (!summary || !container) return;
 
-            /* ── Helpers thème ── */
-            function getSystemDark() {
-                return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-            }
-            function applyTheme(mode) {
-                var root  = document.querySelector(".spc-sitemap-root") || document.body;
-                var isDark = mode === "dark" || (mode === "auto" && getSystemDark());
-                root.classList.toggle("spc-dark", isDark);
-                updateThemeBtn(mode);
-                localStorage.setItem("spc_theme", mode);
-            }
-            function updateThemeBtn(mode) {
-                var btn = document.getElementById("spc-theme-btn");
-                if (!btn) return;
-                if (mode === "dark")       btn.innerHTML = "☀️ <span class=\'spc-theme-label\'>Mode clair</span>";
-                else if (mode === "light") btn.innerHTML = "🌙 <span class=\'spc-theme-label\'>Mode sombre</span>";
-                else                       btn.innerHTML = "🌓 <span class=\'spc-theme-label\'>Thème auto</span>";
-            }
-
-            /* ── Conteneur racine pour le thème ── */
+            /* ── Conteneur racine (thème clair Schilo, toujours) ── */
             var spcRoot = document.createElement("div");
             spcRoot.className = "spc-sitemap-root";
             summary.parentNode.insertBefore(spcRoot, summary);
 
-            /* ── Bouton thème + recherche (au-dessus du wrapper) ── */
+            /* ── Recherche (au-dessus du wrapper) ── */
             var topZone = document.createElement("div");
             topZone.style.cssText = "display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem;";
-
-            var themeToggle = document.createElement("div");
-            themeToggle.className = "spc-theme-toggle";
-            themeToggle.innerHTML = \'<button id="spc-theme-btn" class="spc-theme-btn" title="Changer de thème">🌓 <span class="spc-theme-label">Thème auto</span></button>\';
 
             var searchBar = document.createElement("div");
             searchBar.className = "spc-search-bar";
@@ -939,7 +772,6 @@ class Sitemap_Par_Categorie {
                     \'<span class="spc-search-count" id="spc-search-count"></span>\' +
                 \'</div>\';
 
-            topZone.appendChild(themeToggle);
             topZone.appendChild(searchBar);
             spcRoot.appendChild(topZone);
 
@@ -950,30 +782,28 @@ class Sitemap_Par_Categorie {
             wrapper.appendChild(summary);
             wrapper.appendChild(container);
 
-            /* ── Appliquer le thème APRÈS que spcRoot existe dans le DOM ── */
-            var savedTheme = localStorage.getItem("spc_theme") ||
-                (typeof spcFront !== "undefined" && spcFront.theme ? spcFront.theme : "auto");
-            applyTheme(savedTheme);
-            updateThemeBtn(savedTheme);
-
-            /* Écouter les changements système */
-            if (window.matchMedia) {
-                window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function() {
-                    if ((localStorage.getItem("spc_theme") || "auto") === "auto") applyTheme("auto");
-                });
-            }
-
-            /* Clic bouton thème */
-            document.addEventListener("click", function(e) {
-                if (!e.target.closest("#spc-theme-btn")) return;
-                var modes = ["auto", "light", "dark"];
-                var cur   = localStorage.getItem("spc_theme") || "auto";
-                var next  = modes[(modes.indexOf(cur) + 1) % modes.length];
-                applyTheme(next);
-            });
-
             var links  = summary.querySelectorAll("a[data-cat]");
             var blocks = container.querySelectorAll(".cat-parent");
+
+            /* ── Bascule mobile du panneau de catégories ── */
+            var summaryToggle = summary.querySelector(".spc-summary-toggle");
+            var summaryLabel  = summaryToggle ? summaryToggle.querySelector(".spc-summary-toggle__label") : null;
+            if (summaryToggle) {
+                summaryToggle.addEventListener("click", function() {
+                    var isOpen = summary.classList.toggle("spc-summary-open");
+                    summaryToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+                });
+                summary.addEventListener("click", function(e) {
+                    var link = e.target.closest("a[data-cat]");
+                    if (!link || !summaryLabel) return;
+                    var labelClone = link.cloneNode(true);
+                    var countEl = labelClone.querySelector(".nav-count");
+                    if (countEl) countEl.parentNode.removeChild(countEl);
+                    summaryLabel.textContent = labelClone.textContent.trim();
+                    summary.classList.remove("spc-summary-open");
+                    summaryToggle.setAttribute("aria-expanded", "false");
+                });
+            }
 
             /* ── Préférence vue ── */
             var savedView = localStorage.getItem("spc_view") || "list";
@@ -1053,7 +883,16 @@ class Sitemap_Par_Categorie {
 
                 var bc = document.createElement("div");
                 bc.className = "spc-breadcrumb";
-                bc.innerHTML = \'<span>🏠 Plan du site</span><span class="sep">›</span><span>\' + catName + \'</span>\';
+                var bcHome = document.createElement("span");
+                bcHome.textContent = "Plan du site";
+                var bcSep = document.createElement("span");
+                bcSep.className = "sep";
+                bcSep.textContent = "›";
+                var bcCurrent = document.createElement("span");
+                bcCurrent.textContent = catName;
+                bc.appendChild(bcHome);
+                bc.appendChild(bcSep);
+                bc.appendChild(bcCurrent);
                 block.insertBefore(bc, block.firstChild);
 
                 var topbar = document.createElement("div");
@@ -1061,18 +900,26 @@ class Sitemap_Par_Categorie {
 
                 var titleEl = document.createElement("div");
                 titleEl.className = "spc-topbar-title";
-                titleEl.innerHTML = "📂 " + catName;
+                titleEl.textContent = catName;
 
                 var controls = document.createElement("div");
                 controls.className = "spc-topbar-controls";
                 controls.innerHTML =
                     \'<button class="spc-expand-btn" data-action="expand">&#8853; Tout ouvrir</button>\' +
                     \'<button class="spc-expand-btn" data-action="collapse">&#8854; Tout fermer</button>\' +
-                    \'<button class="spc-share-btn" data-cat="\' + catSlug + \'" title="Copier le lien">🔗 Partager<span class="spc-share-toast">Lien copié !</span></button>\' +
+                    \'<button class="spc-share-btn" title="Copier le lien">🔗 Partager<span class="spc-share-toast">Lien copié !</span></button>\' +
                     \'<div class="spc-view-toggle">\' +
                         \'<button class="spc-view-btn" data-view="list" title="Vue liste">&#9776;</button>\' +
                         \'<button class="spc-view-btn" data-view="grid" title="Vue grille">&#8862;</button>\' +
                     \'</div>\';
+
+                controls.querySelectorAll(".spc-share-btn").forEach(function(btn) {
+                    /* data-cat pose via setAttribute (jamais concatene dans le HTML) */
+                    btn.setAttribute("data-cat", catSlug);
+                    var toast = btn.querySelector(".spc-share-toast");
+                    btn.textContent = "Partager";
+                    if (toast) btn.appendChild(toast);
+                });
 
                 topbar.appendChild(titleEl);
                 topbar.appendChild(controls);
@@ -1169,12 +1016,36 @@ class Sitemap_Par_Categorie {
                 container.querySelectorAll(".spc-article").forEach(function(li){
                     li.style.display = "";
                     var t = li.querySelector(".spc-article-title");
-                    if (t) t.innerHTML = t.textContent;
+                    if (t) t.textContent = t.textContent;
                 });
                 container.querySelectorAll(".spc-node").forEach(function(n){ n.style.display = ""; });
             }
 
             function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\\\]/g, "\\\\$&"); }
+
+            /* Surlignage sans innerHTML (evite toute injection HTML via le
+               texte du titre ou la saisie de recherche) : reconstruit le
+               contenu du titre avec des noeuds texte + <mark> natifs. */
+            function highlightTitle(titleEl, text, re) {
+                titleEl.textContent = "";
+                re.lastIndex = 0;
+                var lastIndex = 0;
+                var match;
+                while ((match = re.exec(text)) !== null) {
+                    if (match.index > lastIndex) {
+                        titleEl.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+                    }
+                    var mark = document.createElement("mark");
+                    mark.className = "spc-highlight";
+                    mark.textContent = match[0];
+                    titleEl.appendChild(mark);
+                    lastIndex = match.index + match[0].length;
+                    if (match[0].length === 0) re.lastIndex++;
+                }
+                if (lastIndex < text.length) {
+                    titleEl.appendChild(document.createTextNode(text.slice(lastIndex)));
+                }
+            }
 
             searchInput.addEventListener("input", function() {
                 var q = this.value.trim();
@@ -1192,11 +1063,11 @@ class Sitemap_Par_Categorie {
                     var text    = titleEl ? titleEl.textContent : "";
                     if (text.toLowerCase().indexOf(q.toLowerCase()) !== -1) {
                         li.style.display = "";
-                        if (titleEl) titleEl.innerHTML = text.replace(re, \'<mark class="spc-highlight">$1</mark>\');
+                        if (titleEl) highlightTitle(titleEl, text, re);
                         found++;
                     } else {
                         li.style.display = "none";
-                        if (titleEl) titleEl.innerHTML = text;
+                        if (titleEl) titleEl.textContent = text;
                     }
                 });
 
@@ -1220,6 +1091,23 @@ class Sitemap_Par_Categorie {
     }
 
 
+    private function get_display_category_name($name) {
+        $name = html_entity_decode((string) $name, ENT_QUOTES, get_bloginfo('charset'));
+        if (function_exists('schilo_strip_category_number')) {
+            return trim(schilo_strip_category_number($name));
+        }
+        return trim((string) preg_replace('/^\d+\s*[-–—.]\s*/u', '', $name));
+    }
+
+    private function get_display_post_title($title) {
+        $title = html_entity_decode((string) $title, ENT_QUOTES, get_bloginfo('charset'));
+        if (function_exists('schilo_classement_split_title_prefix')) {
+            $parts = schilo_classement_split_title_prefix($title);
+            return trim((string) ($parts[1] ?? $title));
+        }
+        return trim((string) preg_replace('/^[A-Z]{2,10}\d{1,5}\s*[-–—:]\s*/u', '', $title));
+    }
+
     /* ════════════════════════════════════════════════════════════
        SHORTCODE
     ════════════════════════════════════════════════════════════ */
@@ -1234,20 +1122,27 @@ class Sitemap_Par_Categorie {
         ]);
 
         if (!empty($categories_niv1)) {
-            $output .= '<div class="sitemap-summary"><ul>';
+            $output .= '<div class="sitemap-summary">';
+            $output .= '<button type="button" class="spc-summary-toggle" aria-expanded="false" aria-controls="spc-summary-list">'
+                . '<span class="spc-summary-toggle__label">Catégories</span>'
+                . '<span class="spc-summary-toggle__icon" aria-hidden="true">&#9662;</span>'
+                . '</button>';
+            $output .= '<ul id="spc-summary-list">';
             $output .= '<li><a href="#" data-cat="all">Afficher tout</a></li>';
             foreach ($categories_niv1 as $cat) {
-                $slug    = sanitize_title($cat->slug);
-                $output .= '<li><a href="#" data-cat="' . esc_attr($slug) . '">' . esc_html($cat->name) . '</a></li>';
+                $slug = sanitize_title($cat->slug);
+                $name = $this->get_display_category_name($cat->name);
+                $output .= '<li><a href="#" data-cat="' . esc_attr($slug) . '">' . esc_html($name) . '</a></li>';
             }
             $output .= '</ul></div>';
         }
 
         $output .= '<div class="sitemap-categories">';
         foreach ($categories_niv1 as $cat_niv1) {
-            $slug    = sanitize_title($cat_niv1->slug);
+            $slug = sanitize_title($cat_niv1->slug);
+            $name = $this->get_display_category_name($cat_niv1->name);
             $output .= '<div class="cat-parent" data-cat="' . esc_attr($slug) . '" id="cat-' . esc_attr($slug) . '">';
-            $output .= '<h2>' . esc_html($cat_niv1->name) . '</h2>';
+            $output .= '<h2>' . esc_html($name) . '</h2>';
             $output .= $this->render_level($cat_niv1->term_id, 1);
             $output .= '</div>';
         }
@@ -1290,8 +1185,8 @@ class Sitemap_Par_Categorie {
         foreach ($subcats as $subcat) {
             $output .= '<div class="spc-node spc-depth-' . $depth . '">';
             $output .= '<div class="spc-node-header">';
-            $output .= '<span>' . ($depth === 1 ? '📁' : '📂') . '</span>';
-            $output .= '<span>' . esc_html($subcat->name) . '</span>';
+            $output .= '<span class="spc-node-dot" aria-hidden="true"></span>';
+            $output .= '<span>' . esc_html($this->get_display_category_name($subcat->name)) . '</span>';
             $output .= '<i class="spc-chevron">▶</i>';
             $output .= '</div>';
             $output .= '<div class="spc-node-body">';
@@ -1304,7 +1199,7 @@ class Sitemap_Par_Categorie {
             $count   = count($direct_posts);
             $output .= '<div class="spc-node spc-depth-' . $depth . ' spc-node-misc">';
             $output .= '<div class="spc-node-header spc-node-header-misc">';
-            $output .= '<span>📋</span>';
+            $output .= '<span class="spc-node-dot" aria-hidden="true"></span>';
             $output .= '<span>Articles non classés (' . $count . ')</span>';
             $output .= '<i class="spc-chevron">▶</i>';
             $output .= '</div>';
@@ -1326,7 +1221,7 @@ class Sitemap_Par_Categorie {
 
         foreach ($posts as $post) {
             $url   = get_permalink($post);
-            $title = esc_html(get_the_title($post));
+            $title = esc_html($this->get_display_post_title(get_the_title($post)));
             $tid   = get_post_thumbnail_id($post->ID);
             $date  = get_the_date('d/m/Y', $post);
             $ts    = strtotime($post->post_date);
@@ -1347,11 +1242,11 @@ class Sitemap_Par_Categorie {
 
             $img_list = $thumb_list_url
                 ? '<img class="spc-thumb-list" src="' . esc_url($thumb_list_url) . '" alt="' . $title . '" loading="lazy">'
-                : '<span class="spc-thumb-ph-list">📄</span>';
+                : '<span class="spc-thumb-ph-list" aria-hidden="true"></span>';
 
             $img_grid = $thumb_grid_url
                 ? '<img class="spc-thumb-grid" src="' . esc_url($thumb_grid_url) . '" alt="' . $title . '" loading="lazy">'
-                : '<div class="spc-thumb-ph-grid">📄</div>';
+                : '<div class="spc-thumb-ph-grid" aria-hidden="true"></div>';
 
             $output .= '<li class="spc-article">';
             $output .= '<span class="spc-img-list">' . $img_list . '</span>';
@@ -1393,7 +1288,9 @@ class Sitemap_Par_Categorie_XML {
 
     public function __construct() {
         add_action('init', [$this, 'add_rewrite_rule']);
+        add_action('init', [$this, 'maybe_flush_rewrite_rules'], 20);
         add_filter('query_vars', [$this, 'add_query_var']);
+        add_filter('redirect_canonical', [$this, 'disable_canonical_redirect'], 10, 2);
         add_action('template_redirect', [$this, 'maybe_render_sitemap']);
         add_action('admin_init', [$this, 'register_settings']);
         add_action('admin_footer', [$this, 'add_admin_script']);
@@ -1410,10 +1307,24 @@ class Sitemap_Par_Categorie_XML {
     }
     public function add_rewrite_rule() {
         add_rewrite_rule('^sitemap-par-categorie\\.xml$', 'index.php?sitemap_par_categorie_xml=1', 'top');
+        add_rewrite_rule('^sitemap-par-categorie\\.xml/?$', 'index.php?sitemap_par_categorie_xml=1', 'top');
+    }
+    public function maybe_flush_rewrite_rules() {
+        if (get_option('schilo_builder_sitemap_rewrite_flushed_v2') === '1') return;
+        flush_rewrite_rules(false);
+        update_option('schilo_builder_sitemap_rewrite_flushed_v2', '1', false);
     }
     public function add_query_var($vars) {
         $vars[] = 'sitemap_par_categorie_xml';
         return $vars;
+    }
+
+    public function disable_canonical_redirect($redirect_url, $requested_url) {
+        $path = wp_parse_url($requested_url, PHP_URL_PATH);
+        if (is_string($path) && preg_match('#/sitemap-par-categorie\.xml/?$#', $path)) {
+            return false;
+        }
+        return $redirect_url;
     }
 
     public function maybe_render_sitemap() {
@@ -1423,16 +1334,16 @@ class Sitemap_Par_Categorie_XML {
         echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         echo "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n";
 
-        $elements            = get_option($this->elements_option, ['posts', 'categories']);
-        $excluded_ids        = (array) get_option('sitemap_par_categorie_exclusions', []);
+        $elements            = array_filter((array) get_option($this->elements_option, ['posts', 'categories']));
+        $excluded_ids        = array_filter(array_map('absint', (array) get_option('sitemap_par_categorie_exclusions', [])));
         $freq_posts          = get_option('sitemap_par_categorie_xml_freq_posts', 'weekly');
         $freq_pages          = get_option('sitemap_par_categorie_xml_freq_pages', 'monthly');
         $freq_categories     = get_option('sitemap_par_categorie_xml_freq_categories', 'weekly');
         $prio_posts          = get_option('sitemap_par_categorie_xml_prio_posts', '0.8');
         $prio_pages          = get_option('sitemap_par_categorie_xml_prio_pages', '0.5');
         $prio_categories     = get_option('sitemap_par_categorie_xml_prio_categories', '0.6');
-        $excluded_pages      = get_option('sitemap_par_categorie_xml_exclude_page_ids', []);
-        $excluded_categories = get_option('sitemap_par_categorie_xml_exclude_category_ids', []);
+        $excluded_pages      = array_filter(array_map('absint', (array) get_option('sitemap_par_categorie_xml_exclude_page_ids', [])));
+        $excluded_categories = array_filter(array_map('absint', (array) get_option('sitemap_par_categorie_xml_exclude_category_ids', [])));
         $all_excluded        = array_merge($excluded_ids, $excluded_categories);
 
         if (in_array('categories', $elements)) {
