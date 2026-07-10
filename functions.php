@@ -35,6 +35,7 @@ Schilo_Table::init();
 require_once SCHILO_DIR . '/inc/classes/class-schilo-setup.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-assets.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-login.php';
+require_once SCHILO_DIR . '/inc/classes/class-schilo-otp.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-security.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-meta.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-visitors.php';
@@ -48,6 +49,7 @@ Schilo_Setup::init();
 Schilo_Assets::init();
 Schilo_Search_Suggest::init();
 Schilo_Translator::init();
+Schilo_OTP::init();
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Favicon SVG (ti-flame sur fond #121c2e) Ã¢â‚¬â€ front + admin Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 add_action( 'wp_head',    'schilo_inject_favicon' );
