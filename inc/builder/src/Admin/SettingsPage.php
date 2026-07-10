@@ -1152,10 +1152,14 @@ class SettingsPage
 
     public function renderSitemapPage()
     {
-        if (class_exists('Sitemap_Par_Categorie_Admin')) {
-            $admin = new \Sitemap_Par_Categorie_Admin();
-            $admin->render_admin_page();
+        if (class_exists('\Sitemap_Par_Categorie') && method_exists('\Sitemap_Par_Categorie', 'admin_page_html')) {
+            $reflection = new \ReflectionClass('\Sitemap_Par_Categorie');
+            $admin = $reflection->newInstanceWithoutConstructor();
+            $admin->admin_page_html();
+            return;
         }
+
+        echo '<div class="wrap"><h1>Sitemap</h1><p>Le module Sitemap par catégorie n’est pas disponible.</p></div>';
     }
 
     public function ajaxLoadTool()
