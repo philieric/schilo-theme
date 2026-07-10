@@ -27,12 +27,20 @@ $root_categories = get_categories( [
     'order'      => 'ASC',
 ] );
 
+// Categories retirees de l'accueil via Schilo Builder > Prefixes & categories
+// (visibilite par categorie) — restent en ligne, juste absentes de ces grilles.
+$home_excluded_category_ids = array_map( 'absint', (array) get_option( 'schilo_builder_home_excluded_categories', [] ) );
+
 $main_categories  = [];
 $other_categories = [];
 $children_by_parent = [];
 
 foreach ( $root_categories as $category ) {
     if ( 'non-classe' === $category->slug || 'uncategorized' === $category->slug ) {
+        continue;
+    }
+
+    if ( in_array( (int) $category->term_id, $home_excluded_category_ids, true ) ) {
         continue;
     }
 
