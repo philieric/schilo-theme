@@ -2,6 +2,8 @@
 /** @var array $mappings */
 /** @var WP_Term[] $categories */
 /** @var bool $saved */
+/** @var WP_Term[] $homeRootCategories */
+/** @var int[] $homeExcludedCategoryIds */
 ?>
 
 <div class="wrap schilo-builder-settings">
@@ -105,6 +107,35 @@
             <p>
                 <button type="button" class="button" id="schilo-add-prefix-row">+ Ajouter une correspondance</button>
             </p>
+
+            <h2>Visibilité sur la page d'accueil</h2>
+            <p class="description">
+                Décochez une catégorie pour la retirer des grilles de la page d'accueil
+                (« Explorer par thème » et « Bibliothèque Schilo »). Une catégorie décochée
+                reste en ligne et accessible via son URL — elle disparaît seulement de l'accueil.
+            </p>
+
+            <table class="widefat striped" style="max-width:640px;">
+                <thead>
+                    <tr>
+                        <th>Catégorie</th>
+                        <th style="width:140px;">Afficher sur l'accueil</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($homeRootCategories as $category) : ?>
+                        <tr>
+                            <td><?php echo esc_html($category->name); ?></td>
+                            <td>
+                                <input type="checkbox"
+                                       name="schilo_home_visible_categories[]"
+                                       value="<?php echo esc_attr($category->term_id); ?>"
+                                       <?php checked(!in_array((int) $category->term_id, $homeExcludedCategoryIds, true)); ?>>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
 
             <?php submit_button('Enregistrer les réglages'); ?>
         </form>

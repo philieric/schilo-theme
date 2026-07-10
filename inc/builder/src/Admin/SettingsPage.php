@@ -16,6 +16,7 @@ use Schilo\Builder\Service\ClassementService;
 class SettingsPage
 {
     const OPTION_PREFIX_CATEGORIES = 'schilo_builder_prefix_categories';
+    const OPTION_HOME_EXCLUDED_CATEGORIES = 'schilo_builder_home_excluded_categories';
     const NONCE_ACTION = 'schilo_builder_save_settings';
     const NONCE_NAME = 'schilo_builder_settings_nonce';
 
@@ -374,6 +375,18 @@ class SettingsPage
                     : array();
 
                 update_option(self::OPTION_PREFIX_CATEGORIES, $this->sanitizePrefixCategories($rawMappings), false);
+
+                // Cases cochees = categories visibles sur l'accueil ; toute categorie
+                // racine absente de la liste soumise (case decochee) est enregistree
+                // comme exclue. Une nouvelle categorie non encore proposee dans ce
+                // formulaire reste donc visible par defaut (comportement historique).
+                $visibleIds = isset($_POST['schilo_home_visible_categories']) && is_array($_POST['schilo_home_visible_categories'])
+                    ? array_map('absint', wp_unslash($_POST['schilo_home_visible_categories']))
+                    : array();
+                $eligibleIds = wp_list_pluck($this->getHomeRootCategories(), 'term_id');
+                $excludedIds = array_values(array_diff($eligibleIds, $visibleIds));
+                update_option(self::OPTION_HOME_EXCLUDED_CATEGORIES, $excludedIds, false);
+
                 $saved = true;
             }
         }
@@ -385,7 +398,33 @@ class SettingsPage
             'order' => 'ASC',
         ));
 
+        $homeRootCategories = $this->getHomeRootCategories();
+        $homeExcludedCategoryIds = array_map('absint', (array) get_option(self::OPTION_HOME_EXCLUDED_CATEGORIES, array()));
+
         include SCHILO_BUILDER_PATH . 'views/admin/settings-page.php';
+    }
+
+    /**
+     * Categories racine eligibles au reglage de visibilite sur l'accueil —
+     * meme filtre que $root_categories dans template-parts/home-fallback.php
+     * (exclut la categorie par defaut et "non classe"/"uncategorized").
+     *
+     * @return \WP_Term[]
+     */
+    private function getHomeRootCategories()
+    {
+        $categories = get_categories(array(
+            'taxonomy'   => 'category',
+            'parent'     => 0,
+            'hide_empty' => false,
+            'exclude'    => array((int) get_option('default_category')),
+            'orderby'    => 'name',
+            'order'      => 'ASC',
+        ));
+
+        return array_values(array_filter(is_array($categories) ? $categories : array(), function ($category) {
+            return $category->slug !== 'non-classe' && $category->slug !== 'uncategorized';
+        }));
     }
 
     public function renderSectionsPage()
