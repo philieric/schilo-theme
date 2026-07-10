@@ -210,7 +210,19 @@ class Schilo_Meta {
             if ( $post ) {
                 $meta = get_post_meta( $post->ID, '_schilo_meta_desc', true );
                 if ( $meta ) return $meta;
-                return wp_strip_all_tags( get_the_excerpt( $post ) );
+
+                if ( ! empty( $post->post_excerpt ) ) {
+                    return wp_strip_all_tags( $post->post_excerpt );
+                }
+
+                // get_the_excerpt() tronque à 55 mots AVANT le nettoyage des shortcodes ;
+                // pour les articles pas (ou pas encore) migrés, les shortcodes WPBakery/
+                // Wikilogy désactivés ne sont pas reconnus par strip_shortcodes() et se
+                // retrouvent tronqués en plein milieu, laissant des crochets ouverts.
+                // On part du contenu complet, on retire les [shortcodes] avant de tronquer.
+                $raw = wp_strip_all_tags( $post->post_content );
+                $raw = preg_replace( '/\[[^\]]*\]/s', '', $raw );
+                return wp_trim_words( trim( $raw ), 30, '…' );
             }
         }
         if ( is_category() || is_tag() ) {

@@ -218,9 +218,13 @@ get_header();
         $apropos_excerpt = wp_strip_all_tags( get_the_content( '', false, $apropos_post ) );
         $apropos_excerpt = preg_replace( '/\[[^\]]*\]/s', '', $apropos_excerpt );
         $apropos_excerpt = wp_trim_words( trim( $apropos_excerpt ), 20, '…' );
+        // Retire le prefixe de reference interne ("PRO001 - ", "ANN045 - "...) du titre affiche.
+        // wptexturize() transforme "-" en entite "&#8211;" dans get_the_title() : on decode avant de matcher.
+        $apropos_title = html_entity_decode( get_the_title( $apropos_post ), ENT_QUOTES, 'UTF-8' );
+        $apropos_title = preg_replace( '/^[A-Z]+\d+\s*[\x{2013}\x{2014}\-]+\s*/u', '', $apropos_title );
       ?>
         <a href="<?php echo esc_url( get_permalink( $apropos_post ) ); ?>" class="schilo-apropos-article-card">
-          <h3><?php echo esc_html( get_the_title( $apropos_post ) ); ?></h3>
+          <h3><?php echo esc_html( $apropos_title ); ?></h3>
           <?php if ( $apropos_excerpt !== '' ) : ?>
             <p><?php echo esc_html( $apropos_excerpt ); ?></p>
           <?php endif; ?>
