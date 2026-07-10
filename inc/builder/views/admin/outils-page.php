@@ -9,6 +9,7 @@
  *   $result_orphan_media : array|null
  *   $result_raccourcis   : array|null
  *   $result_doublons_prefixe : array|null
+ *   $result_reorder_sections : array|null
  *   $selected_parent_id  : int
  *   $parent_categories   : WP_Term[]
  *   $raccourcis_map      : array
@@ -51,6 +52,11 @@ $tools = array(
         'icon'  => 'dashicons-admin-links',
         'label' => 'Liens par ID',
         'desc'  => 'Fiabiliser les liens internes contre les changements de slug',
+    ),
+    'reorder_sections' => array(
+        'icon'  => 'dashicons-sort',
+        'label' => 'Réordonner les sections',
+        'desc'  => 'Remettre les sections migrées dans l\'ordre du template',
     ),
 );
 ?>
