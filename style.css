@@ -1777,6 +1777,59 @@ a.schilo-btn-icon:focus {
   margin: 0;
 }
 
+/* ── ARTICLES LIÉS (categorie "A propos du site") ── */
+.schilo-apropos-articles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.schilo-apropos-article-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--schilo-bg-card);
+  border: 1px solid var(--schilo-border);
+  border-radius: var(--schilo-radius-lg);
+  padding: 1.25rem;
+  color: var(--schilo-text-primary);
+  text-decoration: none;
+  transition: border-color var(--schilo-transition), box-shadow var(--schilo-transition), transform var(--schilo-transition);
+}
+
+.schilo-apropos-article-card:hover {
+  border-color: var(--schilo-border-mid);
+  box-shadow: var(--schilo-shadow-sm);
+  color: var(--schilo-text-primary);
+  transform: translateY(-2px);
+}
+
+.schilo-apropos-article-card h3 {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: .5rem;
+}
+
+.schilo-apropos-article-card p {
+  font-size: 13px;
+  color: var(--schilo-text-secondary);
+  line-height: 1.65;
+  margin: 0 0 .85rem;
+  flex: 1;
+}
+
+.schilo-apropos-article-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--schilo-accent-dark);
+}
+
+@media (max-width: 782px) {
+  .schilo-apropos-articles { grid-template-columns: 1fr; }
+}
+
 /* ── SIGNIFICATION SCHILO ── */
 .schilo-apropos-schilo {
   display: grid;

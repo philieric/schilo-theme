@@ -190,6 +190,49 @@ get_header();
       </div>
     </div>
 
+    <!-- ── SECTION : ARTICLES LIÉS (categorie "A propos du site", retiree de l'accueil
+         via Schilo Builder > Prefixes & categories, mais gardee accessible ici) ── -->
+    <?php
+    $apropos_category = get_category_by_slug( 'a-propos-du-site' );
+    $apropos_articles = $apropos_category ? get_posts( [
+        'category'       => $apropos_category->term_id,
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'orderby'        => 'date',
+        'order'          => 'ASC',
+    ] ) : [];
+    ?>
+    <?php if ( ! empty( $apropos_articles ) ) : ?>
+    <div class="schilo-apropos-section-title" style="margin-top:2.5rem">
+      <i class="ti ti-notes" aria-hidden="true"></i>
+      <?php esc_html_e( 'Pour aller plus loin', 'schilo' ); ?>
+    </div>
+    <div class="schilo-apropos-articles">
+      <?php foreach ( $apropos_articles as $apropos_post ) :
+        // Certains de ces articles n'ont jamais ete migres vers Schilo Builder et
+        // contiennent encore des shortcodes WPBakery/Wikilogy desactives — non
+        // reconnus par strip_shortcodes() (plugin desactive). Part du contenu brut
+        // (pas de get_the_excerpt(), qui tronque a 55 mots AVANT le nettoyage et
+        // coupe donc souvent en plein milieu d'un shortcode non ferme) : on retire
+        // les blocs [entre crochets] sur le texte complet, puis seulement on tronque.
+        $apropos_excerpt = wp_strip_all_tags( get_the_content( '', false, $apropos_post ) );
+        $apropos_excerpt = preg_replace( '/\[[^\]]*\]/s', '', $apropos_excerpt );
+        $apropos_excerpt = wp_trim_words( trim( $apropos_excerpt ), 20, '…' );
+      ?>
+        <a href="<?php echo esc_url( get_permalink( $apropos_post ) ); ?>" class="schilo-apropos-article-card">
+          <h3><?php echo esc_html( get_the_title( $apropos_post ) ); ?></h3>
+          <?php if ( $apropos_excerpt !== '' ) : ?>
+            <p><?php echo esc_html( $apropos_excerpt ); ?></p>
+          <?php endif; ?>
+          <span class="schilo-apropos-article-link">
+            <?php esc_html_e( 'Lire l\'article', 'schilo' ); ?>
+            <i class="ti ti-arrow-right" aria-hidden="true"></i>
+          </span>
+        </a>
+      <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+
     <!-- ── SECTION : CTA ── -->
     <div style="display:flex;align-items:center;justify-content:space-between;gap:2rem;background:var(--schilo-bg-dark);border-radius:14px;padding:2rem 2.5rem;margin-top:2rem;flex-wrap:wrap">
       <div style="flex:1">
