@@ -1293,6 +1293,17 @@
     color: #fff;
 }
 
+.schilo-migration-prefix-count {
+    margin-left: 4px;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.schilo-migration-prefix-list a.is-active .schilo-migration-prefix-count {
+    color: rgba(255, 255, 255, .78);
+}
+
 @media (max-width: 782px) {
     .schilo-migration-test-layout {
         grid-template-columns: 1fr;

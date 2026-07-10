@@ -852,17 +852,30 @@ class SettingsPage
         $allPosts = get_posts(array(
             'post_type' => 'post',
             'post_status' => 'publish',
-            'posts_per_page' => 500,
+            'posts_per_page' => -1,
             'orderby' => 'title',
             'order' => 'ASC',
             'no_found_rows' => true,
         ));
 
+        $templateService = new TemplateService();
         $availablePrefixes = array();
         $postsByPrefix = array();
 
+        foreach ($templateService->getActiveTemplates() as $templatePrefix => $templateConfig) {
+            $templatePrefix = strtoupper(sanitize_key((string) $templatePrefix));
+
+            if ($templatePrefix !== '') {
+                $availablePrefixes[$templatePrefix] = true;
+            }
+        }
+
         foreach ($allPosts as $candidatePost) {
             $prefix = $prefixDetector->detectFromTitle(get_the_title($candidatePost));
+
+            if ($prefix === '') {
+                continue;
+            }
 
             $availablePrefixes[$prefix] = true;
             $postsByPrefix[$prefix][] = $candidatePost;
@@ -944,7 +957,6 @@ class SettingsPage
         unset($extractedElement);
 
         if ($selectedPrefix !== '') {
-            $templateService = new TemplateService();
             $templateForPrefix = $templateService->getTemplateForPrefix($selectedPrefix);
 
             $sectionTypeService = new SectionTypeService();
