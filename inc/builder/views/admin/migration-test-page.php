@@ -1,6 +1,7 @@
 <?php
 /** @var array $candidates */
 /** @var array $availablePrefixes */
+/** @var array $postsByPrefix */
 /** @var string $selectedPrefix */
 /** @var int $testPostId */
 /** @var WP_Post|null $testPost */
@@ -68,10 +69,12 @@
             <strong>Type d'article</strong>
             <ul class="schilo-migration-prefix-list">
                 <?php foreach ($availablePrefixes as $prefixOption) : ?>
+                    <?php $prefixCandidateCount = isset($postsByPrefix[$prefixOption]) ? count($postsByPrefix[$prefixOption]) : 0; ?>
                     <li>
                         <a href="<?php echo esc_url(add_query_arg(array('tab' => 'test', 'schilo_test_prefix' => $prefixOption, 'schilo_test_post' => false), admin_url('admin.php?page=schilo-builder-migration-test'))); ?>"
                            class="<?php echo $prefixOption === $selectedPrefix ? 'is-active' : ''; ?>">
                             <?php echo esc_html($prefixOption); ?>
+                            <span class="schilo-migration-prefix-count">(<?php echo esc_html((string) $prefixCandidateCount); ?>)</span>
                         </a>
                     </li>
                 <?php endforeach; ?>
