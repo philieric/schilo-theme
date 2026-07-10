@@ -328,6 +328,10 @@
     opacity: .6;
 }
 
+.schilo-archive-card__thumb-link--placeholder::after {
+    background: linear-gradient(135deg, rgba(18,28,46,.04), rgba(40,114,212,.10));
+}
+
 .schilo-archive-posts--grid .schilo-archive-card__thumb {
     width: 100%;
     height: 100%;
@@ -346,13 +350,20 @@
 }
 
 .schilo-archive-posts--grid .schilo-archive-card__thumb--placeholder {
+    position: relative;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-end;
+    flex-direction: column;
     width: 100%;
     height: 100%;
-    color: var(--schilo-text-hint);
-    font-size: 32px;
+    padding: 1rem;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,.24), transparent 26%),
+        radial-gradient(circle at 86% 14%, rgba(125,179,232,.24), transparent 28%),
+        linear-gradient(135deg, #172234 0%, #243b5c 48%, #0e3f88 100%);
+    color: #fff;
 }
 
 .schilo-archive-posts--grid .schilo-archive-card__body {
@@ -419,13 +430,21 @@
 }
 
 .schilo-archive-posts--list .schilo-archive-card__thumb--placeholder {
+    position: relative;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-end;
+    flex-direction: column;
     width: 100%;
     height: 100%;
-    color: var(--schilo-text-hint);
-    font-size: 28px;
+    min-height: 150px;
+    padding: .9rem;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,.22), transparent 28%),
+        radial-gradient(circle at 88% 16%, rgba(125,179,232,.22), transparent 30%),
+        linear-gradient(135deg, #172234 0%, #243b5c 50%, #0e3f88 100%);
+    color: #fff;
 }
 
 .schilo-archive-posts--list .schilo-archive-card__body {
@@ -441,6 +460,121 @@
 #schilo-archive-posts { --card-zoom: 1; }
 
 /* ── Éléments communs ── */
+.schilo-archive-card__thumb--placeholder::before {
+    content: '';
+    position: absolute;
+    inset: .7rem;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 14px;
+    pointer-events: none;
+}
+
+.schilo-archive-card__thumb--placeholder::after {
+    content: '';
+    position: absolute;
+    right: -2.8rem;
+    bottom: -3.6rem;
+    width: 10rem;
+    height: 10rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.08);
+    pointer-events: none;
+}
+
+.schilo-archive-card__thumb--gospel-matthieu {
+    background:
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,.22), transparent 26%),
+        radial-gradient(circle at 84% 18%, rgba(215,31,31,.24), transparent 30%),
+        linear-gradient(135deg, #172234 0%, #3f3141 50%, var(--schilo-mat-dark, #8a0000) 100%) !important;
+}
+
+.schilo-archive-card__thumb--gospel-marc {
+    background:
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,.23), transparent 26%),
+        radial-gradient(circle at 84% 18%, rgba(15,73,15,.30), transparent 30%),
+        linear-gradient(135deg, #172234 0%, #234355 48%, var(--schilo-marc-dark, #083008) 100%) !important;
+}
+
+.schilo-archive-card__thumb--gospel-luc {
+    background:
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,.23), transparent 26%),
+        radial-gradient(circle at 84% 18%, rgba(10,19,126,.30), transparent 30%),
+        linear-gradient(135deg, #172234 0%, #243b5c 48%, var(--schilo-luc-dark, #060c55) 100%) !important;
+}
+
+.schilo-archive-card__thumb--gospel-jean {
+    background:
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,.22), transparent 26%),
+        radial-gradient(circle at 84% 18%, rgba(72,66,4,.28), transparent 30%),
+        linear-gradient(135deg, #172234 0%, #3b3d34 48%, var(--schilo-jean-dark, #2e2a02) 100%) !important;
+}
+
+.schilo-archive-card__thumb--gospel-bible {
+    background:
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,.24), transparent 26%),
+        radial-gradient(circle at 82% 18%, rgba(109,63,192,.24), transparent 28%),
+        linear-gradient(135deg, #172234 0%, #2f315f 48%, #6d3fc0 100%) !important;
+}
+
+.schilo-archive-card__placeholder-mark {
+    position: relative;
+    z-index: 1;
+    width: 46px;
+    height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: auto;
+    border-radius: 14px;
+    background: rgba(255,255,255,.13);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.16);
+    color: rgba(255,255,255,.88);
+    font-size: 23px;
+}
+
+.schilo-archive-card__placeholder-title {
+    position: relative;
+    z-index: 1;
+    align-self: stretch;
+    max-width: 78%;
+    color: rgba(255,255,255,.78);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    line-height: 1.35;
+    text-transform: uppercase;
+}
+
+.schilo-archive-card__placeholder-code {
+    position: absolute;
+    right: .85rem;
+    bottom: .45rem;
+    z-index: 0;
+    color: rgba(255,255,255,.12);
+    font-size: clamp(34px, 6vw, 58px);
+    font-weight: 800;
+    letter-spacing: -.05em;
+    line-height: 1;
+}
+
+.schilo-archive-posts--list .schilo-archive-card__placeholder-mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 20px;
+}
+
+.schilo-archive-posts--list .schilo-archive-card__placeholder-title {
+    max-width: 100%;
+    font-size: 10px;
+}
+
+.schilo-archive-posts--list .schilo-archive-card__placeholder-code {
+    right: .7rem;
+    bottom: .35rem;
+    font-size: 34px;
+}
+
 .schilo-archive-card__cat {
     display: inline-block;
     padding: 2px 8px;
