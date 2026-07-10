@@ -68,6 +68,33 @@ function schilo_strip_category_number( string $name ): string {
 }
 
 /**
+ * Nettoie un texte legacy avant affichage public.
+ *
+ * Les anciens contenus peuvent contenir des shortcodes WPBakery ([vc_row],
+ * [vc_column_text], [vc_message]...) parfois tronques dans les extraits
+ * automatiques. Ils ne doivent jamais ressortir sur le front si le builder est
+ * desactive ou desinstalle.
+ */
+function schilo_clean_legacy_builder_text( string $text ): string {
+    $clean = html_entity_decode( $text, ENT_QUOTES, get_bloginfo( 'charset' ) );
+
+    $clean = preg_replace( '/<!--[\s\S]*?-->/u', ' ', $clean );
+    $clean = preg_replace( '/\[(\/?)(vc|wpb|vcv|mk|dt)_[^\]]*\]/iu', ' ', $clean );
+    $clean = preg_replace( '/\[(\/?)[a-zA-Z][a-zA-Z0-9_-]*(?:\s[^\]]*)?\]/u', ' ', $clean );
+    $clean = preg_replace( '/\[(\/?)(vc|wpb|vcv|mk|dt)_[^\[]*$/iu', ' ', $clean );
+    $clean = preg_replace( '/\[(\/?)[a-zA-Z][a-zA-Z0-9_-]*(?:\s[^\[]*)?$/u', ' ', $clean );
+    $clean = wp_strip_all_tags( $clean, true );
+    $clean = str_replace( "\xc2\xa0", ' ', $clean );
+    $clean = preg_replace( '/\s+/u', ' ', $clean );
+
+    return trim( (string) $clean );
+}
+
+function schilo_clean_term_description( string $description ): string {
+    return schilo_clean_legacy_builder_text( $description );
+}
+
+/**
  * Masque une clé API pour l'affichage admin (garde les 6 derniers caractères).
  */
 if ( ! function_exists( 'schilo_mask_key' ) ) :
