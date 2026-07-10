@@ -95,6 +95,82 @@ function schilo_clean_term_description( string $description ): string {
 }
 
 /**
+ * Détecte l'évangile lié à une référence biblique en texte libre.
+ *
+ * Retourne "bible" pour les livres hors évangiles, ou quand la référence n'est
+ * pas assez structurée pour être rattachée à Matthieu, Marc, Luc ou Jean.
+ */
+function schilo_detect_gospel_from_bible_ref( string $ref ): string {
+    $ref = trim( $ref );
+    if ( $ref === '' ) {
+        return 'bible';
+    }
+
+    static $map = [
+        'matthieu' => 'matthieu', 'matthew' => 'matthieu', 'matt' => 'matthieu', 'mt' => 'matthieu', 'mat' => 'matthieu',
+        'marc'     => 'marc',     'mark'    => 'marc',     'mc'   => 'marc',     'mr' => 'marc', 'mrk' => 'marc',
+        'luc'      => 'luc',      'luke'    => 'luc',      'lc'   => 'luc',      'lk' => 'luc',  'lu'  => 'luc',
+        'jean'     => 'jean',     'john'    => 'jean',     'jn'   => 'jean',     'jo' => 'jean', 'jhn' => 'jean',
+    ];
+
+    if ( preg_match( '/^([a-zà-ÿ]+)/iu', $ref, $m ) ) {
+        $word = strtolower( remove_accents( $m[1] ) );
+        return $map[ $word ] ?? 'bible';
+    }
+
+    return 'bible';
+}
+
+/**
+ * Retourne l'évangile dominant d'un article avec la même logique que le rendu
+ * Schilo Builder : comptage des références bibliques, puis priorité
+ * Matthieu > Marc > Luc > Jean > Bible en cas d'égalité.
+ */
+function schilo_get_post_dominant_gospel( int $post_id ): string {
+    static $cache = [];
+
+    if ( isset( $cache[ $post_id ] ) ) {
+        return $cache[ $post_id ];
+    }
+
+    $counts = [ 'matthieu' => 0, 'marc' => 0, 'luc' => 0, 'jean' => 0, 'bible' => 0 ];
+
+    if (
+        class_exists( '\Schilo\Builder\Repository\SectionRepository' )
+        && class_exists( '\Schilo\Builder\Service\SectionRenderer' )
+    ) {
+        $repository = new \Schilo\Builder\Repository\SectionRepository();
+        $sections = $repository->findByPostId( $post_id );
+
+        foreach ( $sections as $section ) {
+            foreach ( \Schilo\Builder\Service\SectionRenderer::countGospels( $section ) as $gospel => $count ) {
+                if ( isset( $counts[ $gospel ] ) ) {
+                    $counts[ $gospel ] += (int) $count;
+                }
+            }
+        }
+    }
+
+    if ( array_sum( $counts ) === 0 && class_exists( '\Schilo\Builder\Service\IndexationService' ) ) {
+        $row = ( new \Schilo\Builder\Service\IndexationService() )->getByPostId( $post_id );
+        $references = $row ? json_decode( $row['references_bibliques'] ?? '[]', true ) : [];
+
+        if ( is_array( $references ) ) {
+            foreach ( $references as $reference ) {
+                $gospel = schilo_detect_gospel_from_bible_ref( (string) $reference );
+                $counts[ isset( $counts[ $gospel ] ) ? $gospel : 'bible' ]++;
+            }
+        }
+    }
+
+    $cache[ $post_id ] = class_exists( '\Schilo\Builder\Service\SectionRenderer' )
+        ? \Schilo\Builder\Service\SectionRenderer::pickDominantGospel( $counts )
+        : '';
+
+    return $cache[ $post_id ];
+}
+
+/**
  * Masque une clé API pour l'affichage admin (garde les 6 derniers caractères).
  */
 if ( ! function_exists( 'schilo_mask_key' ) ) :

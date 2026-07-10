@@ -30,6 +30,8 @@ $icon_map = [
     'renseignements-complementaires' => 'ti-notes',
     'societe'                        => 'ti-building-community',
     'synopse'                        => 'ti-timeline',
+    'textes-bibliques'               => 'ti-book-2',
+    'textes-biliques'                => 'ti-book-2',
 ];
 $term_icon = ( $term instanceof WP_Term && isset( $icon_map[ $term->slug ] ) )
     ? $icon_map[ $term->slug ]
@@ -217,6 +219,9 @@ get_header();
                     $same_date    = get_the_date( 'Ymd' ) === get_the_modified_date( 'Ymd' );
                     $cats         = get_the_category();
                     $cat          = ! empty( $cats ) ? $cats[0] : null;
+                    $placeholder_icon = ( $cat && isset( $icon_map[ $cat->slug ] ) ) ? $icon_map[ $cat->slug ] : $term_icon;
+                    $dominant_gospel = schilo_get_post_dominant_gospel( get_the_ID() );
+                    $placeholder_gospel_class = $dominant_gospel ? ' schilo-archive-card__thumb--gospel-' . sanitize_html_class( $dominant_gospel ) : '';
 
                     // Extraire le code PER/ANN du titre depuis le titre brut (sans wptexturize)
                     $raw_title    = get_post_field( 'post_title', get_the_ID() );
@@ -230,7 +235,7 @@ get_header();
                     ?>
                     <article <?php post_class( 'schilo-archive-card' ); ?> id="post-<?php the_ID(); ?>">
 
-                        <a href="<?php the_permalink(); ?>" class="schilo-archive-card__thumb-link" tabindex="-1" aria-hidden="true">
+                        <a href="<?php the_permalink(); ?>" class="schilo-archive-card__thumb-link<?php echo $has_thumb ? '' : ' schilo-archive-card__thumb-link--placeholder'; ?>" tabindex="-1" aria-hidden="true">
                             <?php if ( $has_thumb ) : ?>
                                 <?php the_post_thumbnail( 'medium_large', [
                                     'class'   => 'schilo-archive-card__thumb',
@@ -238,8 +243,14 @@ get_header();
                                     'alt'     => esc_attr( $raw_title ),
                                 ] ); ?>
                             <?php else : ?>
-                                <div class="schilo-archive-card__thumb schilo-archive-card__thumb--placeholder" aria-hidden="true">
-                                    <i class="ti ti-book-2"></i>
+                                <div class="schilo-archive-card__thumb schilo-archive-card__thumb--placeholder<?php echo esc_attr( $placeholder_gospel_class ); ?>" aria-hidden="true">
+                                    <span class="schilo-archive-card__placeholder-mark">
+                                        <i class="ti <?php echo esc_attr( $placeholder_icon ); ?>"></i>
+                                    </span>
+                                    <span class="schilo-archive-card__placeholder-title"><?php echo esc_html( $term_name ); ?></span>
+                                    <?php if ( $per_code ) : ?>
+                                        <span class="schilo-archive-card__placeholder-code"><?php echo esc_html( $per_code ); ?></span>
+                                    <?php endif; ?>
                                 </div>
                             <?php endif; ?>
                             <?php if ( $per_code ) : ?>
