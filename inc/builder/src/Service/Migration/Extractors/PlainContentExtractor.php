@@ -94,8 +94,26 @@ class PlainContentExtractor implements ExtractorInterface
         // Supprimer le <h1> initial (duplique le titre de l'article)
         $html = preg_replace('/^\s*<h1[^>]*>.*?<\/h1>\s*/isu', '', $html);
 
+        // Protéger les shortcodes bibliques inline ([b], [bib], [bvc], [bnv], [brc])
+        // avant le nettoyage générique : ContentFilter::render() les interprète au
+        // rendu, il ne faut pas les supprimer ici (cf. inc/builder/src/Service/ContentFilter.php).
+        $biblicalPlaceholders = [];
+        $html = preg_replace_callback(
+            '/\[b(?:ib|vc|nv|rc)?\b[^\]]*\].*?\[\/b(?:ib|vc|nv|rc)?\]/is',
+            function ($m) use (&$biblicalPlaceholders) {
+                $key = "\x02BIB" . count($biblicalPlaceholders) . "\x03";
+                $biblicalPlaceholders[$key] = $m[0];
+                return $key;
+            },
+            $html
+        );
+
         // Supprimer les shortcodes WP restants [xxx]
         $html = preg_replace('/\[\/?\w[\w-]*[^\]]*\]/u', '', $html);
+
+        if (!empty($biblicalPlaceholders)) {
+            $html = str_replace(array_keys($biblicalPlaceholders), array_values($biblicalPlaceholders), $html);
+        }
 
         // Normaliser les espaces
         $html = preg_replace('/[ \t]+/u', ' ', $html);
