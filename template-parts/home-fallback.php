@@ -328,7 +328,7 @@ $category_description_fallbacks = [
         <div class="schilo-home-stat"><strong><?php echo esc_html( number_format_i18n( Schilo_Visitors::get_total() ) ); ?></strong><span><?php esc_html_e( 'Visiteurs', 'schilo' ); ?></span></div>
     </div>
 
-    <?php $votd = Schilo_Bible::get_verse_of_day(); ?>
+    <?php $votd = Schilo_Reflection::get_reflection_of_day() ?: Schilo_Bible::get_verse_of_day(); ?>
     <div class="schilo-container schilo-home-verse">
         <?php if ( $votd ) : ?>
         <div class="schilo-home-verse__identity">
@@ -345,6 +345,9 @@ $category_description_fallbacks = [
                 <span class="schilo-home-verse__version"><?php echo esc_html( $votd->version_name ); ?></span>
             </div>
             <blockquote>« <?php echo esc_html( $votd->verse_text ); ?> »</blockquote>
+            <?php if ( ! empty( $votd->reflection ) ) : ?>
+            <p class="schilo-home-verse__reflection"><?php echo esc_html( $votd->reflection ); ?></p>
+            <?php endif; ?>
             <?php if ( ! empty( $votd->copyright ) ) : ?>
             <p class="schilo-home-verse__copyright"><?php echo esc_html( $votd->copyright ); ?></p>
             <?php endif; ?>

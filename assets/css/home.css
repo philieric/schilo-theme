@@ -308,6 +308,13 @@
   flex-wrap: wrap;
 }
 
+.schilo-home-verse__reflection {
+  margin: .85rem 0 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--schilo-home-white-82);
+}
+
 .schilo-home-verse__copyright {
   margin: .6rem 0 0;
   font-size: 10px;
