@@ -223,8 +223,18 @@ if ( $article_prefix !== '' && isset( $tab_label_overrides[ $article_prefix ] ) 
     }
 }
 
-// Détecte si une section brute est vide (même logique que ContentRenderer::isSectionEmpty)
+// Détecte si une section brute est vide. Délègue à la source unique
+// SectionRenderer::isSectionEmpty (consciente du type : image_id à 0, verset
+// sans référence… ne comptent pas comme du contenu) pour que les onglets
+// n'apparaissent que pour les sections réellement affichées.
 $schilo_is_sec_empty = function ( array $sec ): bool {
+    if ( class_exists( '\Schilo\Builder\Service\SectionRenderer' )
+        && class_exists( '\Schilo\Builder\Entity\Section' ) ) {
+        return \Schilo\Builder\Service\SectionRenderer::isSectionEmpty(
+            \Schilo\Builder\Entity\Section::fromArray( $sec )
+        );
+    }
+    // Repli si le Builder n'est pas chargé : heuristique simple sur le contenu.
     if ( trim( isset( $sec['content'] ) ? (string) $sec['content'] : '' ) !== '' ) {
         return false;
     }
