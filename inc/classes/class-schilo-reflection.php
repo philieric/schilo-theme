@@ -34,7 +34,32 @@ class Schilo_Reflection {
         $seed  = (int) wp_date( 'z' ) + ( (int) wp_date( 'Y' ) * 365 );
         $index = $seed % count( $store );
 
-        return (object) $store[ $index ];
+        $obj = (object) $store[ $index ];
+        $obj->version_name = self::version_display_name( (string) $obj->version_name );
+
+        return $obj;
+    }
+
+    /**
+     * Résout un code de version biblique (« S21 ») en nom complet via les tables
+     * USX, pour afficher le même libellé que le verset du jour (ex. « Louis Segond
+     * S21 »). Retombe sur le code si USX est absent.
+     */
+    private static function version_display_name( string $code ): string {
+        if ( '' === $code ) {
+            return $code;
+        }
+        static $cache = array();
+        if ( isset( $cache[ $code ] ) ) {
+            return $cache[ $code ];
+        }
+        global $wpdb;
+        $name = $wpdb->get_var( $wpdb->prepare(
+            "SELECT name FROM {$wpdb->prefix}usx_versions WHERE code = %s LIMIT 1",
+            $code
+        ) );
+
+        return $cache[ $code ] = ( $name ?: $code );
     }
 
     /**
