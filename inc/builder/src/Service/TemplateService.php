@@ -128,6 +128,66 @@ class TemplateService
         return reset($templates);
     }
 
+    /**
+     * Ordonne des sections selon le template du prefixe, en mode "ancrage
+     * positionnel" pour l'affichage public : seuls les types de section connus
+     * du template sont permutes entre les emplacements qu'ils occupent deja ;
+     * tout type absent du template garde exactement sa position d'origine.
+     *
+     * Consequence : un article dont le template est complet (ex: PER) est remis
+     * dans l'ordre attendu meme si l'ordre stocke en base differe (ex: bloc
+     * "Détails" enregistre en fin d'article), tandis qu'un article dont le
+     * template est partiel ne peut jamais etre desordonne par ce tri.
+     *
+     * @param string[] $types  Types de section dans l'ordre courant.
+     * @param string   $prefix Prefixe de l'article (ex: 'PER').
+     * @return int[]           Indices d'origine dans le nouvel ordre d'affichage.
+     */
+    public function orderIndexesByTemplate(array $types, $prefix)
+    {
+        $identity = array_keys($types);
+
+        $template = $this->getTemplateForPrefix($prefix);
+        $canonical = (!empty($template['sections']) && is_array($template['sections']))
+            ? array_values($template['sections'])
+            : array();
+
+        if (empty($canonical)) {
+            return $identity;
+        }
+
+        $rank = array_flip($canonical);
+
+        $slots = array(); // positions occupees par un type connu du template
+        $known = array(); // {rank, orig} pour chaque section de type connu
+        foreach ($types as $i => $type) {
+            $type = sanitize_key((string) $type);
+            if (isset($rank[$type])) {
+                $slots[] = $i;
+                $known[] = array('rank' => $rank[$type], 'orig' => $i);
+            }
+        }
+
+        // Rien a reordonner tant qu'il n'y a pas au moins deux types connus.
+        if (count($known) < 2) {
+            return $identity;
+        }
+
+        usort($known, function ($a, $b) {
+            if ($a['rank'] !== $b['rank']) {
+                return $a['rank'] <=> $b['rank'];
+            }
+            return $a['orig'] <=> $b['orig'];
+        });
+
+        $result = $identity;
+        foreach ($slots as $slotIndex => $position) {
+            $result[$position] = $known[$slotIndex]['orig'];
+        }
+
+        return $result;
+    }
+
     public function saveTemplates($rawTemplates)
     {
         $clean = array();

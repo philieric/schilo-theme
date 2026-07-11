@@ -61,6 +61,31 @@ if ( empty( $display_tags ) && $tags ) {
 $sections_raw = get_post_meta( $post_id, '_schilo_builder_sections', true );
 $sections_raw = is_array( $sections_raw ) ? $sections_raw : [];
 
+// Ordre d'affichage : suit le template du préfixe, exactement comme le rendu
+// du contenu (ContentRenderer). Garantit que les onglets et les statistiques
+// reflètent le même ordre que les sections affichées, même si l'ordre stocké
+// en base diffère (ex : bloc « Détails » enregistré en fin d'article).
+if ( ! empty( $sections_raw ) && class_exists( '\Schilo\Builder\Service\TemplateService' ) ) {
+    $tpl_prefix = $article_prefix;
+    if ( class_exists( '\Schilo\Builder\Service\ArticleTypeService' ) ) {
+        $tpl_prefix = ( new \Schilo\Builder\Service\ArticleTypeService() )->resolveType( $post_id );
+    }
+    $sec_types = [];
+    foreach ( $sections_raw as $s ) {
+        $sec_types[] = isset( $s['type'] ) ? $s['type'] : '';
+    }
+    $order = ( new \Schilo\Builder\Service\TemplateService() )->orderIndexesByTemplate( $sec_types, $tpl_prefix );
+    $ordered = [];
+    foreach ( $order as $oi ) {
+        if ( isset( $sections_raw[ $oi ] ) ) {
+            $ordered[] = $sections_raw[ $oi ];
+        }
+    }
+    if ( ! empty( $ordered ) ) {
+        $sections_raw = $ordered;
+    }
+}
+
 // ── Helpers : livre → classe CSS et label lisible ────────────────────
 if ( ! function_exists( 'schilo_book_class' ) ) :
 function schilo_book_class( string $abbr ): string {
