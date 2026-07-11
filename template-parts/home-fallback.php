@@ -338,7 +338,7 @@ $category_description_fallbacks = [
         <div class="schilo-home-verse__content">
             <div class="schilo-home-verse__eyebrow">
                 <i class="ti ti-sun" aria-hidden="true"></i>
-                <?php esc_html_e( 'Verset du jour', 'schilo' ); ?> — <?php echo esc_html( wp_date( 'j F Y' ) ); ?>
+                <?php echo esc_html( ! empty( $votd->reflection ) ? __( 'Réflexion du jour', 'schilo' ) : __( 'Verset du jour', 'schilo' ) ); ?> — <?php echo esc_html( wp_date( 'j F Y' ) ); ?>
             </div>
             <div class="schilo-home-verse__reference">
                 <?php echo Schilo_Bible::format_ref( $votd ); ?>
