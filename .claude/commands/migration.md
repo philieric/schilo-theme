@@ -16,6 +16,75 @@ Effectue ou pilote la migration complète d'un site Schilo :
 
 ---
 
+## ⚠️ Migration côté serveur (go-live) — RETOURS D'EXPÉRIENCE (répétition preprod, 2026-07-11)
+
+**À lire AVANT de rejouer la migration sur un serveur (Infomaniak).** La procédure « 01 → 02 → 03 »
+plus bas **ne suffit pas telle quelle** : suivie à la lettre, elle produit un rendu cassé ou
+incomplet. **La référence de vérité = la base LOCALE `schilo.local`** (tout y est réglé et validé).
+Principe directeur : **aligner le serveur sur le local** en y transférant les données/config que le
+**dump prod ne contient pas**.
+
+### Bootstrap des scripts (obligatoire)
+`01/02/03` font `define('WP_ROOT', dirname(__DIR__,4)); require_once WP_ROOT.'/wp-load.php';` —
+calculé pour l'ancienne structure *plugin*. Depuis le thème, ça pointe sur
+`wp-content/themes/wp-load.php` → **fatal** sous `wp eval-file`. Solution : un **wrapper** lancé par
+`wp eval-file` qui pré-définit `WP_ROOT` sur un stub (`wp-load.php` vide) et passe les paramètres via
+`$_GET`. Ex. : `wp eval-file run.php 03-batch-migrate.php reset=1 prefix=ALL`.
+
+### ⚠️ `02-setup-models.php` est PÉRIMÉ — ne PAS s'y fier
+Ses assignments référencent des noms d'éléments que les extracteurs ne produisent plus
+(`consultation_intro`, `consultation_resume`, `plain_content→intro`…) → sections VIDES = rendu
+cassé sur les préfixes complexes. **La vérité = l'option `schilo_builder_migration_models` du local.**
+Au go-live : exporter du local `schilo_builder_migration_models` + `schilo_builder_templates`
+(`wp option get … --format=json`) et les importer sur le serveur
+(`wp option update … --format=json < fichier`) **au lieu de lancer 02**.
+
+### ⚠️ PER utilise le modèle `per_6c94590a`, pas `per_standard`
+`03-batch-migrate.php` mappe chaque préfixe vers `{prefixe}_standard` — correct SAUF pour **PER** :
+le local a été migré avec le modèle riche `per_6c94590a` (remplit `detail-technique-img-droite` :
+lieu, mode opératoire, image). `per_standard` vise `details-techniques` et **perd** ces champs.
+Au go-live : re-migrer PER avec `per_6c94590a`. Tous les autres préfixes = `*_standard` (OK).
+
+### ⚠️ Réimport des données bibliques USX
+Le dump prod ne contient PAS les textes bibliques → tables `usx_*` vides → « Textes bibliques »
+affiche « Aucune version biblique disponible ». Réimporter depuis le local (mysqldump data-only :
+`usx_versions, version_meta, version_meta_extra, books, chapters, notes, verses` — ~50 Mo ; réécrire
+le préfixe de table) **puis `wp cache flush`** (le rendu des versets est mis en cache). Ne jamais
+désactiver `Usx-import`.
+
+### ⚠️ Transfert de la table d'indexation (thèmes / tags / extraits)
+`single.php` affiche les `mots_cles` de l'indexation validée (table `wp_schilo_indexation`) et
+retombe sinon sur les `post_tags` WP (parasites en prod : « About, Encyclopedia, History… »).
+Transférer `wp_schilo_indexation` du local (mysqldump structure+data, réécrire le préfixe) corrige
+les tags ET l'extrait. Les préfixes non présents en local (voir plus bas) restent avec leurs tags
+parasites tant qu'ils ne sont pas indexés via [[indexation]].
+
+### ⚠️ Le mapping catégories (section « Assignation des catégories » plus bas) est LOCAL-SPÉCIFIQUE
+Les `term_id` documentés (452, 449, 445…) sont ceux du LOCAL et sont **FAUX sur serveur**
+(sur la preprod : 452 = « Ministère de Pierre », 449/445 inexistants). En pratique **aucune
+assignation manuelle n'est nécessaire** : les préfixes déjà `post` gardent leurs catégories du dump,
+et `01-transfer-cpt.php` crée celles d'INF/MIR/PRB. Vérifier `sans cat réelle = 0` après migration.
+
+### Nouveaux préfixes (la prod est plus récente que le local)
+La prod peut contenir des préfixes **absents du local et du tableau plus bas**. Vus le 2026-07-11 :
+**ADA** (Actes des Apôtres), **CHR** (chronologie), **PLA** (plaies), **REP** (réponses aux lecteurs),
+**CHA** (chapitres) — tous en structure thématique → créer `{p}_standard` = copie de `ann_standard`
++ template = copie ANN, puis migrer (filtre `post_title REGEXP '^P[0-9]'` pour éviter les faux matchs
+type « Plan du site » / « Chronologie » tablepress). Leurs catégories existent déjà (dump prod).
+**VER** (versets du jour, `reflexions`) = source du widget verset-du-jour → **ne pas** migrer en fiche builder.
+
+### Ordre recommandé au go-live (dump prod frais)
+1. Déployer thème + builder, désactiver `wp-super-cache`.
+2. `01-transfer-cpt.php` (CPT → post + catégories).
+3. **Importer `schilo_builder_migration_models` + `schilo_builder_templates` du local** (au lieu de 02).
+4. `03-batch-migrate.php prefix=ALL`, **puis re-migrer PER avec `per_6c94590a`**.
+5. Créer + migrer les nouveaux préfixes (ADA/CHR/PLA/REP/CHA).
+6. Réimporter les tables `usx_*` + `wp_schilo_indexation` du local.
+7. `wp term recount category` + `wp cache flush`.
+8. Valider le rendu dans le navigateur (INF/PER/CTD + un nouveau préfixe).
+
+---
+
 ## Contexte
 
 Les scripts PHP réutilisables sont dans :
@@ -130,6 +199,11 @@ Pattern actuel : `/\[b(?:ib|vc|nv|rc)?\b[^\]]*\].*?\[\/b(?:ib|vc|nv|rc)?\]/is`
 (le `?` rend le suffixe optionnel, couvrant ainsi `[b]...[/b]` utilisé dans MIR et PRB)
 
 ## Assignation des catégories après migration
+
+> **⚠️ LOCAL uniquement.** Les `term_id` de cette section (452, 449, 445, 366, 367, 377…) sont
+> ceux de `schilo.local`. **Sur serveur (preprod/prod) ils sont différents ou faux** — voir la
+> section « ⚠️ Le mapping catégories … est LOCAL-SPÉCIFIQUE » en tête de fichier. Ne pas appliquer
+> ce mapping tel quel côté serveur ; en pratique aucune assignation manuelle n'y est nécessaire.
 
 ### Fonctionnement automatique
 `CategoryAssigner::assignCategoryOnSave()` se déclenche sur le hook `save_post`.
