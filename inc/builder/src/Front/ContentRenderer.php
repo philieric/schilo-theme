@@ -5,6 +5,7 @@ namespace Schilo\Builder\Front;
 use Schilo\Builder\Repository\SectionRepository;
 use Schilo\Builder\Service\ArticleTypeService;
 use Schilo\Builder\Service\SectionRenderer;
+use Schilo\Builder\Service\TemplateService;
 
 class ContentRenderer
 {
@@ -39,6 +40,27 @@ class ContentRenderer
         }
 
         $prefix = (new ArticleTypeService())->resolveType($postId);
+
+        // Ordre d'affichage : suit le template du prefixe (Schilo Builder >
+        // Types & templates) plutot que l'ordre stocke en base, pour que les
+        // sections apparaissent toujours dans l'ordre voulu meme si la meta a
+        // ete migree/enregistree dans un autre ordre (ex: bloc "Détails" en fin
+        // d'article). Tri par ancrage positionnel : ne desordonne jamais un
+        // article dont le template est incomplet.
+        $sectionTypes = array();
+        foreach ($sections as $section) {
+            $sectionTypes[] = $section->getType();
+        }
+        $order = (new TemplateService())->orderIndexesByTemplate($sectionTypes, $prefix);
+        $ordered = array();
+        foreach ($order as $origIndex) {
+            if (isset($sections[$origIndex])) {
+                $ordered[] = $sections[$origIndex];
+            }
+        }
+        if (!empty($ordered)) {
+            $sections = $ordered;
+        }
 
         // Couleur d'accent unique pour tout l'article : agrege les references
         // bibliques de toutes les sections, puis determine l'evangile dominant
