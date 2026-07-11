@@ -40,6 +40,7 @@ require_once SCHILO_DIR . '/inc/classes/class-schilo-security.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-meta.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-visitors.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-bible.php';
+require_once SCHILO_DIR . '/inc/classes/class-schilo-reflection.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-featured.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-search-suggest.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-translator.php';
