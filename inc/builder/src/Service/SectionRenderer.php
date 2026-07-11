@@ -60,6 +60,75 @@ class SectionRenderer
     }
 
     /**
+     * Indique si une section ne rend rien de visible et doit donc etre masquee
+     * (contenu + onglet). Reproduit la logique d'affichage de chaque vue de
+     * section : une valeur "structurelle" non affichee (image_id a 0, label ou
+     * classe d'un verset sans reference, tableau vide...) ne compte pas comme
+     * du contenu. Source unique de verite partagee par ContentRenderer (rendu)
+     * et single.php (onglets/statistiques) pour rester coherent.
+     */
+    public static function isSectionEmpty(Section $section)
+    {
+        if (trim((string) $section->getContent()) !== '') {
+            return false;
+        }
+
+        $type = sanitize_key($section->getType());
+        $data = $section->getData();
+
+        switch ($type) {
+            case 'details-techniques':
+                if ((isset($data['image_id']) ? (int) $data['image_id'] : 0) > 0) {
+                    return false;
+                }
+                $blocks = array();
+                foreach (array('blocks_before', 'blocks_after') as $key) {
+                    if (!empty($data[$key]) && is_array($data[$key])) {
+                        $blocks = array_merge($blocks, $data[$key]);
+                    }
+                }
+                foreach ($blocks as $block) {
+                    if (isset($block['content']) && trim((string) $block['content']) !== '') {
+                        return false;
+                    }
+                }
+                return true;
+
+            case 'image-textes':
+                // Le contenu (deja verifie vide ci-dessus) ou une image suffisent.
+                return (isset($data['image_id']) ? (int) $data['image_id'] : 0) <= 0;
+
+            case 'evangiles':
+                $versets = isset($data['versets']) && is_array($data['versets']) ? $data['versets'] : array();
+                foreach ($versets as $verset) {
+                    $reference = isset($verset['reference']) ? trim((string) $verset['reference']) : '';
+                    $label = isset($verset['label']) ? trim((string) $verset['label']) : '';
+                    if ($reference !== '' || $label !== '') {
+                        return false;
+                    }
+                }
+                return true;
+        }
+
+        // Types generiques a donnees libres : non vide des qu'une valeur scalaire
+        // affichable existe. Un identifiant numerique a 0 (*_id : "pas d'image")
+        // ne compte pas comme du contenu.
+        if (empty($data)) {
+            return true;
+        }
+        $hasValue = false;
+        array_walk_recursive($data, function ($val) use (&$hasValue) {
+            if (is_numeric($val) && (int) $val === 0) {
+                return;
+            }
+            if (trim((string) $val) !== '') {
+                $hasValue = true;
+            }
+        });
+        return !$hasValue;
+    }
+
+    /**
      * Compte les references bibliques d'une section par evangile (ou "bible"
      * pour les autres livres). Utilise par ContentRenderer pour agreger sur
      * l'ensemble des sections d'un article et determiner une couleur d'accent

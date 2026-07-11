@@ -105,19 +105,6 @@ class ContentRenderer
 
     private function isSectionEmpty(\Schilo\Builder\Entity\Section $section): bool
     {
-        if (trim($section->getContent()) !== '') {
-            return false;
-        }
-        $data = $section->getData();
-        if (empty($data)) {
-            return true;
-        }
-        $hasValue = false;
-        array_walk_recursive($data, function ($val) use (&$hasValue) {
-            if (trim((string) $val) !== '') {
-                $hasValue = true;
-            }
-        });
-        return !$hasValue;
+        return SectionRenderer::isSectionEmpty($section);
     }
 }
