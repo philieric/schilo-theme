@@ -6,6 +6,12 @@ jQuery(function ($) {
     var nonce = window.sclData.nonce;
     var ajaxUrl = window.sclData.ajaxUrl;
 
+    /* Overlay de traitement IA partagé (grisement + spinner). Gardes tolérantes
+       si l'asset ai-overlay.js n'était pas chargé, pour ne jamais casser l'action. */
+    function aiOverlayShow(msg) { if (window.SchiloAiOverlay) window.SchiloAiOverlay.show(msg); }
+    function aiOverlayUpdate(msg) { if (window.SchiloAiOverlay) window.SchiloAiOverlay.update(msg); }
+    function aiOverlayHide() { if (window.SchiloAiOverlay) window.SchiloAiOverlay.hide(); }
+
     function showFeedback($el, message, isError) {
         $el.text(message)
             .css('color', isError ? '#dc2626' : '#059669')
@@ -40,6 +46,7 @@ jQuery(function ($) {
 
         $btn.prop('disabled', true).text('Analyse en cours...');
         $box.hide();
+        aiOverlayShow('Classement IA en cours (' + provider + ')…');
 
         $.post(ajaxUrl, {
             action: 'schilo_classement_classify',
@@ -47,6 +54,7 @@ jQuery(function ($) {
             post_id: postId,
             provider: provider
         }).done(function (res) {
+            aiOverlayHide();
             $btn.prop('disabled', false).text('Classer via IA (suggestion)');
             if (!res.success) {
                 $box.html('<p style="color:#dc2626;">' + (res.data && res.data.message ? res.data.message : 'Erreur IA.') + '</p>').show();
@@ -63,6 +71,7 @@ jQuery(function ($) {
                 '<p>Ordre suggéré : ' + (s.ordre || 0) + '</p>'
             ).show();
         }).fail(function () {
+            aiOverlayHide();
             $btn.prop('disabled', false).text('Classer via IA (suggestion)');
             $box.html('<p style="color:#dc2626;">Erreur réseau.</p>').show();
         });
@@ -136,6 +145,7 @@ jQuery(function ($) {
         var $table = $('#scl-articles-table');
         $btn.prop('disabled', true);
         noticePersist($table, 'Classement en cours (' + ids.length + ' article(s))... ne fermez pas cette page.', false);
+        aiOverlayShow('Classement en lot (' + ids.length + ' article(s)) via ' + provider + '…');
 
         $.ajax({
             url: ajaxUrl,
@@ -148,6 +158,7 @@ jQuery(function ($) {
                 provider: provider
             }
         }).done(function (res) {
+            aiOverlayHide();
             $btn.prop('disabled', false);
             if (!res.success) {
                 noticePersist($table, (res.data && res.data.message) || 'Erreur batch.', true);
@@ -199,6 +210,7 @@ jQuery(function ($) {
             if (errList.length) msg += ' — ' + errList.length + ' erreur(s) : ' + errList.map(function (e) { return e.msg; }).join(' ; ');
             noticePersist($table, msg, errList.length > 0 && okIds.length === 0);
         }).fail(function () {
+            aiOverlayHide();
             $btn.prop('disabled', false);
             noticePersist($table, 'Erreur réseau.', true);
         });
@@ -272,6 +284,7 @@ jQuery(function ($) {
 
         function next(index) {
             if (index >= total) {
+                aiOverlayHide();
                 applyDescriptionMap(structure, descMap);
                 $feedback.hide();
                 renderCurationPreview(structure);
@@ -281,6 +294,7 @@ jQuery(function ($) {
 
             var batch = queue[index];
             showFeedback($feedback, 'Génération des descriptions… lot ' + (index + 1) + '/' + total + ' (' + (taxLabels[batch.tax] || batch.tax) + ')', false);
+            aiOverlayUpdate('Génération des descriptions… lot ' + (index + 1) + '/' + total + ' (' + (taxLabels[batch.tax] || batch.tax) + ')');
 
             $.ajax({
                 url: ajaxUrl,
@@ -295,6 +309,7 @@ jQuery(function ($) {
                 }
             }).done(function (res) {
                 if (!res.success) {
+                    aiOverlayHide();
                     $btn.prop('disabled', false);
                     showFeedback($feedback, 'Lot ' + (index + 1) + '/' + total + ' échoué : ' + ((res.data && res.data.message) || 'Erreur IA.'), true);
                     return;
@@ -305,6 +320,7 @@ jQuery(function ($) {
                 });
                 next(index + 1);
             }).fail(function () {
+                aiOverlayHide();
                 $btn.prop('disabled', false);
                 showFeedback($feedback, 'Erreur réseau au lot ' + (index + 1) + '/' + total + '.', true);
             });
@@ -321,6 +337,7 @@ jQuery(function ($) {
 
         $btn.prop('disabled', true);
         showFeedback($feedback, 'Récupération de la structure (parcours/thèmes/séries)...', false);
+        aiOverlayShow('Analyse de la structure (parcours/thèmes/séries) via ' + provider + '…');
         $preview.hide().empty();
 
         $.ajax({
@@ -330,12 +347,14 @@ jQuery(function ($) {
             data: { action: 'schilo_classement_propose_term_structure', nonce: nonce, provider: provider }
         }).done(function (res) {
             if (!res.success) {
+                aiOverlayHide();
                 $btn.prop('disabled', false);
                 showFeedback($feedback, (res.data && res.data.message) || 'Erreur IA.', true);
                 return;
             }
             runDescriptionBatches(res.data.structure || {}, provider, $btn, $feedback);
         }).fail(function () {
+            aiOverlayHide();
             $btn.prop('disabled', false);
             showFeedback($feedback, 'Erreur réseau (structure).', true);
         });

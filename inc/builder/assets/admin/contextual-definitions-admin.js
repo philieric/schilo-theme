@@ -1,7 +1,14 @@
 (function ($) {
     'use strict';
 
-    function suggestRow($button) {
+    /* Overlay de traitement IA partagé (grisement + spinner). Gardes tolérantes. */
+    function aiOverlayShow(msg) { if (window.SchiloAiOverlay) window.SchiloAiOverlay.show(msg); }
+    function aiOverlayUpdate(msg) { if (window.SchiloAiOverlay) window.SchiloAiOverlay.update(msg); }
+    function aiOverlayHide() { if (window.SchiloAiOverlay) window.SchiloAiOverlay.hide(); }
+
+    // manageOverlay : false quand appelé depuis « tout générer » (l'overlay est
+    // alors piloté en continu par le bouton global, avec sa propre progression).
+    function suggestRow($button, manageOverlay) {
         var $cell = $button.closest('td');
         var $textarea = $cell.find('textarea');
         var $feedback = $cell.find('.schilo-definition-ia-feedback');
@@ -9,6 +16,7 @@
 
         $button.prop('disabled', true);
         $feedback.text('Génération en cours…').css('color', '#2872d4');
+        if (manageOverlay !== false) aiOverlayShow('Génération des déclencheurs via IA…');
 
         $.ajax({
             url: schiloDefinitions.ajaxUrl,
@@ -22,6 +30,7 @@
                 existing_terms: $textarea.val()
             }
         }).done(function (response) {
+            if (manageOverlay !== false) aiOverlayHide();
             $button.prop('disabled', false);
             if (!response.success) {
                 $feedback.text((response.data && response.data.message) || 'Erreur IA.').css('color', '#dc2626');
@@ -42,6 +51,7 @@
             $feedback.text('Suggestions ajoutées — enregistrez pour les conserver.').css('color', '#15803d');
             deferred.resolve();
         }).fail(function () {
+            if (manageOverlay !== false) aiOverlayHide();
             $button.prop('disabled', false);
             $feedback.text('Erreur réseau.').css('color', '#dc2626');
             deferred.reject('Erreur réseau.');
@@ -66,9 +76,11 @@
 
         $globalButton.prop('disabled', true);
         $buttons.prop('disabled', true);
+        aiOverlayShow('Génération des déclencheurs IA… 1/' + total);
 
         function next(index) {
             if (index >= total) {
+                aiOverlayHide();
                 $globalButton.prop('disabled', false);
                 $buttons.prop('disabled', false);
                 $feedback
@@ -79,7 +91,8 @@
 
             $buttons.prop('disabled', true);
             $feedback.text('Génération ' + (index + 1) + '/' + total + '…').css('color', '#2872d4');
-            suggestRow($buttons.eq(index)).then(function () {
+            aiOverlayUpdate('Génération des déclencheurs IA… ' + (index + 1) + '/' + total);
+            suggestRow($buttons.eq(index), false).then(function () {
                 completed++;
                 next(index + 1);
             }, function () {

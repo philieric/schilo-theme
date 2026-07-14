@@ -166,6 +166,22 @@ class SettingsPage
             SCHILO_BUILDER_VERSION
         );
 
+        // Overlay de traitement IA partagé (grisement + spinner), disponible sur
+        // toutes les pages Schilo Builder ou l'IA peut generer quelque chose.
+        wp_enqueue_style(
+            'schilo-ai-overlay',
+            SCHILO_BUILDER_URL . 'assets/admin/ai-overlay.css',
+            array(),
+            SCHILO_BUILDER_VERSION
+        );
+        wp_enqueue_script(
+            'schilo-ai-overlay',
+            SCHILO_BUILDER_URL . 'assets/admin/ai-overlay.js',
+            array(),
+            SCHILO_BUILDER_VERSION,
+            true
+        );
+
         wp_enqueue_script(
             'schilo-builder-settings',
             SCHILO_BUILDER_URL . 'assets/admin/builder-settings.js',
@@ -212,7 +228,7 @@ class SettingsPage
             wp_enqueue_script(
                 'schilo-classement-admin',
                 SCHILO_BUILDER_URL . 'assets/admin/classement-admin.js',
-                array('jquery'),
+                array('jquery', 'schilo-ai-overlay'),
                 SCHILO_BUILDER_VERSION,
                 true
             );
@@ -232,10 +248,26 @@ class SettingsPage
             return;
         }
 
+        // Overlay de traitement IA partagé, hors pages Schilo Builder (l'ecran
+        // d'edition de categorie n'a pas le hook schilo-builder).
+        wp_enqueue_style(
+            'schilo-ai-overlay',
+            SCHILO_BUILDER_URL . 'assets/admin/ai-overlay.css',
+            array(),
+            SCHILO_BUILDER_VERSION
+        );
+        wp_enqueue_script(
+            'schilo-ai-overlay',
+            SCHILO_BUILDER_URL . 'assets/admin/ai-overlay.js',
+            array(),
+            SCHILO_BUILDER_VERSION,
+            true
+        );
+
         wp_enqueue_script(
             'schilo-category-ia',
             SCHILO_BUILDER_URL . 'assets/admin/category-ia.js',
-            array('jquery'),
+            array('jquery', 'schilo-ai-overlay'),
             SCHILO_BUILDER_VERSION,
             true
         );
