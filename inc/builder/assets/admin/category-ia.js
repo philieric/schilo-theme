@@ -19,6 +19,7 @@
         $button.on('click', function () {
             $button.prop('disabled', true);
             $status.text('Génération en cours…');
+            if (window.SchiloAiOverlay) window.SchiloAiOverlay.show('Génération de la description via IA…');
 
             $.ajax({
                 url: schiloCategoryIa.ajaxUrl,
@@ -40,6 +41,7 @@
             }).fail(function () {
                 $status.text('Erreur réseau, réessayez.');
             }).always(function () {
+                if (window.SchiloAiOverlay) window.SchiloAiOverlay.hide();
                 $button.prop('disabled', false);
             });
         });
