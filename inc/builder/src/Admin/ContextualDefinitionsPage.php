@@ -23,10 +23,27 @@ class ContextualDefinitionsPage
     public function enqueueAssets(string $hook): void
     {
         if (strpos($hook, 'schilo-builder-definitions') === false) return;
+
+        // Overlay de traitement IA partagé (idempotent : deja mis en file par
+        // SettingsPage sur les pages Builder, re-enqueue ici par securite d'ordre).
+        wp_enqueue_style(
+            'schilo-ai-overlay',
+            SCHILO_BUILDER_URL . 'assets/admin/ai-overlay.css',
+            array(),
+            SCHILO_BUILDER_VERSION
+        );
+        wp_enqueue_script(
+            'schilo-ai-overlay',
+            SCHILO_BUILDER_URL . 'assets/admin/ai-overlay.js',
+            array(),
+            SCHILO_BUILDER_VERSION,
+            true
+        );
+
         wp_enqueue_script(
             'schilo-contextual-definitions-admin',
             SCHILO_BUILDER_URL . 'assets/admin/contextual-definitions-admin.js',
-            array('jquery'),
+            array('jquery', 'schilo-ai-overlay'),
             SCHILO_BUILDER_VERSION,
             true
         );
