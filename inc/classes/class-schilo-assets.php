@@ -9,6 +9,8 @@ class Schilo_Assets {
     public static function init(): void {
         add_action( 'wp_enqueue_scripts',    [ __CLASS__, 'enqueue' ] );
         add_action( 'wp_enqueue_scripts',    [ __CLASS__, 'dequeue_blocks' ], 100 );
+        add_action( 'wp_enqueue_scripts',    [ __CLASS__, 'dequeue_usx_plugin_css' ], 100 );
+        add_filter( 'style_loader_tag',      [ __CLASS__, 'suppress_usx_plugin_css_tag' ], 10, 2 );
         add_action( 'admin_enqueue_scripts', [ __CLASS__, 'dequeue_gutenberg_admin' ], 100 );
         add_action( 'wp_head',               [ __CLASS__, 'enqueue_gtranslate_early' ], 1 );
         add_action( 'wp_footer',             [ __CLASS__, 'inject_gtranslate_widget' ], 5 );
@@ -175,6 +177,17 @@ class Schilo_Assets {
                 self::ver( $dir . '/assets/js/schilo-single.js' ),
                 true
             );
+
+            // Rendu visuel des éléments USX ([b]/[bib]/[bvc]/[brc]/[bnv]) —
+            // remplace assets/usx-bible-card.css du plugin (dequeue plus bas),
+            // le thème reste seul propriétaire du CSS. Logique du plugin
+            // (shortcodes, JS) non touchée.
+            wp_enqueue_style(
+                'schilo-usx',
+                SCHILO_ASSETS . '/css/usx-integration.css',
+                [ 'schilo-single' ],
+                self::ver( $dir . '/assets/css/usx-integration.css' )
+            );
         }
 
         if ( is_page_template( 'page-avancements.php' ) ) {
@@ -220,6 +233,29 @@ class Schilo_Assets {
                 true
             );
         }
+    }
+
+    /**
+     * Désactive le CSS propre du plugin USX Importer (assets/usx-bible-card.css,
+     * handle 'usx-bible-card') : le thème charge sa propre copie
+     * (assets/css/usx-integration.css, handle 'schilo-usx') pour rester seul
+     * propriétaire du rendu visuel. Ne touche à aucune logique du plugin
+     * (shortcodes, JS, requêtes) — voir usx-integration.css.
+     */
+    public static function dequeue_usx_plugin_css(): void {
+        wp_dequeue_style( 'usx-bible-card' );
+        wp_deregister_style( 'usx-bible-card' );
+    }
+
+    /**
+     * Filet de sécurité pour dequeue_usx_plugin_css() : le plugin enregistre
+     * son style pendant le rendu du contenu (déclenché par les shortcodes),
+     * un moment imprévisible qui peut survenir après wp_enqueue_scripts —
+     * un simple wp_dequeue_style() n'est alors plus suffisant. On supprime
+     * donc aussi la balise <link> elle-même si elle passe malgré tout.
+     */
+    public static function suppress_usx_plugin_css_tag( string $tag, string $handle ): string {
+        return $handle === 'usx-bible-card' ? '' : $tag;
     }
 
     /**
