@@ -22,11 +22,30 @@ class ContentFilter
             $content
         );
 
+        // Protéger aussi les tableaux [schilo_table id="X"] : leur rendu est un bloc
+        // <div class="sct-wrap"><table>…</table></div> que wpautop briserait.
+        $content = preg_replace_callback(
+            '/\[schilo_table\b[^\]]*\]/i',
+            function ($m) use (&$placeholders) {
+                $key = "\x02SC" . count($placeholders) . "\x03";
+                $placeholders[$key] = do_shortcode($m[0]);
+                return $key;
+            },
+            $content
+        );
+
         $content = wpautop($content);
 
         // Restaurer les shortcodes rendus après wpautop
         if (!empty($placeholders)) {
             $content = str_replace(array_keys($placeholders), array_values($placeholders), $content);
+            // Retirer le <p> que wpautop a posé autour du bloc tableau (div/table dans
+            // un <p> = HTML invalide).
+            $content = preg_replace(
+                '#<p>\s*(<div class="sct-wrap">.*?</div>)\s*</p>#is',
+                '$1',
+                $content
+            );
         }
 
         return wp_kses_post($content);
