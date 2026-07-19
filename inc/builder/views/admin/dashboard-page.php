@@ -2,6 +2,7 @@
 /** @var int $prefixCount */
 /** @var int $activeSectionCount */
 /** @var int $sectionCount */
+/** @var int $bibleVersionCount */
 ?>
 
 <div class="wrap schilo-builder-settings schilo-dashboard">
@@ -79,6 +80,13 @@
             <h2>Grille cat&eacute;gories</h2>
             <p>Shortcode <code>[mcg_grid]</code> &mdash; grille d&rsquo;articles avec filtres, tri et pagination AJAX.</p>
             <strong>Disponible</strong>
+        </a>
+
+        <a class="schilo-dashboard-card" href="<?php echo esc_url(admin_url('admin.php?page=usx-importer')); ?>">
+            <span class="dashicons dashicons-book"></span>
+            <h2>Bibles (USX)</h2>
+            <p>Importer une version biblique (fichiers USX), g&eacute;rer les livres et leurs m&eacute;tadonn&eacute;es.</p>
+            <strong><?php echo esc_html($bibleVersionCount); ?> version(s) import&eacute;e(s)</strong>
         </a>
     </div>
 </div>
