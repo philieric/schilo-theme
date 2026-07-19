@@ -29,6 +29,7 @@ class Schilo_Usx_Integration {
 		require_once $dir . 'class-schilo-usx-shortcodes.php';
 		require_once $dir . 'class-schilo-usx-version-switcher.php';
 		require_once $dir . 'class-schilo-usx-popup.php';
+		require_once $dir . 'class-schilo-usx-meta-tags.php';
 
 		Schilo_Usx_Shortcodes::register();
 
@@ -37,6 +38,8 @@ class Schilo_Usx_Integration {
 		// plugin d'origine (USX_Plugin::init()).
 		Schilo_Usx_Version_Switcher_Buttons::instance();
 		new Schilo_Usx_Version_Switcher_Global();
+
+		Schilo_Usx_Meta_Tags::init();
 	}
 
 	/**
