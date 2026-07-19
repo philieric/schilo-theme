@@ -27,8 +27,12 @@ final class Schilo_Usx_Popup {
 		<div class="bible-overlay"></div>
 		<div class="bible-popup">
 			<div class="popup-header">
-				<span class="popup-ref"></span>
-				<span class="close-btn">✖</span>
+				<span class="popup-code"></span>
+				<div>
+					<span class="popup-eyebrow">Référence biblique</span>
+					<h2 class="popup-ref"></h2>
+				</div>
+				<button type="button" class="close-btn" aria-label="Fermer">✖</button>
 			</div>
 			<div class="popup-content"></div>
 			<div class="popup-footer">
@@ -40,6 +44,7 @@ final class Schilo_Usx_Popup {
 		document.addEventListener('DOMContentLoaded', () => {
 			const overlay = document.querySelector('.bible-overlay');
 			const popup = document.querySelector('.bible-popup');
+			const codeEl = popup.querySelector('.popup-code');
 			const refEl = popup.querySelector('.popup-ref');
 			const contentEl = popup.querySelector('.popup-content');
 			const copyEl = popup.querySelector('.copyright');
@@ -47,17 +52,18 @@ final class Schilo_Usx_Popup {
 			let hoverTimeout; let isOpen = false;
 
 			function showPopup(el) {
+				codeEl.textContent = el.dataset.versionCode || '';
 				refEl.textContent = el.dataset.ref;
 				contentEl.innerHTML = el.dataset.content;
 				copyEl.textContent = el.dataset.copyright || 'Copyright';
-				overlay.style.display = 'block';
-				popup.style.display = 'block';
+				overlay.classList.add('is-open');
+				popup.classList.add('is-open');
 				isOpen = true;
 			}
 
 			function hidePopup() {
-				popup.style.display = 'none';
-				overlay.style.display = 'none';
+				popup.classList.remove('is-open');
+				overlay.classList.remove('is-open');
 				isOpen = false;
 			}
 

@@ -190,8 +190,9 @@
         return;
       }
 
-      // retrouver le conteneur de popup pour maj ref + copyright
+      // retrouver le conteneur de popup pour maj code + ref + copyright
       const popupRoot = btn.closest('.bible-popup') || document.querySelector('.bible-popup');
+      const codeEl = popupRoot ? qs(popupRoot, '.popup-code') : null;
       const refEl = popupRoot ? qs(popupRoot, '.popup-ref') : null;
       const copyrightEl = popupRoot ? qs(popupRoot, '.copyright') : null;
 
@@ -211,16 +212,18 @@
           version: version
         });
 
-        // Réponse attendue: { success:true, data:{ref, verses_html, copyright} }
+        // Réponse attendue: { success:true, data:{ref, versionCode, verses_html, copyright} }
         if (!data || !data.success || !data.data) {
           err('POPUP invalid response', data);
           return;
         }
 
         const ref = (data.data.ref || '').toString();
+        const versionCode = (data.data.versionCode || '').toString();
         const versesHtml = (data.data.verses_html || '').toString();
         const copyright = (data.data.copyright || '').toString();
 
+        if (codeEl) codeEl.textContent = versionCode;
         if (refEl && ref) refEl.textContent = ref;
         if (versesHtml) versesZone.innerHTML = versesHtml;
         //if (copyrightEl && copyright) copyrightEl.textContent = copyright;

@@ -138,16 +138,8 @@ final class Schilo_Usx_Shortcodes {
 		if ( isset( $data['error'] ) ) {
 			return $data['error'];
 		}
-		extract( $data ); // Crée $version, $book, $chapterRow, $verses, $reference, $bookTitle, $chapter, $verseStart, $verseEnd, $copyright
+		extract( $data ); // Crée $version, $book, $chapterRow, $verses, $bookTitle, $chapter, $verseStart, $verseEnd, $copyright
 
-		$reference = sprintf(
-			'%s %d.%d%s – %s',
-			$bookTitle,
-			$chapter,
-			$verseStart,
-			( $verseEnd > $verseStart ? '-' . $verseEnd : '' ),
-			$version->name
-		);
 		$copyright_text = Schilo_Usx_Bible_Lookup::get_version_copyright( (int) $version->id );
 
 		$verses_html = '';
@@ -175,8 +167,10 @@ final class Schilo_Usx_Shortcodes {
 		$popup_content .= '</div>';
 		$popup_content .= '</div>';
 
-		$output  = '<span class="bible-ref" data-content="' . esc_attr( $popup_content ) . '" data-ref="' . esc_attr( $reference ) . '" data-copyright="' . esc_attr( $copyright_text ) . '">';
-		$output .= esc_html( $bookTitle . ' ' . $chapter . '.' . $verseStart . ( $verseEnd > $verseStart ? '-' . $verseEnd : '' ) );
+		$ref_text = $bookTitle . ' ' . $chapter . '.' . $verseStart . ( $verseEnd > $verseStart ? '-' . $verseEnd : '' );
+
+		$output  = '<span class="bible-ref" data-content="' . esc_attr( $popup_content ) . '" data-ref="' . esc_attr( $ref_text ) . '" data-version-code="' . esc_attr( $version->code ) . '" data-copyright="' . esc_attr( $copyright_text ) . '">';
+		$output .= esc_html( $ref_text );
 		$output .= '</span>';
 
 		add_action( 'wp_footer', [ 'Schilo_Usx_Popup', 'inject_popup_script' ] );

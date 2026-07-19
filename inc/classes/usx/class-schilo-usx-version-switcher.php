@@ -295,6 +295,8 @@ final class Schilo_Usx_Version_Switcher_Buttons {
 			$ref = isset( $parts['ref'] ) ? trim( (string) $parts['ref'] ) : '';
 			$ver = isset( $_POST['version'] ) ? sanitize_text_field( (string) $_POST['version'] ) : '';
 
+			// Badge de version affiché séparément de la référence (pas concaténé
+			// dans le texte) — voir Schilo_Usx_Popup pour le rendu .popup-code.
 			$ver_label = $ver;
 			if ( $ver_label === '' ) {
 				$ver_label = $this->get_default_version_code();
@@ -302,14 +304,16 @@ final class Schilo_Usx_Version_Switcher_Buttons {
 				$ver_label = 'Toutes';
 			}
 
+			// Filet de sécurité : retire un éventuel suffixe " – XXX" hérité
+			// d'anciennes données, la référence extraite ne devrait plus en avoir.
 			if ( $ref !== '' ) {
-				$base_ref     = preg_replace( '/\s+[–-]\s+.+$/u', '', $ref );
-				$parts['ref'] = trim( $base_ref ) . ' – ' . $ver_label;
+				$parts['ref'] = trim( preg_replace( '/\s+[–-]\s+.+$/u', '', $ref ) );
 			}
 
 			wp_send_json_success(
 				[
 					'ref'         => $parts['ref'],
+					'versionCode' => $ver_label,
 					'verses_html' => $parts['verses_html'],
 					'copyright'   => $parts['copyright'],
 				]
