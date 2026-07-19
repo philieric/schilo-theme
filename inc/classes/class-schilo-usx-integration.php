@@ -3,11 +3,12 @@
  * Bootstrap du portage USX (voir inc/classes/usx/) : quand le plugin
  * Usx-import est désactivé, le thème prend le relais pour le rendu
  * public des références bibliques ([b]/[bib]/[bvc]/[brc]/[bnv],
- * boutons de version, popup) — logique lue en direct dans les tables
- * wp_usx_* du plugin, sans dépendre de son code PHP.
+ * boutons de version, popup) ET pour l'admin (import de fichiers USX,
+ * gestion des versions/livres, métadonnées) — logique lue et écrite en
+ * direct dans les tables wp_usx_* du plugin, sans dépendre de son code PHP.
  *
  * Si le plugin est actif, cette classe ne fait rien : il garde la main
- * comme avant, aucun risque de double enregistrement des shortcodes/AJAX.
+ * comme avant, aucun risque de double enregistrement des shortcodes/AJAX/menus.
  */
 defined( 'ABSPATH' ) || exit;
 
@@ -44,6 +45,16 @@ class Schilo_Usx_Integration {
 		if ( is_admin() ) {
 			require_once $dir . 'class-schilo-usx-table-creator.php';
 			add_action( 'admin_init', [ 'Schilo_Usx_Table_Creator', 'maybe_upgrade' ] );
+
+			require_once $dir . 'class-schilo-usx-verset-processor.php';
+			require_once $dir . 'class-schilo-usx-display-admin.php';
+			require_once $dir . 'class-schilo-usx-version-meta-admin.php';
+			require_once $dir . 'class-schilo-usx-importer.php';
+
+			// Le constructeur enregistre le menu "Import USX" + les
+			// filtres upload_mimes/user_has_cap — même pattern que le
+			// plugin d'origine (register_menu() sur admin_menu, etc.).
+			Schilo_Usx_Importer::init();
 		}
 	}
 
