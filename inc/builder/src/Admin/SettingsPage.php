@@ -390,8 +390,25 @@ class SettingsPage
         $sectionService = new SectionTypeService();
         $sectionCount = count($sectionService->getAllTypes());
         $activeSectionCount = count($sectionService->getActiveTypes());
+        $bibleVersionCount = $this->getBibleVersionCount();
 
         include SCHILO_BUILDER_PATH . 'views/admin/dashboard-page.php';
+    }
+
+    /**
+     * Nombre de versions bibliques importées (table wp_usx_versions du
+     * plugin Usx-import, lue en direct — même convention que
+     * Schilo_Bible/Schilo_Usx_Bible_Lookup, indépendante de l'activation
+     * du plugin).
+     */
+    private function getBibleVersionCount()
+    {
+        global $wpdb;
+        $table = $wpdb->prefix . 'usx_versions';
+        if ($wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) !== $table) {
+            return 0;
+        }
+        return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
     }
 
     public function renderPrefixCategoriesPage()
