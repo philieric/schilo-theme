@@ -1,0 +1,495 @@
+/* ============================================================
+   usx-integration.css — Intégration du plugin USX Importer
+   Le thème est propriétaire de tout le rendu visuel des éléments
+   USX (références bibliques [b]/[bib], cartes [bvc]/[brc]/[bnv],
+   popup, boutons de version) : ce fichier remplace entièrement
+   assets/usx-bible-card.css du plugin, désactivé côté thème
+   (voir Schilo_Assets::dequeue_usx_plugin_css()).
+
+   Règle du thème : ne jamais modifier la logique du plugin
+   (shortcodes, JS, requêtes), uniquement son rendu visuel — le
+   HTML généré par le plugin garde exactement les mêmes classes,
+   seul ce fichier en pilote l'apparence.
+   ============================================================ */
+:root {
+  --usx-bg:               var(--schilo-bg-muted,    #f4f6f9);
+  --usx-card:             var(--schilo-bg-card,      #ffffff);
+  --usx-border:           var(--schilo-border,       #dde2ea);
+  --usx-text:             var(--schilo-text-primary, #1a2230);
+  --usx-muted:            var(--schilo-text-muted,   #8a96a8);
+  --usx-accent:           var(--schilo-accent,       #2872d4);
+  --usx-accent-dark:      var(--schilo-accent-dark,  #0e3f88);
+  --usx-radius:           var(--schilo-radius-lg,    14px);
+  --usx-shadow:           var(--schilo-shadow-md,    0 4px 12px rgba(0,0,0,.08));
+  --usx-font-sans:        var(--schilo-font-sans,    'Inter', sans-serif);
+  --usx-font-serif:       var(--schilo-font-serif,   'Lora', Georgia, serif);
+
+  /* Tailles alignées sur la base 15px du thème */
+  --usx-ref-size:          1.1rem;
+  --usx-ref-weight:        600;
+  --usx-version-size:      .75rem;
+  --usx-version-weight:    600;
+  --usx-container-size:    15px;
+  --usx-container-line:    1.78;
+  --usx-version-size-copyright: 11px;
+}
+
+/* ============================================================
+   [bib] / [b] : lien inline vers popup
+   Fallback générique — dans .schilo-section-content et
+   .schilo-evangile-reference (articles migrés Schilo Builder),
+   single.css prend le relais avec un style "pastille" colorée
+   par évangile, plus spécifique donc prioritaire en cascade.
+   ============================================================ */
+.bible-ref {
+  display: inline;           /* inline strict — évite les sauts de ligne */
+  cursor: pointer;
+  color: var(--usx-accent);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  font-weight: 600;
+  font-family: var(--usx-font-sans);
+  transition: color .15s ease, opacity .15s ease;
+}
+
+.bible-ref:hover { opacity: .8; }
+
+/* Popup verso */
+.popup-verse {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--usx-border);
+  line-height: var(--usx-container-line);
+  color: var(--usx-text);
+  font-size: var(--usx-container-size);
+  font-family: var(--usx-font-sans);
+}
+.popup-verse:last-child { border-bottom: none; }
+
+/* ============================================================
+   Overlay + Popup (modal centrée)
+   ============================================================ */
+.usx-popup-overlay,
+.bible-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 20, 40, .52);
+  z-index: 99998;
+  backdrop-filter: blur(2px);
+}
+
+.usx-popup,
+.bible-popup {
+  position: fixed;
+  left: 50%;
+  top: 8%;
+  transform: translateX(-50%);
+  width: min(680px, calc(100% - 24px));
+  background: var(--usx-card);
+  border: 1px solid var(--usx-border);
+  border-radius: var(--usx-radius);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .18);
+  z-index: 99999;
+  overflow: hidden;
+  font-family: var(--usx-font-sans);
+}
+
+.popup-header {
+  padding: .9rem 1.25rem .75rem;
+  border-bottom: 1px solid var(--usx-border);
+}
+
+.popup-header .popup-ref {
+  font-size: var(--usx-ref-size);
+  font-weight: var(--usx-ref-weight);
+  color: var(--usx-text);
+  font-family: var(--usx-font-serif);
+}
+
+/* ============================================================
+   [bvc] — carte verset complète
+   ============================================================ */
+.bvc-container {
+  border-radius: var(--usx-radius);
+  padding: 12px 14px 10px;
+  margin: 0;
+  font-family: var(--usx-font-sans);
+}
+
+.bvc-container .bvc-title {
+  margin: 0 0 8px;
+  font-size: var(--usx-ref-size);
+  color: var(--usx-text);
+  font-weight: var(--usx-ref-weight);
+  font-family: var(--usx-font-serif);
+}
+
+.bvc-container .bvc-verset {
+  margin: 0 0 8px;
+  line-height: var(--usx-container-line);
+  color: var(--usx-text);
+  font-size: var(--usx-container-size);
+}
+
+.bvc-container .bvc-verset sup {
+  font-size: .7rem;
+  color: var(--usx-muted);
+  font-weight: 700;
+  margin-right: 3px;
+}
+
+.bvc-container p {
+  font-size: var(--usx-container-size);
+  line-height: var(--usx-container-line);
+}
+
+.bvc-container .bvc-traduction {
+  margin: 8px 0 0;
+  padding-top: 8px;
+  border-top: 1px dashed var(--usx-border);
+  color: var(--usx-muted);
+  font-style: italic;
+  font-size: 13px;
+}
+
+.usx-bvc-header .usx-bvc-ref {
+  font-size: var(--usx-ref-size);
+  font-weight: var(--usx-ref-weight);
+  font-family: var(--usx-font-serif);
+}
+
+.usx-bvc-header .usx-bvc-version {
+  font-size: var(--usx-version-size);
+  font-weight: var(--usx-version-weight);
+  color: var(--usx-muted);
+}
+
+.usx-bvc-copyright {
+  color: var(--usx-muted);
+  font-size: var(--usx-version-size-copyright);
+  font-style: italic;
+}
+
+.usx-bvc-line { margin-bottom: 0; }
+
+/* ============================================================
+   [brc] — base + couleurs RVBJM
+   ============================================================ */
+.brc-container {
+  background: var(--schilo-accent-pale, #e2eefb);
+  padding: 12px 14px;
+  margin: 0;
+  width: 100%;
+  border-radius: var(--usx-radius);
+  border: 1px solid rgba(40, 114, 212, .2);
+  font-family: var(--usx-font-sans);
+}
+
+/* Rouge — Matthieu */
+.brc-container.citation-matthieu {
+  background: var(--schilo-mat-pale, #f9ded4);
+  border-color: var(--schilo-mat-border, #e8a080);
+}
+.brc-container.citation-matthieu .usx-brc-ref { color: var(--schilo-mat-dark, #7a2808); }
+
+/* Vert — Marc */
+.brc-container.citation-marc {
+  background: var(--schilo-marc-pale, #cdefd8);
+  border-color: var(--schilo-marc-border, #80cc98);
+}
+.brc-container.citation-marc .usx-brc-ref { color: var(--schilo-marc-dark, #0e5a28); }
+
+/* Bleu — Luc */
+.brc-container.citation-luc {
+  background: var(--schilo-luc-pale, #c8dff8);
+  border-color: var(--schilo-luc-border, #80b0e8);
+}
+.brc-container.citation-luc .usx-brc-ref { color: var(--schilo-luc-dark, #0e3f88); }
+
+/* Jaune — Jean */
+.brc-container.citation-jean {
+  background: var(--schilo-jean-pale, #fff8d6);
+  border-color: var(--schilo-jean-border, #e8cc80);
+}
+.brc-container.citation-jean .usx-brc-ref { color: var(--schilo-jean-dark, #7a5a00); }
+
+/* Mauve — Reste de la Bible */
+.brc-container.citation-bible {
+  background: var(--schilo-bible-pale, #ede0f8);
+  border-color: var(--schilo-bible-border, #c0a0e0);
+}
+.brc-container.citation-bible .usx-brc-ref { color: var(--schilo-bible-dark, #4a1878); }
+
+.brc-container .usx-brc-ref,
+.brc-container .brc-title {
+  font-weight: 600;
+  color: var(--usx-accent-dark);
+  margin: 0 0 6px;
+  font-family: var(--usx-font-serif);
+}
+
+.brc-container p {
+  font-size: var(--usx-container-size);
+  line-height: var(--usx-container-line);
+}
+
+.brc-container .usx-brc-version,
+.brc-container .brc-traduction {
+  font-style: italic;
+  font-weight: 600;
+  color: var(--usx-muted);
+  font-size: 13px;
+}
+
+.brc-container .brc-verset {
+  font-size: var(--usx-container-size);
+  line-height: var(--usx-container-line);
+  color: var(--usx-text);
+  margin: 0 0 8px;
+}
+
+.usx-bvc-header .usx-brc-ref {
+  font-size: var(--usx-ref-size);
+  font-weight: var(--usx-ref-weight);
+}
+
+.usx-bvc-header .usx-brc-version {
+  font-size: var(--usx-version-size);
+  font-weight: var(--usx-version-weight);
+}
+
+.usx-brc-copyright {
+  color: var(--usx-muted);
+  font-size: var(--usx-version-size-copyright);
+  font-style: italic;
+}
+
+/* ============================================================
+   [bnv] — nom de livre sans verset
+   ============================================================ */
+.bnv-container {
+  border-radius: var(--usx-radius);
+  padding: 10px 14px;
+  margin: 0;
+  font-family: var(--usx-font-sans);
+}
+
+.bnv-container h3 {
+  margin: 0 0 6px;
+  font-size: var(--usx-ref-size);
+  font-weight: var(--usx-ref-weight);
+  color: var(--usx-text);
+  font-family: var(--usx-font-serif);
+}
+
+.bnv-container #pas-de-versets {
+  margin: 4px 0 8px;
+  color: var(--usx-muted);
+  font-style: italic;
+  font-size: 13px;
+}
+
+.bnv-container em {
+  color: var(--usx-muted);
+  font-style: italic;
+  font-size: 13px;
+}
+
+.usx-bnv .usx-bnv-ref {
+  font-size: var(--usx-ref-size);
+  font-weight: var(--usx-ref-weight);
+  font-family: var(--usx-font-serif);
+}
+
+.usx-bnv .usx-bnv-version {
+  font-size: var(--usx-version-size);
+  font-weight: var(--usx-version-weight);
+  color: var(--usx-muted);
+}
+
+/* ============================================================
+   Boutons de version (Défaut / S21 / COL / DRB…)
+   ============================================================ */
+.usx-version-switcher .usxv-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.usx-version-switcher .usxv-btn {
+  background: var(--schilo-bg-muted, #f4f6f9);
+  border: 1px solid var(--schilo-border, #dde2ea);
+  color: var(--schilo-text-secondary, #556070);
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: var(--usx-font-sans);
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.usx-version-switcher .usxv-btn:hover {
+  background: var(--schilo-accent-pale, #e2eefb);
+  border-color: rgba(40, 114, 212, .3);
+  color: var(--schilo-accent-dark, #0e3f88);
+}
+
+.usx-version-switcher .usxv-btn.is-active {
+  background: var(--usx-accent);
+  color: #fff;
+  border-color: var(--usx-accent);
+  padding-right: 22px;
+  position: relative;
+}
+
+.usx-version-switcher .usxv-btn.is-active::after {
+  content: "✓";
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.usx-version-switcher .usxv-btn:active { transform: scale(.97); }
+
+/* ── Couleur active selon le livre évangéliste ────────────────── */
+.citation-matthieu .usxv-btn:hover {
+  background: var(--schilo-mat-pale, #f9ded4);
+  border-color: var(--schilo-mat-border, #e8a080);
+  color: var(--schilo-mat-dark, #7a2808);
+}
+.citation-matthieu .usxv-btn.is-active {
+  background: var(--schilo-mat, #e05a2b);
+  border-color: var(--schilo-mat, #e05a2b);
+}
+
+.citation-marc .usxv-btn:hover {
+  background: var(--schilo-marc-pale, #cdefd8);
+  border-color: var(--schilo-marc-border, #80cc98);
+  color: var(--schilo-marc-dark, #0e5a28);
+}
+.citation-marc .usxv-btn.is-active {
+  background: var(--schilo-marc, #2e9e4f);
+  border-color: var(--schilo-marc, #2e9e4f);
+}
+
+.citation-luc .usxv-btn:hover {
+  background: var(--schilo-luc-pale, #c8dff8);
+  border-color: var(--schilo-luc-border, #80b0e8);
+  color: var(--schilo-luc-dark, #0e3f88);
+}
+.citation-luc .usxv-btn.is-active {
+  background: var(--schilo-luc, #2872d4);
+  border-color: var(--schilo-luc, #2872d4);
+}
+
+.citation-jean .usxv-btn:hover {
+  background: var(--schilo-jean-pale, #fff8d6);
+  border-color: var(--schilo-jean-border, #e8cc80);
+  color: var(--schilo-jean-dark, #7a5a00);
+}
+.citation-jean .usxv-btn.is-active {
+  background: var(--schilo-jean, #d4a017);
+  border-color: var(--schilo-jean, #d4a017);
+}
+
+.citation-bible .usxv-btn:hover {
+  background: var(--schilo-bible-pale, #ede0f8);
+  border-color: var(--schilo-bible-border, #c0a0e0);
+  color: var(--schilo-bible-dark, #4a1878);
+}
+.citation-bible .usxv-btn.is-active {
+  background: var(--schilo-bible, #7c4db8);
+  border-color: var(--schilo-bible, #7c4db8);
+}
+
+/* Boutons dans la popup */
+.bible-popup .usxv-toolbar,
+.usx-popup .usxv-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.bible-popup .usxv-btn,
+.usx-popup .usxv-btn {
+  background: var(--schilo-bg-muted, #f4f6f9);
+  border: 1px solid var(--schilo-border, #dde2ea);
+  color: var(--schilo-text-secondary, #556070);
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: var(--usx-font-sans);
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.bible-popup .usxv-btn:hover,
+.usx-popup .usxv-btn:hover {
+  background: var(--schilo-accent-pale, #e2eefb);
+  border-color: rgba(40,114,212,.3);
+  color: var(--schilo-accent-dark, #0e3f88);
+}
+
+.bible-popup .usxv-btn.is-active,
+.usx-popup .usxv-btn.is-active {
+  background: var(--usx-accent);
+  color: #fff;
+  border-color: var(--usx-accent);
+  padding-right: 22px;
+  position: relative;
+}
+
+.bible-popup .usxv-btn.is-active::after,
+.usx-popup .usxv-btn.is-active::after {
+  content: "✓";
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.bible-popup .usxv-btn:active,
+.usx-popup .usxv-btn:active { transform: scale(.97); }
+
+/* ============================================================
+   Barre de version globale (#usx-global-version-switcher) —
+   générée en HTML avec des styles inline par le plugin
+   (USX_Version_Switcher_Global::render_global_bar). On ne peut
+   pas retirer ces styles inline sans toucher au plugin ; on les
+   surcharge donc avec !important pour rester cohérent avec la
+   charte graphique du thème.
+   ============================================================ */
+#usx-global-version-switcher.usx-version-bar {
+  display: flex !important;
+  gap: 6px !important;
+  margin: 14px 0 !important;
+  padding: 10px 0 6px !important;
+  border-bottom: 1px solid var(--usx-border) !important;
+  font-family: var(--usx-font-sans);
+}
+
+#usx-global-version-switcher .usxv-status {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--usx-muted);
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 600px) {
+  .bvc-container,
+  .brc-container,
+  .bnv-container { padding: 10px 12px; }
+}
