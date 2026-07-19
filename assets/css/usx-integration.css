@@ -67,10 +67,13 @@
 .popup-verse:last-child { border-bottom: none; }
 
 /* ============================================================
-   Overlay + Popup (modal centrée)
+   Overlay + Popup (modal centrée) — classes réellement générées par
+   Schilo_Usx_Popup::inject_popup_script() (.bible-overlay/.bible-popup,
+   pas .usx-popup*/.bible-popup-overlay qui ne correspondent à aucun
+   élément du DOM).
    ============================================================ */
-.usx-popup-overlay,
-.bible-popup-overlay {
+.bible-overlay {
+  display: none;
   position: fixed;
   inset: 0;
   background: rgba(10, 20, 40, .52);
@@ -78,14 +81,16 @@
   backdrop-filter: blur(2px);
 }
 
-.usx-popup,
 .bible-popup {
+  display: none;
   position: fixed;
   left: 50%;
   top: 8%;
   transform: translateX(-50%);
   width: min(680px, calc(100% - 24px));
+  max-height: 80vh;
   background: var(--usx-card);
+  color: var(--usx-text);
   border: 1px solid var(--usx-border);
   border-radius: var(--usx-radius);
   box-shadow: 0 20px 60px rgba(0, 0, 0, .18);
@@ -95,8 +100,15 @@
 }
 
 .popup-header {
+  position: sticky;
+  top: 0;
+  background: var(--usx-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: .9rem 1.25rem .75rem;
   border-bottom: 1px solid var(--usx-border);
+  z-index: 2;
 }
 
 .popup-header .popup-ref {
@@ -104,6 +116,39 @@
   font-weight: var(--usx-ref-weight);
   color: var(--usx-text);
   font-family: var(--usx-font-serif);
+}
+
+.popup-header .close-btn {
+  cursor: pointer;
+  color: var(--usx-muted);
+  font-size: 16px;
+  margin-left: 12px;
+  transition: color .15s ease;
+}
+.popup-header .close-btn:hover { color: var(--usx-text); }
+
+.popup-content {
+  padding: 15px 22px;
+  overflow-y: auto;
+  max-height: calc(80vh - 120px);
+}
+
+.popup-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--usx-card);
+  padding: 10px 18px;
+  border-top: 1px solid var(--usx-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: .9em;
+  z-index: 2;
+}
+.popup-footer .copyright {
+  color: var(--usx-muted);
+  font-size: var(--usx-version-size-copyright);
+  font-style: italic;
 }
 
 /* ============================================================
