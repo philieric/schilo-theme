@@ -752,3 +752,38 @@ body.schilo-modal-open {
 .schilo-sidebar-theme-tag--luc      { background: var(--schilo-luc-pale, #c8d0f0); border-color: var(--schilo-luc, #0a137e); color: var(--schilo-luc-dark, #060c55); }
 .schilo-sidebar-theme-tag--jean     { background: var(--schilo-jean-pale, #f0ecc0); border-color: var(--schilo-jean, #484204); color: var(--schilo-jean-dark, #2e2a02); }
 .schilo-sidebar-theme-tag--bible    { background: #ede0f8; border-color: #6d3fc0; color: #4a1878; }
+
+/* ---- Onglets de filtre par axe (Parcours / Thèmes / Séries) ---- */
+.schilo-axe-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: 1.75rem;
+}
+.schilo-axe-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .5rem .95rem;
+  border: 1px solid var(--schilo-border, #e2e8f0);
+  border-radius: 999px;
+  background: var(--schilo-bg-card, #fff);
+  color: var(--schilo-text-secondary, #64748b);
+  font-size: .9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color .15s, color .15s, background .15s, box-shadow .15s;
+}
+.schilo-axe-tab:hover {
+  border-color: var(--schilo-accent, #2872d4);
+  color: var(--schilo-accent, #2872d4);
+}
+.schilo-axe-tab.is-active {
+  background: var(--schilo-accent, #2872d4);
+  border-color: var(--schilo-accent, #2872d4);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(40, 114, 212, .18);
+}
+.schilo-axe-tab.is-active:hover {
+  color: #fff;
+}
