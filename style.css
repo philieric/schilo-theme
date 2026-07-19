@@ -4,7 +4,7 @@ Theme URI:   https://schilo.org
 Author:      Schilo.org
 Author URI:  https://schilo.org
 Description: Thème principal de Schilo.org — site d'étude biblique structuré autour des quatre Évangiles. Design moderne, épuré et professionnel. Conçu pour fonctionner avec le plugin Schilo Builder.
-Version:     1.9.4
+Version:     1.9.5
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
@@ -66,6 +66,13 @@ GitHub Branch: master
   --schilo-jean-pale:   #f0ecc0;
   --schilo-jean-bg:     #fffff1;
   --schilo-jean-border: #c8c080;
+
+  /* Reste de la Bible (references hors Evangiles, ex. [brc]/[bvc]) */
+  --schilo-bible:        #7c4db8;
+  --schilo-bible-dark:   #4a1878;
+  --schilo-bible-pale:   #ede0f8;
+  --schilo-bible-bg:     #faf6ff;
+  --schilo-bible-border: #c0a0e0;
 
   /* Typographie */
   --schilo-font-sans:   'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
