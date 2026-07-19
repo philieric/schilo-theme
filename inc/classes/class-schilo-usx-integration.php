@@ -40,6 +40,11 @@ class Schilo_Usx_Integration {
 		new Schilo_Usx_Version_Switcher_Global();
 
 		Schilo_Usx_Meta_Tags::init();
+
+		if ( is_admin() ) {
+			require_once $dir . 'class-schilo-usx-table-creator.php';
+			add_action( 'admin_init', [ 'Schilo_Usx_Table_Creator', 'maybe_upgrade' ] );
+		}
 	}
 
 	/**
