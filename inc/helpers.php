@@ -68,6 +68,100 @@ function schilo_strip_category_number( string $name ): string {
 }
 
 /**
+ * URL de la page « Parcours, thèmes & séries » (template page-parcours.php),
+ * qui liste les trois axes de classement Schilo Builder.
+ *
+ * Trouve la page existante (par template, puis par slug) et, si aucune n'existe,
+ * la crée automatiquement — pour rester portable d'un environnement à l'autre
+ * (local → préprod → prod) sans réglage manuel. L'ID est mis en cache dans une
+ * option pour éviter toute recherche/création répétée. À défaut, replie sur le
+ * plan du site.
+ *
+ * @param string $axe Optionnel : 'parcours', 'theme' ou 'serie' pour n'afficher
+ *                     que cet axe (ajoute ?axe=… à l'URL).
+ */
+function schilo_parcours_index_url( string $axe = '' ): string {
+    $base = schilo_parcours_index_base_url();
+
+    $axe = sanitize_key( $axe );
+    if ( in_array( $axe, [ 'parcours', 'theme', 'serie' ], true ) ) {
+        return add_query_arg( 'axe', $axe, $base );
+    }
+
+    return $base;
+}
+
+/**
+ * URL brute (sans filtre d'axe) de la page « Parcours, thèmes & séries ».
+ * Voir schilo_parcours_index_url() pour la logique de recherche/création.
+ */
+function schilo_parcours_index_base_url(): string {
+    $option  = 'schilo_parcours_page_id';
+    $page_id = (int) get_option( $option, 0 );
+
+    if ( $page_id > 0 && get_post_status( $page_id ) === 'publish' ) {
+        return get_permalink( $page_id );
+    }
+
+    // 1) Page existante utilisant le template dédié.
+    $found = get_posts( [
+        'post_type'        => 'page',
+        'post_status'      => 'publish',
+        'numberposts'      => 1,
+        'fields'           => 'ids',
+        'meta_key'         => '_wp_page_template',
+        'meta_value'       => 'page-parcours.php',
+        'suppress_filters' => true,
+    ] );
+    $page_id = ! empty( $found ) ? (int) $found[0] : 0;
+
+    // 2) Sinon, par slug connu.
+    if ( $page_id <= 0 ) {
+        foreach ( [ 'parcours-themes-series', 'parcours' ] as $slug ) {
+            $page = get_page_by_path( $slug );
+            if ( $page && $page->post_status === 'publish' ) {
+                $page_id = (int) $page->ID;
+                break;
+            }
+        }
+    }
+
+    // 3) Sinon, créer la page (une seule fois, hors requêtes AJAX/REST/cron).
+    if ( $page_id <= 0
+        && ! ( defined( 'DOING_AJAX' ) && DOING_AJAX )
+        && ! ( defined( 'REST_REQUEST' ) && REST_REQUEST )
+        && ! ( defined( 'DOING_CRON' ) && DOING_CRON )
+    ) {
+        // Re-vérifie le slug juste avant l'insertion (limite les doublons en cas
+        // de requêtes concurrentes).
+        $existing = get_page_by_path( 'parcours-themes-series' );
+        if ( $existing ) {
+            $page_id = (int) $existing->ID;
+        } else {
+            $new_id = wp_insert_post( [
+                'post_type'    => 'page',
+                'post_status'  => 'publish',
+                'post_title'   => __( 'Parcours, thèmes & séries', 'schilo' ),
+                'post_name'    => 'parcours-themes-series',
+                'post_content' => '',
+                'meta_input'   => [ '_wp_page_template' => 'page-parcours.php' ],
+            ], true );
+            if ( $new_id && ! is_wp_error( $new_id ) ) {
+                $page_id = (int) $new_id;
+            }
+        }
+    }
+
+    if ( $page_id > 0 ) {
+        update_option( $option, $page_id, false );
+        return get_permalink( $page_id );
+    }
+
+    // Ultime repli.
+    return home_url( '/plan-du-site/' );
+}
+
+/**
  * Nettoie un texte legacy avant affichage public.
  *
  * Les anciens contenus peuvent contenir des shortcodes WPBakery ([vc_row],

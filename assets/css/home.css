@@ -523,6 +523,29 @@
   font-weight: 500;
 }
 
+.schilo-home-series__heading--linked {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.schilo-home-series__more {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--schilo-accent);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.schilo-home-series__more:hover {
+  text-decoration: underline;
+}
+
 .schilo-home-resources {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
