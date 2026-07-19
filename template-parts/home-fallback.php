@@ -14,7 +14,7 @@ $published_pages  = isset( $page_counts->publish ) ? (int) $page_counts->publish
 $annexe_term      = get_term_by( 'slug', 'annexes', 'category' );
 $annexe_count     = $annexe_term ? (int) $annexe_term->count : 0;
 $published_posts  = ( isset( $post_counts->publish ) ? (int) $post_counts->publish : 0 ) - $annexe_count;
-$synopsis_url     = home_url( '/liste-des-periodes-des-pericopes/' );
+$synopsis_url     = schilo_parcours_index_url( 'parcours' );
 $sitemap_url      = home_url( '/plan-du-site/' );
 $gospels_url      = get_search_link( 'Évangiles' );
 
@@ -370,7 +370,7 @@ $category_description_fallbacks = [
                 <p><?php esc_html_e( 'Étudiez les Évangiles fiche par fiche, à votre rythme.', 'schilo' ); ?></p>
             </div>
             <a href="<?php echo esc_url( $synopsis_url ); ?>">
-                <?php esc_html_e( 'Voir la synopse', 'schilo' ); ?>
+                <?php esc_html_e( 'Tous les parcours', 'schilo' ); ?>
                 <i class="ti ti-arrow-right" aria-hidden="true"></i>
             </a>
         </div>
@@ -399,9 +399,15 @@ $category_description_fallbacks = [
 
         <?php if ( ! empty( $resources ) ) : ?>
         <div class="schilo-home-series">
-            <div class="schilo-home-series__heading">
-                <span><?php esc_html_e( 'Bibliothèque Schilo', 'schilo' ); ?></span>
-                <h3><?php esc_html_e( 'Séries thématiques', 'schilo' ); ?></h3>
+            <div class="schilo-home-series__heading schilo-home-series__heading--linked">
+                <div>
+                    <span><?php esc_html_e( 'Bibliothèque Schilo', 'schilo' ); ?></span>
+                    <h3><?php esc_html_e( 'Séries thématiques', 'schilo' ); ?></h3>
+                </div>
+                <a class="schilo-home-series__more" href="<?php echo esc_url( schilo_parcours_index_url( 'serie' ) ); ?>">
+                    <?php esc_html_e( 'Toutes les séries', 'schilo' ); ?>
+                    <i class="ti ti-arrow-right" aria-hidden="true"></i>
+                </a>
             </div>
             <div class="schilo-home-resources">
                 <?php foreach ( $resources as $resource ) :
@@ -430,9 +436,15 @@ $category_description_fallbacks = [
 
         <?php if ( ! empty( $themes ) ) : ?>
         <div class="schilo-home-series">
-            <div class="schilo-home-series__heading">
-                <span><?php esc_html_e( 'Bibliothèque Schilo', 'schilo' ); ?></span>
-                <h3><?php esc_html_e( 'Thèmes', 'schilo' ); ?></h3>
+            <div class="schilo-home-series__heading schilo-home-series__heading--linked">
+                <div>
+                    <span><?php esc_html_e( 'Bibliothèque Schilo', 'schilo' ); ?></span>
+                    <h3><?php esc_html_e( 'Thèmes', 'schilo' ); ?></h3>
+                </div>
+                <a class="schilo-home-series__more" href="<?php echo esc_url( schilo_parcours_index_url( 'theme' ) ); ?>">
+                    <?php esc_html_e( 'Tous les thèmes', 'schilo' ); ?>
+                    <i class="ti ti-arrow-right" aria-hidden="true"></i>
+                </a>
             </div>
             <div class="schilo-home-resources">
                 <?php foreach ( $themes as $theme ) :
