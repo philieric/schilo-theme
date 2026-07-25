@@ -173,20 +173,26 @@ class SectionTextesExtractor implements ExtractorInterface
     {
         $parts = array();
 
-        // Cas 1 — titre et texte dans le MÊME bloc [vc_column_text] (PAR, PRB,
-        // "Les Évangiles"…) : le texte suit directement le <h2> et le bloc n'est
-        // fermé qu'après. On récupère ce texte "orphelin" = du début de la zone
-        // jusqu'au premier [/vc_column_text], à condition qu'aucun [vc_column_text]
-        // ouvrant ne s'y trouve (sinon c'est déjà un bloc distinct, traité au cas 2).
-        $closePos = stripos($zone, '[/vc_column_text]');
-        if ($closePos !== false) {
-            $orphan = substr($zone, 0, $closePos);
-            if (stripos($orphan, '[vc_column_text') === false) {
-                $clean = $this->cleanBlock($orphan);
-                if (strlen(strip_tags($clean)) > 20) {
-                    $parts[] = $clean;
-                }
-            }
+        // Cas 1 — texte "brut" appartenant au même bloc [vc_column_text] que le
+        // titre (le texte suit le <h2> et n'est pas dans un bloc distinct). On prend
+        // le début de la zone jusqu'à la première FRONTIÈRE de bloc — soit un
+        // [vc_column_text] ouvrant (→ bloc distinct, cas 2), soit un [/vc_column_text]
+        // fermant — ou TOUTE la zone s'il n'y a aucune frontière (titre et texte au
+        // milieu d'un gros bloc unique contenant plusieurs titres : ANN116, « Le
+        // salut »…). Couvre PAR, PRB, « Les Évangiles » et les blocs à titres multiples.
+        $stopOpen  = stripos($zone, '[vc_column_text');
+        $stopClose = stripos($zone, '[/vc_column_text]');
+        $stop = false;
+        if ($stopOpen !== false) {
+            $stop = $stopOpen;
+        }
+        if ($stopClose !== false && ($stop === false || $stopClose < $stop)) {
+            $stop = $stopClose;
+        }
+        $orphan = $stop === false ? $zone : substr($zone, 0, $stop);
+        $clean  = $this->cleanBlock($orphan);
+        if (strlen(strip_tags($clean)) > 20) {
+            $parts[] = $clean;
         }
 
         // Cas 2 — titre et texte dans des blocs [vc_column_text] SÉPARÉS (ANN, INF…).

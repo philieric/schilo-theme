@@ -102,6 +102,26 @@ class CommentaireExtractor implements ExtractorInterface
 
         $parts = array();
 
+        // Cas 1 — texte du commentaire dans le MÊME bloc [vc_column_text] que le
+        // titre « Commentaires » (suit le <h2> sans bloc distinct, structure PER…).
+        // Capture le début de la zone jusqu'à la première frontière de bloc
+        // ([vc_column_text] ouvrant ou [/vc_column_text] fermant), ou toute la zone.
+        $stopOpen  = stripos($zone, '[vc_column_text');
+        $stopClose = stripos($zone, '[/vc_column_text]');
+        $stop = false;
+        if ($stopOpen !== false) {
+            $stop = $stopOpen;
+        }
+        if ($stopClose !== false && ($stop === false || $stopClose < $stop)) {
+            $stop = $stopClose;
+        }
+        $orphan = $stop === false ? $zone : substr($zone, 0, $stop);
+        $clean  = $this->cleanBlock($orphan);
+        if (strlen(strip_tags($clean)) > 20) {
+            $parts[] = $clean;
+        }
+
+        // Cas 2 — contenu dans des blocs [vc_column_text] distincts.
         if (preg_match_all('/\[vc_column_text[^\]]*\](.*?)\[\/vc_column_text\]/isu', $zone, $blockMatches)) {
             foreach ($blockMatches[1] as $block) {
                 $clean = $this->cleanBlock($block);
