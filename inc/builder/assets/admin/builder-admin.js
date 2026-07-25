@@ -27,6 +27,111 @@
         }
     }
 
+    /**
+     * Reconstruit des paragraphes <p> à partir d'un contenu collé dont les
+     * lignes sont séparées par des <br> ou des sauts de ligne (\n) — cas d'un
+     * copier-coller de texte long où, sans ça, TinyMCE fusionne tout en un seul
+     * bloc et les retours à la ligne sont perdus.
+     *
+     * Fonction pure (testable isolément) : ne touche à rien s'il n'y a aucun
+     * saut de ligne, préserve le HTML inline (gras, liens…) et laisse intacts
+     * les blocs déjà structurés (titres, listes, citations, tableaux). Une
+     * ligne préfixée d'un marqueur de niveau (« H2 Titre », « H3- Titre »…)
+     * devient la balise <h1>…<h6> correspondante (marqueur retiré) ; à défaut,
+     * une ligne de titre numérotée (« 1- … », « 2- … », « 3. … ») devient un
+     * <h3> ; sinon la ligne est encapsulée en <p>.
+     */
+    function schiloBreaksToParagraphs(html) {
+        html = String(html == null ? '' : html);
+
+        var hasBreak = /<br\s*\/?>/i.test(html)
+            || /\r?\n/.test(html)
+            || /<\/p>\s*<p[\s>]/i.test(html);
+        if (!hasBreak) {
+            return html;
+        }
+
+        var normalized = html
+            .replace(/\r\n?/g, '\n')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<\/p>\s*<p[^>]*>/gi, '\n')
+            .replace(/<\/?p[^>]*>/gi, '\n')
+            .replace(/<\/?div[^>]*>/gi, '\n');
+
+        var lines = normalized.split(/\n+/);
+        var out = [];
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].replace(/ /g, ' ').replace(/[ \t]+/g, ' ').trim();
+            if (line === '') {
+                continue;
+            }
+            // Marqueur explicite de niveau de titre en début de ligne
+            // (« H2 Titre », « H3- Titre », « H1 : Titre »…) : applique la
+            // balise <h1>…<h6> correspondante et retire le marqueur.
+            var hMatch = line.match(/^h([1-6])[\s\-–—.:)]+(\S.*)$/i);
+
+            // Ne pas ré-emballer une ligne qui est déjà un bloc structuré.
+            if (/^<(h[1-6]|ul|ol|li|blockquote|table|pre|figure)\b/i.test(line)) {
+                out.push(line);
+            } else if (hMatch) {
+                out.push('<h' + hMatch[1] + '>' + hMatch[2].trim() + '</h' + hMatch[1] + '>');
+            // Ligne de titre numérotée (« 1- … », « 2- … », « 3. … ») -> <h3>.
+            } else if (/^\d+\s*[-–—.)]\s+\S/.test(line)) {
+                out.push('<h3>' + line + '</h3>');
+            } else {
+                out.push('<p>' + line + '</p>');
+            }
+        }
+
+        return out.length ? out.join('') : html;
+    }
+
+    /**
+     * Attache la reconstruction des paragraphes au collage d'un éditeur TinyMCE.
+     * Idempotent (drapeau _schiloPasteFix) : peut être appelé plusieurs fois
+     * (via le setup Builder et via le hook global) sans doubler le traitement.
+     */
+    function schiloAttachPasteFix(editor) {
+        if (!editor || editor._schiloPasteFix) {
+            return;
+        }
+        editor._schiloPasteFix = true;
+        editor.on('PastePreProcess', function (e) {
+            e.content = schiloBreaksToParagraphs(e.content);
+        });
+    }
+
+    // Alias conservé pour le paramètre `setup` des éditeurs du Builder.
+    function schiloEditorPasteSetup(editor) {
+        schiloAttachPasteFix(editor);
+    }
+
+    /**
+     * Applique le correctif de collage à TOUS les éditeurs TinyMCE de l'écran
+     * (y compris l'éditeur principal de l'article, pas seulement les sections
+     * du Builder) : éditeurs déjà créés + ceux ajoutés ensuite. Idempotent.
+     */
+    var schiloPasteGlobalHooked = false;
+    function schiloHookPasteGlobally() {
+        if (typeof tinymce === 'undefined') {
+            return;
+        }
+        (tinymce.editors || []).forEach(function (ed) {
+            schiloAttachPasteFix(ed);
+        });
+        if (!schiloPasteGlobalHooked) {
+            schiloPasteGlobalHooked = true;
+            tinymce.on('AddEditor', function (e) {
+                schiloAttachPasteFix(e.editor);
+            });
+        }
+    }
+
+    // Au chargement du script (tinymce est déjà présent via la dépendance
+    // 'editor') puis au DOM prêt, pour couvrir les éditeurs créés avant/après.
+    schiloHookPasteGlobally();
+    $(schiloHookPasteGlobally);
+
     function initEditor(editorId) {
         if (typeof wp === 'undefined' || !wp.editor || !wp.editor.initialize) {
             return;
@@ -35,6 +140,7 @@
         wp.editor.initialize(editorId, {
             tinymce: {
                 wpautop: true,
+                setup: schiloEditorPasteSetup,
                 plugins: 'charmap colorpicker compat3x directionality fullscreen hr image lists media paste tabfocus textcolor wordpress wpeditimage wpemoji wpgallery wplink wptextpattern',
                 toolbar1: 'schilo_h1,schilo_h2,schilo_h3,schilo_h4,schilo_h5,schilo_h6,schilo_p,bold,italic,underline,bullist,numlist,blockquote,alignleft,aligncenter,alignright,link,unlink,pastetext,undo,redo',
                 toolbar2: 'strikethrough,hr,forecolor,removeformat,charmap,outdent,indent,schilo_shortcodes',
@@ -532,6 +638,8 @@
         wp.editor.initialize(editorId, {
             tinymce: {
                 wpautop: true,
+                setup: schiloEditorPasteSetup,
+                plugins: 'charmap colorpicker compat3x directionality fullscreen hr image lists media paste tabfocus textcolor wordpress wpeditimage wpemoji wpgallery wplink wptextpattern',
                 toolbar1: 'schilo_h1,schilo_h2,schilo_h3,schilo_h4,schilo_h5,schilo_h6,schilo_p,bold,italic,underline,bullist,numlist,blockquote,alignleft,aligncenter,alignright,link,unlink,pastetext,undo,redo',
                 toolbar2: 'schilo_shortcodes',
                 height: 130
