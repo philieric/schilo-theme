@@ -173,15 +173,36 @@ class SectionTextesExtractor implements ExtractorInterface
     {
         $parts = array();
 
-        if (!preg_match_all('/\[vc_column_text[^\]]*\](.*?)\[\/vc_column_text\]/isu', $zone, $blockMatches)) {
-            return '';
+        // Cas 1 — texte "brut" appartenant au même bloc [vc_column_text] que le
+        // titre (le texte suit le <h2> et n'est pas dans un bloc distinct). On prend
+        // le début de la zone jusqu'à la première FRONTIÈRE de bloc — soit un
+        // [vc_column_text] ouvrant (→ bloc distinct, cas 2), soit un [/vc_column_text]
+        // fermant — ou TOUTE la zone s'il n'y a aucune frontière (titre et texte au
+        // milieu d'un gros bloc unique contenant plusieurs titres : ANN116, « Le
+        // salut »…). Couvre PAR, PRB, « Les Évangiles » et les blocs à titres multiples.
+        $stopOpen  = stripos($zone, '[vc_column_text');
+        $stopClose = stripos($zone, '[/vc_column_text]');
+        $stop = false;
+        if ($stopOpen !== false) {
+            $stop = $stopOpen;
+        }
+        if ($stopClose !== false && ($stop === false || $stopClose < $stop)) {
+            $stop = $stopClose;
+        }
+        $orphan = $stop === false ? $zone : substr($zone, 0, $stop);
+        $clean  = $this->cleanBlock($orphan);
+        if (strlen(strip_tags($clean)) > 20) {
+            $parts[] = $clean;
         }
 
-        foreach ($blockMatches[1] as $block) {
-            $clean = $this->cleanBlock($block);
+        // Cas 2 — titre et texte dans des blocs [vc_column_text] SÉPARÉS (ANN, INF…).
+        if (preg_match_all('/\[vc_column_text[^\]]*\](.*?)\[\/vc_column_text\]/isu', $zone, $blockMatches)) {
+            foreach ($blockMatches[1] as $block) {
+                $clean = $this->cleanBlock($block);
 
-            if (strlen(strip_tags($clean)) > 20) {
-                $parts[] = $clean;
+                if (strlen(strip_tags($clean)) > 20) {
+                    $parts[] = $clean;
+                }
             }
         }
 

@@ -37,7 +37,7 @@ $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 0;
 
 // Préfixes et modèles associés
 $all_prefix_models = [
-    'PER' => 'per_standard',
+    'PER' => 'per_6c94590a',
     'ANN' => 'ann_standard',
     'APO' => 'apo_standard',
     'BIB' => 'bib_standard',
