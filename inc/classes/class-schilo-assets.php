@@ -216,6 +216,16 @@ class Schilo_Assets {
                 self::ver( $dir . '/assets/js/parcours-modal.js' ),
                 true
             );
+
+            // Les articles listés (parcours/thème/série) affichent des cartes
+            // bibliques USX avec sélecteur de versions ([bvc]/[brc]…) : sans ce
+            // CSS, les boutons de versions perdent leur style (comme sur l'article).
+            wp_enqueue_style(
+                'schilo-usx',
+                SCHILO_ASSETS . '/css/usx-integration.css',
+                [ 'schilo-parcours' ],
+                self::ver( $dir . '/assets/css/usx-integration.css' )
+            );
         }
 
         if ( is_page_template( 'page-sitemap.php' ) ) {
