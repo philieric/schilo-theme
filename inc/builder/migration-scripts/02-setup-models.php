@@ -28,7 +28,7 @@ $ts        = new TemplateService();
 $templates = $ts->getAllTemplates();
 
 $template_defs = [
-    'PER' => ['label' => 'Personnage',        'sections' => ['intro', 'liens-articles', 'evangiles', 'details-techniques', 'paragraphe', 'conclusion']],
+    'PER' => ['label' => 'Péricope',          'sections' => ['intro', 'liens-articles', 'evangiles', 'details-techniques', 'paragraphe', 'conclusion']],
     'ANN' => ['label' => 'Annexe',            'sections' => ['liens-articles', 'intro', 'paragraphe', 'image-textes', 'conclusion']],
     'APO' => ['label' => 'Apocalypse',        'sections' => ['intro', 'contexte', 'conclusion']],
     'BIB' => ['label' => 'Bible',             'sections' => ['intro', 'contexte', 'conclusion']],
