@@ -184,7 +184,7 @@ final class Schilo_Usx_Version_Switcher_Buttons {
 		$raw            = '[' . $tag . ']' . trim( (string) $raw_content ) . '[/' . $tag . ']';
 		$shortcode_b64 = base64_encode( $raw );
 
-		$html = '<div class="' . esc_attr( $class ) . '" data-role="' . esc_attr( $role ) . '" data-shortcode="' . esc_attr( $shortcode_b64 ) . '"';
+		$html = '<div class="' . esc_attr( $class ) . '" data-role="' . esc_attr( $role ) . '" role="group" aria-label="' . esc_attr__( 'Choisir la version de la Bible', 'schilo' ) . '" data-shortcode="' . esc_attr( $shortcode_b64 ) . '"';
 
 		foreach ( $attrs as $k => $v ) {
 			$k = trim( (string) $k );
@@ -197,16 +197,16 @@ final class Schilo_Usx_Version_Switcher_Buttons {
 		$html .= '>';
 
 		if ( $show_default ) {
-			$html .= '<button type="button" class="usxv-btn' . ( $active === '' ? ' is-active' : '' ) . '" data-version="">Défaut</button>';
+			$html .= '<button type="button" class="usxv-btn' . ( $active === '' ? ' is-active' : '' ) . '" data-version="" aria-pressed="' . ( $active === '' ? 'true' : 'false' ) . '">Défaut</button>';
 		}
 
 		if ( $show_all ) {
-			$html .= '<button type="button" class="usxv-btn' . ( $active === 'ALL' ? ' is-active' : '' ) . '" data-version="all">Toutes</button>';
+			$html .= '<button type="button" class="usxv-btn' . ( $active === 'ALL' ? ' is-active' : '' ) . '" data-version="all" aria-pressed="' . ( $active === 'ALL' ? 'true' : 'false' ) . '">Toutes</button>';
 		}
 
 		foreach ( $this->get_versions_for_ui() as $code ) {
 			$is_active = ( $active === $code );
-			$html     .= '<button type="button" class="usxv-btn' . ( $is_active ? ' is-active' : '' ) . '" data-version="' . esc_attr( $code ) . '">' . esc_html( $code ) . '</button>';
+			$html     .= '<button type="button" class="usxv-btn' . ( $is_active ? ' is-active' : '' ) . '" data-version="' . esc_attr( $code ) . '" aria-pressed="' . ( $is_active ? 'true' : 'false' ) . '">' . esc_html( $code ) . '</button>';
 		}
 
 		$html .= '</div>';
@@ -570,10 +570,10 @@ final class Schilo_Usx_Version_Switcher_Global {
 		}
 		$this->global_bar_printed = true;
 
-		echo '<div id="usx-global-version-switcher" class="usx-version-bar" style="display:flex;gap:6px;margin:14px 0;padding:10px 0 6px 0;border-bottom:1px solid #eee;">
-				<button type="button" class="usxv-btn is-active" data-version="">Défaut</button>
-				<button type="button" class="usxv-btn" data-version="all">Toutes</button>
-				<span class="usxv-status" data-role="status" style="margin-left:auto;font-size:12px;opacity:.7"></span>
+		echo '<div id="usx-global-version-switcher" class="usx-version-bar" role="group" aria-label="' . esc_attr__( 'Choisir la version de la Bible', 'schilo' ) . '" style="display:flex;gap:6px;margin:14px 0;padding:10px 0 6px 0;border-bottom:1px solid #eee;">
+				<button type="button" class="usxv-btn is-active" data-version="" aria-pressed="true">Défaut</button>
+				<button type="button" class="usxv-btn" data-version="all" aria-pressed="false">Toutes</button>
+				<span class="usxv-status" data-role="status" aria-live="polite" style="margin-left:auto;font-size:12px;opacity:.7"></span>
 			  </div>';
 	}
 

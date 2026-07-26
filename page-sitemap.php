@@ -36,7 +36,7 @@ get_header();
         <div class="schilo-card__icon schilo-card__icon--dark">
           <i class="ti ti-compass" aria-hidden="true"></i>
         </div>
-        <span class="schilo-card__title"><?php esc_html_e( 'Comment naviguer ?', 'schilo' ); ?></span>
+        <h2 class="schilo-card__title"><?php esc_html_e( 'Comment naviguer ?', 'schilo' ); ?></h2>
       </div>
     </div>
     <div class="schilo-card__body">
@@ -93,7 +93,7 @@ get_header();
         <div class="schilo-card__icon schilo-card__icon--dark">
           <i class="ti ti-folder-open" aria-hidden="true"></i>
         </div>
-        <span class="schilo-card__title"><?php esc_html_e( 'Toutes les catégories', 'schilo' ); ?></span>
+        <h2 class="schilo-card__title"><?php esc_html_e( 'Toutes les catégories', 'schilo' ); ?></h2>
       </div>
     </div>
     <div class="schilo-card__body">

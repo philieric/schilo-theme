@@ -40,7 +40,9 @@
 
     if(status) status.textContent='';
     qsa('.usxv-btn',bar).forEach(b=>{
-      b.classList.toggle('is-active',(b.dataset.version||'')===(version||''));
+      var on=(b.dataset.version||'')===(version||'');
+      b.classList.toggle('is-active',on);
+      b.setAttribute('aria-pressed',on?'true':'false');
     });
   }
 

@@ -13,15 +13,32 @@
         document.body.appendChild(resumeModals[m]);
     }
 
-    var openModal = null;
+    var openModal   = null;
+    var lastTrigger = null;
 
-    function open(modal) {
+    function trapFocus(e) {
+        if (!openModal) return;
+        var panel = openModal.querySelector('.schilo-resume-modal__panel') || openModal;
+        if (panel && !panel.contains(e.target)) {
+            var focusable = panel.querySelector('[data-modal-close], button, a[href], input, [tabindex]');
+            (focusable || panel).focus();
+        }
+    }
+
+    function open(modal, trigger) {
         if (!modal) return;
         close();
+        lastTrigger = trigger || document.activeElement;
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('schilo-modal-open');
         openModal = modal;
+        if (lastTrigger && lastTrigger.setAttribute) lastTrigger.setAttribute('aria-expanded', 'true');
+
+        // Déplace le focus dans la modale (bouton fermer en priorité).
+        var firstFocus = modal.querySelector('[data-modal-close], button, a[href]');
+        if (firstFocus) window.setTimeout(function () { firstFocus.focus(); }, 0);
+        document.addEventListener('focus', trapFocus, true);
     }
 
     function close() {
@@ -30,13 +47,18 @@
         openModal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('schilo-modal-open');
         openModal = null;
+        document.removeEventListener('focus', trapFocus, true);
+
+        if (lastTrigger && lastTrigger.setAttribute) lastTrigger.setAttribute('aria-expanded', 'false');
+        if (lastTrigger && typeof lastTrigger.focus === 'function') lastTrigger.focus();
+        lastTrigger = null;
     }
 
     document.addEventListener('click', function (e) {
         var trigger = e.target.closest('[data-modal-trigger]');
         if (trigger) {
             var modal = document.getElementById(trigger.getAttribute('data-modal-trigger'));
-            open(modal);
+            open(modal, trigger);
             return;
         }
 
@@ -98,9 +120,9 @@
         var spy = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
                 if (entry.isIntersecting) {
-                    links.forEach(function (l) { l.classList.remove('is-active'); });
+                    links.forEach(function (l) { l.classList.remove('is-active'); l.removeAttribute('aria-current'); });
                     var active = tabnav.querySelector('[data-anchor="' + entry.target.id + '"]');
-                    if (active) active.classList.add('is-active');
+                    if (active) { active.classList.add('is-active'); active.setAttribute('aria-current', 'location'); }
                 }
             });
         }, { rootMargin: '-' + (navH + 8) + 'px 0px -60% 0px', threshold: 0 });

@@ -12,8 +12,14 @@ class Schilo_Meta {
         // Ne pas interférer avec les plugins SEO
         if ( self::seo_plugin_active() ) return;
 
+        // Schilo_Meta émet son propre <link rel="canonical"> : on retire celui
+        // du core WordPress (rel_canonical, actif sur les pages singulières)
+        // pour éviter deux balises canonical concurrentes sur la même page.
+        remove_action( 'wp_head', 'rel_canonical' );
+
         add_action( 'wp_head', [ __CLASS__, 'render_meta' ],     1 );
-        add_action( 'wp_head', [ __CLASS__, 'render_json_ld' ],  2 );
+        add_action( 'wp_head', [ __CLASS__, 'render_hreflang' ], 2 );
+        add_action( 'wp_head', [ __CLASS__, 'render_json_ld' ],  3 );
         add_filter( 'document_title_separator', fn() => '—' );
         add_filter( 'document_title_parts',     [ __CLASS__, 'title_parts' ] );
         add_filter( 'wp_robots',                [ __CLASS__, 'filter_robots' ] );
@@ -126,6 +132,13 @@ class Schilo_Meta {
 
         // ── Open Graph
         echo '<meta property="og:locale" content="' . esc_attr( str_replace( '-', '_', get_locale() ) ) . '">' . "\n";
+        // Langues alternatives (peuplées par le système de traduction, sinon rien)
+        foreach ( self::get_language_alternates() as $alt_lang => $alt_url ) {
+            $alt_loc = str_replace( '-', '_', $alt_lang );
+            if ( $alt_loc !== str_replace( '-', '_', get_locale() ) ) {
+                echo '<meta property="og:locale:alternate" content="' . esc_attr( $alt_loc ) . '">' . "\n";
+            }
+        }
         echo '<meta property="og:type" content="' . esc_attr( $type ) . '">' . "\n";
         echo '<meta property="og:title" content="' . esc_attr( $og_title ) . '">' . "\n";
         if ( $og_desc ) {
@@ -153,6 +166,59 @@ class Schilo_Meta {
         if ( $image ) {
             echo '<meta name="twitter:image" content="' . esc_url( $image['url'] ) . '">' . "\n";
         }
+    }
+
+    // ── hreflang / alternances de langue (préparation multilingue) ──
+    //
+    //    Émet <link rel="alternate" hreflang="…"> pour la page courante et
+    //    ses traductions, plus x-default. TANT QU'AUCUNE TRADUCTION N'EXISTE,
+    //    aucune balise n'est produite — comportement correct pour un site
+    //    monolingue (on n'annonce jamais une version de langue inexistante).
+    //
+    //    Point d'extension unique pour le futur système de traduction en base
+    //    (projet i18n / TranslationService) : brancher le filtre
+    //    'schilo_meta_language_alternates' pour renvoyer [ code_hreflang => url ]
+    //    des versions traduites de la page courante. hreflang, x-default et
+    //    og:locale:alternate s'activent alors automatiquement, sans retoucher
+    //    cette classe.
+    public static function render_hreflang(): void {
+        $alternates = self::get_language_alternates();
+        if ( count( $alternates ) < 2 ) return; // pas de traduction → rien à déclarer
+
+        foreach ( $alternates as $lang => $url ) {
+            echo '<link rel="alternate" hreflang="' . esc_attr( $lang ) . '" href="' . esc_url( $url ) . '">' . "\n";
+        }
+
+        // x-default : version par défaut (langue principale du site),
+        // filtrable pour pointer vers un sélecteur de langue si besoin.
+        $current   = self::hreflang_code( get_locale() );
+        $x_default = $alternates[ $current ] ?? reset( $alternates );
+        $x_default = apply_filters( 'schilo_meta_hreflang_x_default', $x_default, $alternates );
+        echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( $x_default ) . '">' . "\n";
+    }
+
+    // Retourne [ code_hreflang => url ] : la page courante + ses traductions.
+    // Vide tant que le filtre n'est pas peuplé (site monolingue).
+    private static function get_language_alternates(): array {
+        $current_lang = self::hreflang_code( get_locale() );
+        $current_url  = self::get_canonical();
+
+        // Le système de traduction renvoie ici [ 'en' => url, 'de-DE' => url, … ].
+        $alternates = (array) apply_filters( 'schilo_meta_language_alternates', [], [
+            'lang' => $current_lang,
+            'url'  => $current_url,
+        ] );
+
+        if ( empty( $alternates ) ) return [];
+
+        // Auto-référence : une page traduite se liste toujours elle-même.
+        $alternates[ $current_lang ] = $current_url;
+        return $alternates;
+    }
+
+    // 'fr_FR' → 'fr-FR' (format attendu par hreflang).
+    private static function hreflang_code( string $locale ): string {
+        return str_replace( '_', '-', $locale );
     }
 
     // ── Schema.org JSON-LD ────────────────────────────────────────
@@ -295,8 +361,30 @@ class Schilo_Meta {
 
     // ── Schémas JSON-LD ───────────────────────────────────────────
 
-    private static function schema_website(): array {
+    // ── Propriétés d'accessibilité (vocabulaire schema.org a11y) ──
+    //    Déclare des FONCTIONNALITÉS RÉELLEMENT présentes dans le thème,
+    //    pas une conformité certifiée. Lues par les moteurs de recherche
+    //    et les catalogues d'accessibilité → utile au référencement.
+    private static function accessibility_props(): array {
         return [
+            'accessMode'           => [ 'textual', 'visual' ],
+            // Le contenu reste entièrement exploitable en mode textuel seul
+            // (lecteur d'écran / plage braille) : textes alternatifs + contenu texte.
+            'accessModeSufficient' => [ 'textual' ],
+            'accessibilityFeature' => [
+                'structuralNavigation',   // titres hiérarchisés, repères ARIA, lien d'évitement
+                'alternativeText',        // textes alternatifs des images
+                'readingOrder',           // ordre de lecture logique
+                'displayTransformability', // taille du texte ajustable, préférence reduce-motion
+            ],
+            // Aucun contenu clignotant/animé dangereux ; animations réduites respectées.
+            'accessibilityHazard'  => [ 'noFlashingHazard', 'noSoundHazard', 'noMotionSimulationHazard' ],
+            'accessibilitySummary' => __( "Site conçu selon les principes d'accessibilité (objectif WCAG 2.1 AA) : lien d'évitement, navigation au clavier, structure sémantique (titres et repères ARIA), textes alternatifs des images, taille du texte ajustable et respect de la préférence « réduire les animations ».", 'schilo' ),
+        ];
+    }
+
+    private static function schema_website(): array {
+        return array_merge( [
             '@context'        => 'https://schema.org',
             '@type'           => 'WebSite',
             'name'            => get_bloginfo( 'name' ),
@@ -311,7 +399,7 @@ class Schilo_Meta {
                 ],
                 'query-input' => 'required name=search_term_string',
             ],
-        ];
+        ], self::accessibility_props() );
     }
 
     private static function schema_article(): array {
@@ -323,7 +411,9 @@ class Schilo_Meta {
         if ( $custom_schema ) {
             $custom_schema['@context'] = $custom_schema['@context'] ?? 'https://schema.org';
             $custom_schema['@type']    = $custom_schema['@type']    ?? 'Article';
-            return $custom_schema;
+            // Complète avec les propriétés d'accessibilité (les valeurs
+            // explicites de l'indexation restent prioritaires).
+            return array_merge( self::accessibility_props(), $custom_schema );
         }
 
         $image   = self::get_image();
@@ -364,6 +454,12 @@ class Schilo_Meta {
                 $schema['keywords'] = implode( ', ', array_map( fn( $c ) => $c->name, $cats ) );
             }
         }
+
+        // Propriétés d'accessibilité : l'article propose en plus une
+        // navigation par sections (tabnav) → tableOfContents.
+        $access = self::accessibility_props();
+        $access['accessibilityFeature'][] = 'tableOfContents';
+        $schema = array_merge( $schema, $access );
 
         return $schema;
     }

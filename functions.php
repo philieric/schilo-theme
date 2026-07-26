@@ -46,10 +46,12 @@ require_once SCHILO_DIR . '/inc/classes/class-schilo-reflection.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-featured.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-search-suggest.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-translator.php';
+require_once SCHILO_DIR . '/inc/classes/class-schilo-image-alt.php';
 require_once SCHILO_DIR . '/template-parts/nav-walker.php';
 
 Schilo_Setup::init();
 Schilo_Assets::init();
+Schilo_Image_Alt::init();
 Schilo_Search_Suggest::init();
 Schilo_Translator::init();
 Schilo_OTP::init();

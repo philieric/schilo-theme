@@ -101,12 +101,25 @@
       var activeDefinitionModal = null;
       var lastDefinitionTrigger = null;
 
+      // Maintient le focus clavier à l'intérieur de la modale ouverte.
+      function trapDefinitionFocus(event) {
+        if (!activeDefinitionModal) return;
+        var panel = activeDefinitionModal.querySelector('.schilo-definition-modal__panel') || activeDefinitionModal;
+        if (panel && !panel.contains(event.target)) {
+          panel.focus();
+        }
+      }
+
       function closeDefinition() {
         if (!activeDefinitionModal) return;
         activeDefinitionModal.classList.remove('is-open');
         activeDefinitionModal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('schilo-definition-open');
-        if (lastDefinitionTrigger) lastDefinitionTrigger.focus();
+        document.removeEventListener('focus', trapDefinitionFocus, true);
+        if (lastDefinitionTrigger) {
+          lastDefinitionTrigger.setAttribute('aria-expanded', 'false');
+          lastDefinitionTrigger.focus();
+        }
         activeDefinitionModal = null;
       }
 
@@ -120,7 +133,9 @@
         definitionModal.classList.add('is-open');
         definitionModal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('schilo-definition-open');
+        trigger.setAttribute('aria-expanded', 'true');
         if (definitionPanel) definitionPanel.focus();
+        document.addEventListener('focus', trapDefinitionFocus, true);
       }
 
       document.addEventListener('click', function (event) {
@@ -184,9 +199,9 @@
     var spy = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
-          links.forEach(function (l) { l.classList.remove('is-active'); });
+          links.forEach(function (l) { l.classList.remove('is-active'); l.removeAttribute('aria-current'); });
           var active = tabnav.querySelector('[data-anchor="' + entry.target.id + '"]');
-          if (active) active.classList.add('is-active');
+          if (active) { active.classList.add('is-active'); active.setAttribute('aria-current', 'location'); }
         }
       });
     }, { rootMargin: '-' + (navH + 8) + 'px 0px -60% 0px', threshold: 0 });

@@ -70,7 +70,7 @@ function schilo_classement_aggregate_indexation( array $post_ids ): array {
  */
 function schilo_classement_render_sidebar( array $agg, int $article_count ): void {
 	?>
-	<aside class="schilo-parcours-sidebar" aria-label="Informations complémentaires">
+	<aside class="schilo-parcours-sidebar" aria-label="<?php esc_attr_e( 'Informations complémentaires', 'schilo' ); ?>">
 		<div class="schilo-sidebar-card schilo-sidebar-card--stats">
 			<div class="schilo-sidebar-stat-grid">
 				<div class="schilo-sidebar-stat">
@@ -261,7 +261,8 @@ function schilo_classement_split_into_chapters( string $text, int $target_chapte
  */
 function schilo_classement_render_resume_trigger( string $modal_id ): void {
 	?>
-	<button type="button" class="schilo-parcours-article__detail-btn" data-modal-trigger="<?php echo esc_attr( $modal_id ); ?>">
+	<button type="button" class="schilo-parcours-article__detail-btn" data-modal-trigger="<?php echo esc_attr( $modal_id ); ?>"
+			aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo esc_attr( $modal_id ); ?>">
 		<i class="ti ti-book-2" aria-hidden="true"></i> <?php esc_html_e( 'Résumé détaillé', 'schilo' ); ?>
 	</button>
 	<?php
@@ -287,7 +288,7 @@ function schilo_classement_render_resume_modal_markup( int $post_id, string $pre
 	<div class="schilo-resume-modal" id="<?php echo esc_attr( $modal_id ); ?>" aria-hidden="true">
 		<div class="schilo-resume-modal__overlay" data-modal-close></div>
 		<div class="schilo-resume-modal__panel" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( $title ); ?>">
-			<button type="button" class="schilo-resume-modal__close" data-modal-close aria-label="Fermer">&times;</button>
+			<button type="button" class="schilo-resume-modal__close" data-modal-close aria-label="<?php esc_attr_e( 'Fermer', 'schilo' ); ?>">&times;</button>
 			<div class="schilo-resume-modal__header">
 				<?php if ( $prefix ) : ?><span class="schilo-resume-modal__tag"><?php echo esc_html( $prefix ); ?></span><?php endif; ?>
 				<h3 class="schilo-resume-modal__title"><?php echo esc_html( $title ); ?></h3>
