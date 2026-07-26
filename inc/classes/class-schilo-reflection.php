@@ -65,8 +65,12 @@ class Schilo_Reflection {
     /**
      * (Re)construit le store depuis les articles VER encore présents en base.
      *
-     * Lit directement en SQL (post_type='reflexions') pour ne pas dépendre de
-     * l'enregistrement du CPT, absent une fois Wikilogy désactivé.
+     * Lit directement en SQL, en acceptant les deux types possibles :
+     * l'ancien CPT « reflexions » (Wikilogy) ET le type « post » (une fois les
+     * VER convertis en articles — cf. migration 05-reflexions-to-posts). Le
+     * widget « verset du jour » fonctionne donc avant, pendant et après la
+     * bascule, sur tous les environnements, sans dépendre de l'enregistrement
+     * du CPT.
      *
      * @return int Nombre de réflexions normalisées.
      */
@@ -76,7 +80,7 @@ class Schilo_Reflection {
         $rows = $wpdb->get_results(
             "SELECT ID, post_content
                FROM {$wpdb->posts}
-              WHERE post_type = 'reflexions'
+              WHERE post_type IN ('post','reflexions')
                 AND post_status = 'publish'
                 AND post_title LIKE 'VER%'
               ORDER BY post_date ASC"
