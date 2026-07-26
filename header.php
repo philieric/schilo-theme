@@ -11,6 +11,10 @@
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 
+<a class="schilo-skip-link schilo-sr-only-focusable" href="#schilo-main">
+  <?php esc_html_e( 'Aller au contenu', 'schilo' ); ?>
+</a>
+
 <header class="schilo-nav" role="banner">
   <div class="schilo-nav__inner">
 
@@ -29,8 +33,9 @@
     <div class="schilo-nav__right">
 
       <!-- Recherche -->
-      <button class="schilo-btn-search" id="schilo-search-toggle"
-              aria-label="<?php esc_attr_e( 'Rechercher', 'schilo' ); ?>">
+      <button class="schilo-btn-search" id="schilo-search-toggle" type="button"
+              aria-label="<?php esc_attr_e( 'Rechercher', 'schilo' ); ?>"
+              aria-haspopup="dialog" aria-expanded="false" aria-controls="schilo-search-modal">
         <i class="ti ti-search" aria-hidden="true"></i>
         <?php esc_html_e( 'Rechercher…', 'schilo' ); ?>
       </button>
@@ -56,6 +61,7 @@
       ?>
       <a href="<?php echo esc_url( $apropos_url ); ?>"
          class="schilo-btn-contact<?php echo $apropos_active ? ' active' : ''; ?>"
+         <?php echo $apropos_active ? 'aria-current="page"' : ''; ?>
          aria-label="<?php esc_attr_e( 'À propos', 'schilo' ); ?>">
         <i class="ti ti-info-circle" aria-hidden="true"></i>
       </a>
@@ -81,6 +87,7 @@
       ?>
       <a href="<?php echo esc_url( $avancements_url ); ?>"
          class="schilo-btn-contact<?php echo $avancements_active ? ' active' : ''; ?>"
+         <?php echo $avancements_active ? 'aria-current="page"' : ''; ?>
          aria-label="<?php esc_attr_e( 'Avancements', 'schilo' ); ?>">
         <i class="ti ti-history" aria-hidden="true"></i>
       </a>
@@ -106,6 +113,7 @@
       ?>
       <a href="<?php echo esc_url( $sitemap_url ); ?>"
          class="schilo-btn-contact<?php echo $sitemap_active ? ' active' : ''; ?>"
+         <?php echo $sitemap_active ? 'aria-current="page"' : ''; ?>
          aria-label="<?php esc_attr_e( 'Plan du site', 'schilo' ); ?>">
         <i class="ti ti-map" aria-hidden="true"></i>
       </a>
@@ -134,6 +142,7 @@
       ?>
       <a href="<?php echo esc_url( $contact_url ); ?>"
          class="schilo-btn-contact<?php echo $contact_active ? ' active' : ''; ?>"
+         <?php echo $contact_active ? 'aria-current="page"' : ''; ?>
          aria-label="<?php esc_attr_e( 'Contact', 'schilo' ); ?>">
         <i class="ti ti-mail" aria-hidden="true"></i>
       </a>

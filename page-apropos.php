@@ -33,7 +33,7 @@ get_header();
           <div class="schilo-card__icon schilo-card__icon--dark">
             <i class="ti ti-book-2" aria-hidden="true"></i>
           </div>
-          <span class="schilo-card__title"><?php esc_html_e( 'Notre démarche', 'schilo' ); ?></span>
+          <h2 class="schilo-card__title"><?php esc_html_e( 'Notre démarche', 'schilo' ); ?></h2>
         </div>
       </div>
       <div class="schilo-card__body">
@@ -45,10 +45,10 @@ get_header();
     </div>
 
     <!-- ── SECTION : VALEURS — grille 3 cartes ── -->
-    <div class="schilo-apropos-section-title">
+    <h2 class="schilo-apropos-section-title">
       <i class="ti ti-heart" aria-hidden="true"></i>
       <?php esc_html_e( 'Nos valeurs', 'schilo' ); ?>
-    </div>
+    </h2>
     <div class="schilo-apropos-values" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:0">
 
       <div class="schilo-apropos-value-card" style="background:var(--schilo-bg-card);border:1px solid var(--schilo-border);border-radius:14px;padding:1.25rem">
@@ -110,10 +110,10 @@ get_header();
     </div>
 
     <!-- ── SECTION : TIMELINE ── -->
-    <div class="schilo-apropos-section-title" style="margin-top:2.5rem">
+    <h2 class="schilo-apropos-section-title" style="margin-top:2.5rem">
       <i class="ti ti-timeline" aria-hidden="true"></i>
       <?php esc_html_e( 'L\'histoire du projet', 'schilo' ); ?>
-    </div>
+    </h2>
 
     <div class="schilo-card" style="margin-bottom:1.25rem">
       <div class="schilo-card__body">
@@ -168,10 +168,10 @@ get_header();
     </div>
 
     <!-- ── SECTION : SIGNIFICATION ── -->
-    <div class="schilo-apropos-section-title" style="margin-top:2.5rem">
+    <h2 class="schilo-apropos-section-title" style="margin-top:2.5rem">
       <i class="ti ti-book" aria-hidden="true"></i>
       <?php esc_html_e( 'La signification de « Schilo »', 'schilo' ); ?>
-    </div>
+    </h2>
 
     <div class="schilo-card schilo-apropos-schilo-card" style="margin-bottom:1.25rem">
       <div class="schilo-card__body">
@@ -203,10 +203,10 @@ get_header();
     ] ) : [];
     ?>
     <?php if ( ! empty( $apropos_articles ) ) : ?>
-    <div class="schilo-apropos-section-title" style="margin-top:2.5rem">
+    <h2 class="schilo-apropos-section-title" style="margin-top:2.5rem">
       <i class="ti ti-notes" aria-hidden="true"></i>
       <?php esc_html_e( 'Pour aller plus loin', 'schilo' ); ?>
-    </div>
+    </h2>
     <div class="schilo-apropos-articles">
       <?php foreach ( $apropos_articles as $apropos_post ) :
         // Certains de ces articles n'ont jamais ete migres vers Schilo Builder et

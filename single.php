@@ -332,7 +332,7 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
     <div class="schilo-container schilo-single-hero__inner">
 
       <!-- Fil d'Ariane -->
-      <nav class="schilo-single-hero__breadcrumb" aria-label="Fil d'Ariane">
+      <nav class="schilo-single-hero__breadcrumb" aria-label="<?php esc_attr_e( "Fil d'Ariane", 'schilo' ); ?>">
         <a href="<?php echo esc_url( home_url( '/' ) ); ?>">Accueil</a>
         <?php if ( $primary_cat ) : ?>
           <span aria-hidden="true">›</span>
@@ -383,7 +383,7 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
 
   <!-- ══ BARRE D'ONGLETS ═══════════════════════════════════════════════ -->
   <?php if ( ! empty( $tabs ) ) : ?>
-  <nav class="schilo-single-tabnav" id="schilo-tabnav" aria-label="Sections de l'article">
+  <nav class="schilo-single-tabnav" id="schilo-tabnav" aria-label="<?php esc_attr_e( "Sections de l'article", 'schilo' ); ?>">
     <div class="schilo-container schilo-single-tabnav__inner">
       <ul class="schilo-tabnav-list" role="list">
         <?php foreach ( $tabs as $anchor => $tab ) : ?>
@@ -410,7 +410,7 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
     </div>
 
     <!-- Sidebar -->
-    <aside class="schilo-single-sidebar" aria-label="Informations complémentaires">
+    <aside class="schilo-single-sidebar" aria-label="<?php esc_attr_e( 'Informations complémentaires', 'schilo' ); ?>">
 
       <!-- Export PDF -->
       <div class="schilo-sidebar-card schilo-sidebar-pdf">
@@ -538,7 +538,7 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
 
   <!-- ══ NAVIGATION BAS DE PAGE ════════════════════════════════════════ -->
   <?php if ( $prev_post || $next_post ) : ?>
-  <nav class="schilo-single-bootnav" aria-label="Navigation entre fiches">
+  <nav class="schilo-single-bootnav" aria-label="<?php esc_attr_e( 'Navigation entre fiches', 'schilo' ); ?>">
     <div class="schilo-container schilo-single-bootnav__inner">
 
       <div class="schilo-bootnav-prev">

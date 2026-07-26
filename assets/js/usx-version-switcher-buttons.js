@@ -24,7 +24,10 @@
   function setActive(wrapper, version) {
     qsa(wrapper, '.usxv-btn').forEach(btn => {
       const v = btn.getAttribute('data-version') || '';
-      btn.classList.toggle('is-active', v === (version || ''));
+      const isActive = v === (version || '');
+      btn.classList.toggle('is-active', isActive);
+      // État sélectionné annoncé aux lecteurs d'écran / plages braille.
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
   }
 
@@ -96,12 +99,22 @@
       return;
     }
 
+    // La zone de statut annonce le chargement / changement de version.
+    const statusEl = qs(wrapper, '[data-role="status"]');
+    if (statusEl) {
+      statusEl.setAttribute('aria-live', 'polite');
+      statusEl.setAttribute('role', 'status');
+    }
+
     // default active if none
     const currentActive = qs(wrapper, '.usxv-btn.is-active');
     if (!currentActive) {
       const defaultBtn = qs(wrapper, '.usxv-btn[data-version=""]');
       if (defaultBtn) defaultBtn.classList.add('is-active');
     }
+    // Synchronise aria-pressed sur l'état actif initial.
+    const activeNow = qs(wrapper, '.usxv-btn.is-active');
+    setActive(wrapper, activeNow ? (activeNow.getAttribute('data-version') || '') : '');
 
     wrapper.addEventListener('click', async function (e) {
       const btn = e.target.closest('.usxv-btn');
@@ -232,8 +245,9 @@
           copyrightEl.textContent = cp; // vide => efface, non vide => affiche
         }
 
-        qsa(toolbar, '.usxv-btn').forEach(b => b.classList.remove('is-active'));
+        qsa(toolbar, '.usxv-btn').forEach(b => { b.classList.remove('is-active'); b.setAttribute('aria-pressed', 'false'); });
         btn.classList.add('is-active');
+        btn.setAttribute('aria-pressed', 'true');
 
       } catch (e3) {
         err('POPUP ajax error', e3);

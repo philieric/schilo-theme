@@ -50,7 +50,7 @@ $schilo_footer_themes     = schilo_footer_rotated_terms( 'schilo_theme', $schilo
 
       <!-- Menu footer 1 : Parcours de la semaine (rotation) -->
       <div>
-        <div class="schilo-footer__col-title"><?php esc_html_e( 'Parcours', 'schilo' ); ?></div>
+        <h2 class="schilo-footer__col-title"><?php esc_html_e( 'Parcours', 'schilo' ); ?></h2>
         <nav class="schilo-footer__links" aria-label="<?php esc_attr_e( 'Parcours', 'schilo' ); ?>">
           <?php if ( $schilo_footer_parcours ) : ?>
             <?php foreach ( $schilo_footer_parcours as $schilo_footer_term ) : ?>
@@ -66,7 +66,7 @@ $schilo_footer_themes     = schilo_footer_rotated_terms( 'schilo_theme', $schilo
 
       <!-- Menu footer 2 : Themes de la semaine (rotation) -->
       <div>
-        <div class="schilo-footer__col-title"><?php esc_html_e( 'Thèmes', 'schilo' ); ?></div>
+        <h2 class="schilo-footer__col-title"><?php esc_html_e( 'Thèmes', 'schilo' ); ?></h2>
         <nav class="schilo-footer__links" aria-label="<?php esc_attr_e( 'Thèmes', 'schilo' ); ?>">
           <?php if ( $schilo_footer_themes ) : ?>
             <?php foreach ( $schilo_footer_themes as $schilo_footer_term ) : ?>
@@ -82,7 +82,7 @@ $schilo_footer_themes     = schilo_footer_rotated_terms( 'schilo_theme', $schilo
 
       <!-- Menu footer 3 : Site -->
       <div>
-        <div class="schilo-footer__col-title"><?php esc_html_e( 'Site', 'schilo' ); ?></div>
+        <h2 class="schilo-footer__col-title"><?php esc_html_e( 'Site', 'schilo' ); ?></h2>
         <nav class="schilo-footer__links" aria-label="<?php esc_attr_e( 'Site', 'schilo' ); ?>">
           <?php wp_nav_menu( [ 'theme_location' => 'footer-3', 'container' => false, 'fallback_cb' => false, 'items_wrap' => '%3$s' ] ); ?>
           <?php
@@ -132,6 +132,22 @@ $schilo_footer_themes     = schilo_footer_rotated_terms( 'schilo_theme', $schilo
           ?>
           <a href="<?php echo esc_url( $fsm_url ); ?>">
             <?php esc_html_e( 'Plan du site', 'schilo' ); ?>
+          </a>
+          <?php
+          // Lien Déclaration d'accessibilité — détecté automatiquement
+          $fac_url  = home_url( '/accessibilite/' );
+          $fac_page = get_pages( [ 'meta_key' => '_wp_page_template', 'meta_value' => 'page-accessibilite.php' ] );
+          if ( ! empty( $fac_page ) ) {
+              $fac_url = get_permalink( $fac_page[0]->ID );
+          } else {
+              foreach ( [ 'accessibilite', 'declaration-accessibilite', 'accessibility' ] as $slug ) {
+                  $p = get_page_by_path( $slug );
+                  if ( $p ) { $fac_url = get_permalink( $p->ID ); break; }
+              }
+          }
+          ?>
+          <a href="<?php echo esc_url( $fac_url ); ?>">
+            <?php esc_html_e( 'Accessibilité', 'schilo' ); ?>
           </a>
           <?php
           // Lien Contact — détecté automatiquement

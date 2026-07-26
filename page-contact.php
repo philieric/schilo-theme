@@ -198,9 +198,9 @@ get_header();
               <div class="schilo-card__icon schilo-card__icon--dark">
                 <i class="ti ti-send" aria-hidden="true"></i>
               </div>
-              <span class="schilo-card__title">
+              <h2 class="schilo-card__title">
                 <?php esc_html_e( 'Envoyer un message', 'schilo' ); ?>
-              </span>
+              </h2>
             </div>
           </div>
           <div class="schilo-card__body">
@@ -360,7 +360,7 @@ get_header();
               <div class="schilo-card__icon schilo-card__icon--dark">
                 <i class="ti ti-help" aria-hidden="true"></i>
               </div>
-              <span class="schilo-card__title"><?php esc_html_e( 'Pourquoi nous écrire ?', 'schilo' ); ?></span>
+              <h2 class="schilo-card__title"><?php esc_html_e( 'Pourquoi nous écrire ?', 'schilo' ); ?></h2>
             </div>
           </div>
           <div class="schilo-card__body" style="padding-top:.75rem">
@@ -404,7 +404,7 @@ get_header();
               <div class="schilo-card__icon schilo-card__icon--dark">
                 <i class="ti ti-flame" aria-hidden="true"></i>
               </div>
-              <span class="schilo-card__title"><?php esc_html_e( 'À propos de Schilo', 'schilo' ); ?></span>
+              <h2 class="schilo-card__title"><?php esc_html_e( 'À propos de Schilo', 'schilo' ); ?></h2>
             </div>
           </div>
           <div class="schilo-card__body" style="padding-top:.75rem">
@@ -426,21 +426,21 @@ get_header();
               <div class="schilo-card__icon schilo-card__icon--dark">
                 <i class="ti ti-message-question" aria-hidden="true"></i>
               </div>
-              <span class="schilo-card__title"><?php esc_html_e( 'Questions fréquentes', 'schilo' ); ?></span>
+              <h2 class="schilo-card__title"><?php esc_html_e( 'Questions fréquentes', 'schilo' ); ?></h2>
             </div>
           </div>
           <div class="schilo-card__body" style="padding-top:.75rem">
             <div style="display:flex;flex-direction:column;gap:.85rem">
               <div>
-                <div style="font-size:12px;font-weight:600;color:var(--schilo-text-primary);margin-bottom:.25rem"><?php esc_html_e( 'Le site est-il gratuit ?', 'schilo' ); ?></div>
+                <h3 style="font-size:12px;font-weight:600;color:var(--schilo-text-primary);margin:0 0 .25rem"><?php esc_html_e( 'Le site est-il gratuit ?', 'schilo' ); ?></h3>
                 <p style="margin:0;font-size:12px;color:var(--schilo-text-secondary);line-height:1.65"><?php esc_html_e( 'Oui, entièrement. Aucune inscription, aucune publicité, aucun abonnement.', 'schilo' ); ?></p>
               </div>
               <div style="border-top:1px solid var(--schilo-border);padding-top:.85rem">
-                <div style="font-size:12px;font-weight:600;color:var(--schilo-text-primary);margin-bottom:.25rem"><?php esc_html_e( 'Puis-je citer vos fiches ?', 'schilo' ); ?></div>
+                <h3 style="font-size:12px;font-weight:600;color:var(--schilo-text-primary);margin:0 0 .25rem"><?php esc_html_e( 'Puis-je citer vos fiches ?', 'schilo' ); ?></h3>
                 <p style="margin:0;font-size:12px;color:var(--schilo-text-secondary);line-height:1.65"><?php esc_html_e( 'Oui, avec mention de la source (schilo.org). Contactez-nous pour toute utilisation commerciale.', 'schilo' ); ?></p>
               </div>
               <div style="border-top:1px solid var(--schilo-border);padding-top:.85rem">
-                <div style="font-size:12px;font-weight:600;color:var(--schilo-text-primary);margin-bottom:.25rem"><?php esc_html_e( 'Êtes-vous affiliés à une église ?', 'schilo' ); ?></div>
+                <h3 style="font-size:12px;font-weight:600;color:var(--schilo-text-primary);margin:0 0 .25rem"><?php esc_html_e( 'Êtes-vous affiliés à une église ?', 'schilo' ); ?></h3>
                 <p style="margin:0;font-size:12px;color:var(--schilo-text-secondary);line-height:1.65"><?php esc_html_e( 'Non. Schilo.org est indépendant de toute église, dénomination ou organisation.', 'schilo' ); ?></p>
               </div>
             </div>
