@@ -33,7 +33,9 @@ $render_ordered_posts = function ( int $term_id ) use ( $get_ordered_post_ids ):
 	$post_ids = $get_ordered_post_ids( $term_id );
 
 	if ( empty( $post_ids ) ) {
-		echo '<p style="color:var(--schilo-text-secondary,#64748b);">' . esc_html__( 'Aucun article classé ici pour le moment.', 'schilo' ) . '</p>';
+		// Rien à afficher côté public (on garde la description de l'étape,
+		// affichée juste au-dessus) : pas de message « aucun article » qui
+		// donnerait une impression de page cassée.
 		return;
 	}
 
@@ -120,6 +122,25 @@ get_header();
 		<?php endif; ?>
 
 		<?php if ( ! empty( $children ) ) : ?>
+			<?php
+			// Articles rattaches DIRECTEMENT au parcours (terme parent), pas a
+			// une etape enfant : sans ca ils n'apparaissent nulle part, car la
+			// boucle ci-dessous ne parcourt que les enfants.
+			$parent_own_ids = $get_ordered_post_ids( (int) $term->term_id );
+			if ( ! empty( $parent_own_ids ) ) : ?>
+			<div class="schilo-card" id="sec-<?php echo esc_attr( $term->term_id ); ?>" style="margin-bottom:1.25rem">
+				<div class="schilo-card__head">
+					<div class="schilo-card__head-left">
+						<div class="schilo-card__icon schilo-card__icon--dark"><i class="ti ti-book"></i></div>
+						<span class="schilo-card__title"><?php esc_html_e( 'Articles du parcours', 'schilo' ); ?></span>
+					</div>
+				</div>
+				<div class="schilo-card__body">
+					<?php $render_ordered_posts( (int) $term->term_id ); ?>
+				</div>
+			</div>
+			<?php endif; ?>
+
 			<?php foreach ( $children as $child_id ) :
 				$child = get_term( $child_id, $taxonomy );
 				if ( is_wp_error( $child ) || ! $child ) continue;
