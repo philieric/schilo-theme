@@ -677,8 +677,12 @@ class ClassementService
     }
 
     /**
-     * Prefixes distincts (3 lettres majuscules en tete de titre) parmi les
-     * articles indexes valides, avec leur nombre d'articles.
+     * Comptes [prefixe => nb d'articles indexes valides] pour TOUS les prefixes
+     * de la liste CANONIQUE (\Schilo_Prefixes::all()), dans l'ordre canonique
+     * (0 si le prefixe n'a pas encore d'article indexe valide). La LISTE vient
+     * de la source unique partagee avec les filtres de la liste d'articles (plus
+     * de detection dynamique divergente) ; seuls les comptes sont propres a ce
+     * contexte (indexes valides).
      */
     public function getPrefixCounts(): array
     {
@@ -687,16 +691,18 @@ class ClassementService
             "SELECT LEFT(titre, 3) as pfx, COUNT(*) as n
              FROM {$this->table}
              WHERE statut_indexation = 'valide' AND titre REGEXP '^[A-Z]{3}'
-             GROUP BY pfx
-             ORDER BY pfx ASC",
+             GROUP BY pfx",
             ARRAY_A
         );
 
-        $prefixes = [];
+        $found = [];
         foreach ($rows as $row) {
-            $prefixes[$row['pfx']] = (int) $row['n'];
+            $found[$row['pfx']] = (int) $row['n'];
         }
-        return $prefixes;
+
+        return class_exists('\Schilo_Prefixes')
+            ? \Schilo_Prefixes::map_counts($found)
+            : $found;
     }
 
     /* =========================================================

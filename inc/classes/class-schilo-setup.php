@@ -6,8 +6,10 @@ defined( 'ABSPATH' ) || exit;
 
 class Schilo_Setup {
 
-    // Préfixes Schilo — ordre d'affichage dans les filtres admin
-    const PREFIXES = [ 'PER', 'CTD', 'ANN', 'APO', 'BIB', 'DAN', 'DOC', 'FDS', 'LGH', 'PAR', 'PDA', 'INF', 'MIR', 'PRB' ];
+    // La liste des préfixes Schilo vit dans Schilo_Prefixes::all() (source unique).
+
+    /** Clé de cache (transient) des comptes d'articles par préfixe. */
+    const PREFIX_CACHE_KEY = 'schilo_article_prefixes';
 
     public static function init(): void {
         add_action( 'after_setup_theme', [ __CLASS__, 'theme_setup' ] );
@@ -22,6 +24,13 @@ class Schilo_Setup {
         add_action( 'pre_get_posts',                [ __CLASS__, 'apply_prefix_filter' ] );
         add_action( 'pre_get_posts',                [ __CLASS__, 'apply_migration_filter' ] );
         add_action( 'admin_head-edit.php',          [ __CLASS__, 'prefix_views_style' ] );
+
+        // Invalide le cache des préfixes dès qu'un article est créé/modifié/supprimé
+        // (un nouveau préfixe apparaît alors immédiatement dans les filtres).
+        add_action( 'save_post_post',               [ __CLASS__, 'flush_prefix_cache' ] );
+        add_action( 'deleted_post',                 [ __CLASS__, 'flush_prefix_cache' ] );
+        add_action( 'trashed_post',                 [ __CLASS__, 'flush_prefix_cache' ] );
+        add_action( 'untrashed_post',               [ __CLASS__, 'flush_prefix_cache' ] );
 
         // ── Colonnes personnalisées ───────────────────────────────────────
         add_filter( 'manage_posts_columns',              [ __CLASS__, 'add_list_columns' ] );
@@ -136,21 +145,56 @@ class Schilo_Setup {
 
     // ── Filtres par préfixe ───────────────────────────────────────────────
 
-    /** Boutons de filtre par préfixe (PER, CTD…) dans la barre de vues. */
-    public static function add_prefix_views( array $views ): array {
-        global $wpdb;
+    /**
+     * Comptes [préfixe => nombre d'articles] pour les préfixes de la liste
+     * CANONIQUE (Schilo_Prefixes::all()) réellement présents en base, dans
+     * l'ordre canonique. La LISTE n'est plus déduite dynamiquement (elle vient
+     * de Schilo_Prefixes) ; seuls les comptes sont calculés. Mise en cache 1h,
+     * invalidée à chaque enregistrement/suppression d'article.
+     */
+    public static function get_prefix_counts(): array {
+        $cached = get_transient( self::PREFIX_CACHE_KEY );
+        if ( is_array( $cached ) ) {
+            return $cached;
+        }
 
+        global $wpdb;
+        $titles = $wpdb->get_col(
+            "SELECT post_title FROM {$wpdb->posts}
+             WHERE post_type = 'post'
+               AND post_status NOT IN ('trash','auto-draft')
+               AND post_title REGEXP '^[A-Z]{2,10}[0-9]'"
+        );
+
+        $raw = [];
+        foreach ( $titles as $title ) {
+            if ( preg_match( '/^([A-Z]{2,10})[0-9]/', $title, $m ) ) {
+                $raw[ $m[1] ] = ( $raw[ $m[1] ] ?? 0 ) + 1;
+            }
+        }
+
+        // Ordonne/filtre selon la liste canonique (source unique) : un préfixe
+        // hors liste (ex. titre parasite) n'apparaît jamais.
+        $counts = Schilo_Prefixes::order_counts( $raw );
+
+        set_transient( self::PREFIX_CACHE_KEY, $counts, HOUR_IN_SECONDS );
+        return $counts;
+    }
+
+    /** Liste canonique des préfixes (source unique). */
+    public static function get_prefixes(): array {
+        return Schilo_Prefixes::all();
+    }
+
+    /** Vide le cache des préfixes (hook save/delete/trash d'article). */
+    public static function flush_prefix_cache(): void {
+        delete_transient( self::PREFIX_CACHE_KEY );
+    }
+
+    public static function add_prefix_views( array $views ): array {
         $current = isset( $_GET['schilo_prefix'] ) ? strtoupper( sanitize_text_field( $_GET['schilo_prefix'] ) ) : '';
 
-        foreach ( self::PREFIXES as $prefix ) {
-            $count = (int) $wpdb->get_var( $wpdb->prepare(
-                "SELECT COUNT(*) FROM {$wpdb->posts}
-                 WHERE post_type = 'post'
-                   AND post_status NOT IN ('trash','auto-draft')
-                   AND post_title LIKE %s",
-                $wpdb->esc_like( $prefix ) . '%'
-            ) );
-
+        foreach ( self::get_prefix_counts() as $prefix => $count ) {
             if ( $count === 0 ) continue;
 
             $url   = admin_url( 'edit.php?post_type=post&schilo_prefix=' . $prefix );
@@ -210,7 +254,8 @@ class Schilo_Setup {
         if ( ! is_admin() || ! $query->is_main_query() ) return;
         if ( ! isset( $_GET['schilo_prefix'] ) ) return;
         $prefix = strtoupper( sanitize_text_field( $_GET['schilo_prefix'] ) );
-        if ( ! in_array( $prefix, self::PREFIXES, true ) ) return;
+        // N'accepte qu'un préfixe de la liste canonique (source unique).
+        if ( ! Schilo_Prefixes::is_valid( $prefix ) ) return;
 
         add_filter( 'posts_where', static function ( string $where ) use ( $prefix ): string {
             global $wpdb;
@@ -431,15 +476,7 @@ class Schilo_Setup {
         global $wpdb;
         $stats = [];
 
-        foreach ( self::PREFIXES as $prefix ) {
-            $total = (int) $wpdb->get_var( $wpdb->prepare(
-                "SELECT COUNT(*) FROM {$wpdb->posts}
-                 WHERE post_type = 'post'
-                   AND post_status NOT IN ('trash','auto-draft')
-                   AND post_title LIKE %s",
-                $wpdb->esc_like( $prefix ) . '%'
-            ) );
-
+        foreach ( self::get_prefix_counts() as $prefix => $total ) {
             if ( $total === 0 ) continue;
 
             $done = (int) $wpdb->get_var( $wpdb->prepare(
