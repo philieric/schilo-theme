@@ -32,6 +32,7 @@ if ( ! defined( 'SCHILO_BUILDER_VERSION' ) ) {
 require_once SCHILO_DIR . '/inc/helpers.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-table.php';
 Schilo_Table::init();
+require_once SCHILO_DIR . '/inc/classes/class-schilo-prefixes.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-setup.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-assets.php';
 require_once SCHILO_DIR . '/inc/classes/class-schilo-login.php';
