@@ -2,6 +2,7 @@
 
 namespace Schilo\Builder\Core;
 
+use Schilo\Builder\Admin\ArticleWorkflowMetabox;
 use Schilo\Builder\Admin\BuilderMetabox;
 use Schilo\Builder\Admin\SettingsPage;
 use Schilo\Builder\Front\ContentRenderer;
@@ -58,6 +59,9 @@ class Plugin
         if (is_admin()) {
             $admin = new BuilderMetabox();
             $admin->register();
+
+            $workflowMetabox = new ArticleWorkflowMetabox();
+            $workflowMetabox->register();
 
             $settingsPage = new SettingsPage();
             $settingsPage->register();
