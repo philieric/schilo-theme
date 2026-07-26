@@ -76,6 +76,33 @@ function schilo_inject_favicon() {
 // seul proprietaire du jeu d'icones (la flamme partout).
 add_filter( 'get_site_icon_url', '__return_empty_string' );
 
+// Sert la flamme aux emplacements RACINE que certains navigateurs/tablettes
+// reclament directement (/favicon.ico, /apple-touch-icon.png,
+// /apple-touch-icon-precomposed.png), depuis les assets du theme -> PORTABLE
+// (survit aux migrations, contrairement a des fichiers poses en dur a la racine).
+function schilo_serve_root_icon( string $png ): void {
+    $file = SCHILO_DIR . '/assets/img/' . $png;
+    if ( is_readable( $file ) ) {
+        status_header( 200 ); // WP a pu poser un 404 avant template_redirect.
+        header( 'Content-Type: image/png' );
+        header( 'Cache-Control: public, max-age=604800' );
+        readfile( $file );
+    }
+    exit;
+}
+// /favicon.ico : WordPress declenche l'action do_faviconico (on court-circuite
+// le comportement par defaut lie au site icon, ci-dessus neutralise).
+add_action( 'do_faviconico', function () {
+    schilo_serve_root_icon( 'favicon-32.png' );
+}, 0 );
+// /apple-touch-icon(-precomposed).png : requetes directes iOS, sans handler WP.
+add_action( 'template_redirect', function () {
+    $path = strtok( (string) ( $_SERVER['REQUEST_URI'] ?? '' ), '?' );
+    if ( $path === '/apple-touch-icon.png' || $path === '/apple-touch-icon-precomposed.png' ) {
+        schilo_serve_root_icon( 'favicon-180.png' );
+    }
+}, 0 );
+
 // Ã¢â€â‚¬Ã¢â€â‚¬ Notices admin : supprimer tout sauf les confirmations de sauvegarde Ã¢â€â‚¬Ã¢â€â‚¬
 add_action( 'admin_head', function () {
     // Les messages natifs WP de sauvegarde/publication passent par $_GET['message']
