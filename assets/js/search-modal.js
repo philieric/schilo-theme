@@ -19,6 +19,13 @@
         return !!modal && modal.classList.contains('is-open');
     }
 
+    /* Reflète l'état ouvert/fermé sur le bouton déclencheur pour les
+       lecteurs d'écran (aria-expanded). */
+    function setTriggerExpanded(expanded) {
+        var trigger = document.getElementById('schilo-search-toggle');
+        if (trigger) trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    }
+
     function trapFocus(e) {
         var panel = modal.querySelector('.schilo-search-modal__panel');
         if (panel && !panel.contains(e.target)) {
@@ -33,6 +40,7 @@
         lastTrigger = document.activeElement;
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
+        setTriggerExpanded(true);
         document.documentElement.classList.add('schilo-search-open');
 
         input.value = '';
@@ -47,6 +55,7 @@
 
         modal.classList.remove('is-open');
         modal.setAttribute('aria-hidden', 'true');
+        setTriggerExpanded(false);
         document.documentElement.classList.remove('schilo-search-open');
         document.removeEventListener('focus', trapFocus, true);
 

@@ -23,9 +23,9 @@ get_header();
                     <div class="schilo-card__icon schilo-card__icon--soft">
                       <i class="ti ti-file" aria-hidden="true"></i>
                     </div>
-                    <span class="schilo-card__title">
+                    <h1 class="schilo-card__title">
                       <?php the_title(); ?>
-                    </span>
+                    </h1>
                   </div>
                 </div>
                 <div class="schilo-card__body">

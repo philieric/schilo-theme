@@ -55,7 +55,7 @@ class ContextualDefinitionRenderer
                     <header class="schilo-definition-modal__header">
                         <span class="schilo-definition-modal__code"><?php echo esc_html($definition['code']); ?></span>
                         <div><span class="schilo-definition-modal__eyebrow">Note d’information</span><h2 id="<?php echo esc_attr($modalId); ?>-title"><?php echo esc_html(get_the_title($source)); ?></h2></div>
-                        <button type="button" class="schilo-definition-modal__close" data-schilo-definition-close aria-label="Fermer la définition">&times;</button>
+                        <button type="button" class="schilo-definition-modal__close" data-schilo-definition-close aria-label="<?php esc_attr_e( 'Fermer la définition', 'schilo' ); ?>">&times;</button>
                     </header>
                     <div class="schilo-definition-modal__body"><?php echo $body; // phpcs:ignore ?></div>
                     <footer class="schilo-definition-modal__footer"><span>Définition issue de la bibliothèque Schilo</span><a href="<?php echo esc_url(get_permalink($source)); ?>">Consulter la fiche complète <i class="ti ti-arrow-right" aria-hidden="true"></i></a></footer>
@@ -99,7 +99,7 @@ class ContextualDefinitionRenderer
                     $replacementCount++;
                     $classes = 'schilo-definition-trigger schilo-definition-candidate ' . ($isActive ? 'is-visible' : 'is-passive');
                     $inactiveAttributes = $isActive ? '' : ' disabled aria-disabled="true" tabindex="-1"';
-                    return '<button type="button" class="' . esc_attr($classes) . '" data-schilo-definition-open="' . esc_attr($modalId) . '" data-schilo-definition-candidate="' . esc_attr($modalId) . '" aria-haspopup="dialog" aria-controls="' . esc_attr($modalId) . '"' . $inactiveAttributes . '><span>' . esc_html($match[1]) . '</span><i class="ti ti-book-2" aria-hidden="true"></i><span class="schilo-sr-only"> — afficher la définition ' . esc_html($code) . '</span></button>';
+                    return '<button type="button" class="' . esc_attr($classes) . '" data-schilo-definition-open="' . esc_attr($modalId) . '" data-schilo-definition-candidate="' . esc_attr($modalId) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . esc_attr($modalId) . '"' . $inactiveAttributes . '><span>' . esc_html($match[1]) . '</span><i class="ti ti-book-2" aria-hidden="true"></i><span class="schilo-sr-only"> — afficher la définition ' . esc_html($code) . '</span></button>';
                 }, $part, $remaining);
                 continue;
             }

@@ -90,7 +90,7 @@ get_header();
 </div>
 
 <?php if ( ! empty( $children ) ) : ?>
-<nav class="schilo-parcours-tabnav" id="schilo-parcours-tabnav" aria-label="Sous-thèmes">
+<nav class="schilo-parcours-tabnav" id="schilo-parcours-tabnav" aria-label="<?php esc_attr_e( 'Sous-thèmes', 'schilo' ); ?>">
 	<div class="schilo-container schilo-parcours-tabnav__inner">
 		<ul class="schilo-tabnav-list" role="list">
 			<li>
@@ -125,7 +125,7 @@ get_header();
 			<div class="schilo-card__head">
 				<div class="schilo-card__head-left">
 					<div class="schilo-card__icon schilo-card__icon--dark"><i class="ti ti-category"></i></div>
-					<span class="schilo-card__title"><?php echo esc_html( $term->name ); ?></span>
+					<h2 class="schilo-card__title"><?php echo esc_html( $term->name ); ?></h2>
 				</div>
 			</div>
 			<div class="schilo-card__body">
@@ -141,7 +141,7 @@ get_header();
 			<div class="schilo-card__head">
 				<div class="schilo-card__head-left">
 					<div class="schilo-card__icon schilo-card__icon--dark"><i class="ti ti-subtask"></i></div>
-					<span class="schilo-card__title"><?php echo esc_html( $child->name ); ?></span>
+					<h2 class="schilo-card__title"><?php echo esc_html( $child->name ); ?></h2>
 				</div>
 			</div>
 			<div class="schilo-card__body">

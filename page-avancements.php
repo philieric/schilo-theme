@@ -100,10 +100,10 @@ get_header();
         </div>
 
         <!-- ── TABLE : MISES À JOUR ── -->
-        <div class="schilo-apropos-section-title">
+        <h2 class="schilo-apropos-section-title">
           <i class="ti ti-refresh" aria-hidden="true"></i>
           <?php esc_html_e( 'Contenus récemment mis à jour', 'schilo' ); ?>
-        </div>
+        </h2>
 
         <div class="schilo-card" style="margin-bottom:2rem">
           <div class="schilo-card__head">
@@ -111,7 +111,7 @@ get_header();
               <div class="schilo-card__icon schilo-card__icon--dark">
                 <i class="ti ti-edit" aria-hidden="true"></i>
               </div>
-              <span class="schilo-card__title"><?php esc_html_e( 'Mises à jour — 3 derniers mois', 'schilo' ); ?></span>
+              <h3 class="schilo-card__title"><?php esc_html_e( 'Mises à jour — 3 derniers mois', 'schilo' ); ?></h3>
             </div>
             <div class="schilo-avancement-badge">
               <?php printf( esc_html__( '%d résultat(s)', 'schilo' ), $query_modifies->found_posts ); ?>
@@ -122,9 +122,9 @@ get_header();
             <table class="schilo-avancement-table">
               <thead>
                 <tr>
-                  <th class="col-title"><?php esc_html_e( 'Titre', 'schilo' ); ?></th>
-                  <th class="col-nowrap"><?php esc_html_e( 'Modifié le', 'schilo' ); ?></th>
-                  <th class="col-nowrap"><?php esc_html_e( 'Type', 'schilo' ); ?></th>
+                  <th scope="col" class="col-title"><?php esc_html_e( 'Titre', 'schilo' ); ?></th>
+                  <th scope="col" class="col-nowrap"><?php esc_html_e( 'Modifié le', 'schilo' ); ?></th>
+                  <th scope="col" class="col-nowrap"><?php esc_html_e( 'Type', 'schilo' ); ?></th>
                 </tr>
               </thead>
               <tbody>
@@ -168,10 +168,10 @@ get_header();
         </div>
 
         <!-- ── TABLE : NOUVELLES PUBLICATIONS ── -->
-        <div class="schilo-apropos-section-title">
+        <h2 class="schilo-apropos-section-title">
           <i class="ti ti-sparkles" aria-hidden="true"></i>
           <?php esc_html_e( 'Nouvelles publications', 'schilo' ); ?>
-        </div>
+        </h2>
 
         <div class="schilo-card" style="margin-bottom:1.5rem">
           <div class="schilo-card__head">
@@ -179,7 +179,7 @@ get_header();
               <div class="schilo-card__icon schilo-card__icon--dark">
                 <i class="ti ti-file-plus" aria-hidden="true"></i>
               </div>
-              <span class="schilo-card__title"><?php esc_html_e( 'Nouvelles publications — 3 derniers mois', 'schilo' ); ?></span>
+              <h3 class="schilo-card__title"><?php esc_html_e( 'Nouvelles publications — 3 derniers mois', 'schilo' ); ?></h3>
             </div>
             <div class="schilo-avancement-badge">
               <?php printf( esc_html__( '%d résultat(s)', 'schilo' ), $query_nouveaux->found_posts ); ?>
@@ -190,9 +190,9 @@ get_header();
             <table class="schilo-avancement-table">
               <thead>
                 <tr>
-                  <th class="col-title"><?php esc_html_e( 'Titre', 'schilo' ); ?></th>
-                  <th class="col-nowrap"><?php esc_html_e( 'Publié le', 'schilo' ); ?></th>
-                  <th class="col-nowrap"><?php esc_html_e( 'Type', 'schilo' ); ?></th>
+                  <th scope="col" class="col-title"><?php esc_html_e( 'Titre', 'schilo' ); ?></th>
+                  <th scope="col" class="col-nowrap"><?php esc_html_e( 'Publié le', 'schilo' ); ?></th>
+                  <th scope="col" class="col-nowrap"><?php esc_html_e( 'Type', 'schilo' ); ?></th>
                 </tr>
               </thead>
               <tbody>
@@ -290,7 +290,7 @@ get_header();
               <div class="schilo-card__icon schilo-card__icon--dark">
                 <i class="ti ti-radar" aria-hidden="true"></i>
               </div>
-              <span class="schilo-card__title"><?php esc_html_e( 'Suivi en direct', 'schilo' ); ?></span>
+              <h2 class="schilo-card__title"><?php esc_html_e( 'Suivi en direct', 'schilo' ); ?></h2>
             </div>
           </div>
           <div class="schilo-card__body">
@@ -311,7 +311,7 @@ get_header();
               <div class="schilo-card__icon schilo-card__icon--dark">
                 <i class="ti ti-tags" aria-hidden="true"></i>
               </div>
-              <span class="schilo-card__title"><?php esc_html_e( 'Types de contenu', 'schilo' ); ?></span>
+              <h2 class="schilo-card__title"><?php esc_html_e( 'Types de contenu', 'schilo' ); ?></h2>
             </div>
           </div>
           <div class="schilo-card__body">
@@ -335,7 +335,7 @@ get_header();
               <div class="schilo-card__icon schilo-card__icon--dark">
                 <i class="ti ti-calendar-stats" aria-hidden="true"></i>
               </div>
-              <span class="schilo-card__title"><?php esc_html_e( 'Activité récente', 'schilo' ); ?></span>
+              <h2 class="schilo-card__title"><?php esc_html_e( 'Activité récente', 'schilo' ); ?></h2>
             </div>
           </div>
           <div class="schilo-card__body">
@@ -365,7 +365,7 @@ get_header();
               <div class="schilo-card__icon schilo-card__icon--dark">
                 <i class="ti ti-bulb" aria-hidden="true"></i>
               </div>
-              <span class="schilo-card__title"><?php esc_html_e( 'Une idée ?', 'schilo' ); ?></span>
+              <h2 class="schilo-card__title"><?php esc_html_e( 'Une idée ?', 'schilo' ); ?></h2>
             </div>
           </div>
           <div class="schilo-card__body">

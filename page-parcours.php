@@ -102,7 +102,7 @@ get_header();
 		<div class="schilo-card__head">
 			<div class="schilo-card__head-left">
 				<div class="schilo-card__icon schilo-card__icon--dark"><i class="ti <?php echo esc_attr( $section['icon'] ); ?>"></i></div>
-				<span class="schilo-card__title"><?php echo esc_html( $section['title'] ); ?></span>
+				<h2 class="schilo-card__title"><?php echo esc_html( $section['title'] ); ?></h2>
 			</div>
 		</div>
 		<div class="schilo-card__body">
