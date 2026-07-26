@@ -15,7 +15,7 @@ $annexe_term      = get_term_by( 'slug', 'annexes', 'category' );
 $annexe_count     = $annexe_term ? (int) $annexe_term->count : 0;
 $published_posts  = ( isset( $post_counts->publish ) ? (int) $post_counts->publish : 0 ) - $annexe_count;
 $synopsis_url     = schilo_parcours_index_url( 'parcours' );
-$sitemap_url      = home_url( '/plan-du-site/' );
+$sitemap_url      = schilo_sitemap_url();
 $gospels_url      = get_search_link( 'Évangiles' );
 
 $root_categories = get_categories( [

@@ -158,7 +158,47 @@ function schilo_parcours_index_base_url(): string {
     }
 
     // Ultime repli.
-    return home_url( '/plan-du-site/' );
+    return schilo_sitemap_url();
+}
+
+/**
+ * URL de la page « Plan du site » (module Sitemap par catégorie), résolue de
+ * façon robuste — le slug réel a varié (« sitemap » aujourd'hui, plus
+ * « plan-du-site »). Cherche par template, puis par slugs connus, puis par la
+ * page contenant le shortcode, avant un dernier repli sur /sitemap/.
+ *
+ * Source unique : évite les liens en dur vers /plan-du-site/ qui renvoient 404
+ * quand la page a un autre slug (bug du lien « Tous les thèmes » de l'accueil).
+ */
+function schilo_sitemap_url(): string {
+    // 1) Page utilisant le template dédié.
+    $by_tpl = get_pages( [ 'meta_key' => '_wp_page_template', 'meta_value' => 'page-sitemap.php' ] );
+    if ( ! empty( $by_tpl ) ) {
+        return get_permalink( $by_tpl[0]->ID );
+    }
+
+    // 2) Par slug connu.
+    foreach ( [ 'plan-du-site', 'sitemap', 'plan-site' ] as $slug ) {
+        $page = get_page_by_path( $slug );
+        if ( $page && $page->post_status === 'publish' ) {
+            return get_permalink( $page->ID );
+        }
+    }
+
+    // 3) Page publiée contenant le shortcode du plan du site.
+    global $wpdb;
+    $page_id = (int) $wpdb->get_var(
+        "SELECT ID FROM {$wpdb->posts}
+         WHERE post_type = 'page' AND post_status = 'publish'
+           AND post_content LIKE '%sitemap_par_categorie%'
+         LIMIT 1"
+    );
+    if ( $page_id > 0 ) {
+        return get_permalink( $page_id );
+    }
+
+    // 4) Repli sur une URL qui existe généralement.
+    return home_url( '/sitemap/' );
 }
 
 /**
