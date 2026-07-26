@@ -61,15 +61,20 @@ Schilo_Usx_Integration::init();
 add_action( 'wp_head',    'schilo_inject_favicon' );
 add_action( 'admin_head', 'schilo_inject_favicon' );
 function schilo_inject_favicon() {
-    // Icone SVG (nette a toute taille) pour les navigateurs modernes.
-    $url = SCHILO_ASSETS . '/img/favicon.svg';
-    echo '<link rel="icon" type="image/svg+xml" href="' . esc_url( $url ) . '">' . "\n";
+    // Jeu d'icones « flamme » servi par le theme (portable, meme icone partout).
+    // Fichiers PNG generes depuis favicon.svg (assets/img/favicon-*.png) : noms
+    // inedits => nouvelle URL, ce qui FORCE le rafraichissement du cache d'icones
+    // tres tenace des tablettes iOS (qui ignorent par ailleurs le favicon SVG).
+    $base = SCHILO_ASSETS . '/img/';
+    echo '<link rel="icon" type="image/svg+xml" href="' . esc_url( $base . 'favicon.svg' ) . '">' . "\n";
+    echo '<link rel="icon" type="image/png" sizes="32x32" href="' . esc_url( $base . 'favicon-32.png' ) . '">' . "\n";
+    echo '<link rel="icon" type="image/png" sizes="192x192" href="' . esc_url( $base . 'favicon-192.png' ) . '">' . "\n";
+    echo '<link rel="apple-touch-icon" sizes="180x180" href="' . esc_url( $base . 'favicon-180.png' ) . '">' . "\n";
 }
-// WordPress emet le reste du jeu d'icones a partir du site icon (Reglages >
-// General > Icone du site, attachment deja decline par WP) : PNG 32/192,
-// apple-touch-icon 180 (indispensable sur iPad/tablettes qui ignorent le SVG),
-// tuile Windows. On NE le supprime plus (avant, seul le SVG sortait -> pas
-// d'icone d'onglet sur tablette).
+// Supprime le site icon WordPress (image « cropped-Frame », differente de la
+// flamme) pour ne pas emettre un apple-touch-icon concurrent : le theme est
+// seul proprietaire du jeu d'icones (la flamme partout).
+add_filter( 'get_site_icon_url', '__return_empty_string' );
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Notices admin : supprimer tout sauf les confirmations de sauvegarde Ã¢â€â‚¬Ã¢â€â‚¬
 add_action( 'admin_head', function () {
