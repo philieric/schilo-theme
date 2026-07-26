@@ -125,7 +125,7 @@ puis l'exécuter avec `wp eval-file CHEMIN`.
 | MIR     | Miracles                     | mir_standard   | paragraphe, conclusion                                                        | ✅ migré (42)    |
 | PAR     | Paraboles (PER)              | par_standard   | liens-articles, paragraphe, conclusion                                        | ✅ migré (23)    |
 | PDA     | Points d'approfondissement   | pda_standard   | paragraphe, conclusion                                                        | ✅ migré (19)    |
-| PER     | Personnages bibliques        | per_standard   | liens-articles, evangiles, details-techniques, image-textes, paragraphe, conclusion | ✅ migré (360)   |
+| PER     | Péricopes bibliques          | per_standard   | liens-articles, evangiles, details-techniques, image-textes, paragraphe, conclusion | ✅ migré (360)   |
 | PRB     | Paraboles synoptiques        | prb_standard   | paragraphe, conclusion                                                        | ✅ migré (80)    |
 
 ## Assignments par préfixe (configurés et validés)
