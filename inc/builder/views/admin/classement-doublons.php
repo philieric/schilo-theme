@@ -38,10 +38,14 @@ foreach (ClassementService::TAXONOMIES as $taxonomy) {
         <p style="color:#64748b;font-size:13px;margin:0;">
             Détecte les termes probablement en double au sein d'une même taxonomie (même nom une fois
             l'article "le/la/les" et les accents/casse ignorés — ex. « Sermon sur la montagne » et
-            « Le sermon sur la montagne »). Pour les taxonomies hiérarchiques (Parcours, Thèmes), seuls
-            les termes de même parent sont comparés. Choisissez le terme à conserver puis fusionnez :
-            les articles des autres termes du groupe lui sont réaffectés (sans toucher à leurs autres
-            classements), puis les termes en trop sont supprimés.
+            « Le sermon sur la montagne »), <strong>y compris quand ils ont des parents différents</strong>
+            (doublons hérités du transfert : slugs « -2 » ou « -&lt;parent&gt; »). Chaque ligne indique
+            le slug, le parent, le nombre d'articles, d'étapes (enfants) et si le terme a une description
+            — <strong>gardez le terme le plus « réel » (avec description et/ou étapes), pas le doublon plat</strong>.
+            Choisissez le terme à conserver puis fusionnez : les articles des autres termes du groupe lui
+            sont réaffectés (sans toucher à leurs autres classements), puis les termes en trop sont supprimés.
+            <br><strong style="color:#b45309;">⚠ Vérifiez avant de fusionner :</strong> un terme « vide mais avec
+            description et un parent » est souvent une <em>vraie étape</em> d'un parcours — ne le supprimez pas.
         </p>
     </div>
 
@@ -63,18 +67,34 @@ foreach (ClassementService::TAXONOMIES as $taxonomy) {
                         <thead><tr>
                             <th style="width:40px;">Garder</th>
                             <th>Terme</th>
-                            <th style="width:100px;">Articles</th>
+                            <th>Slug</th>
+                            <th>Parent</th>
+                            <th style="width:70px;">Articles</th>
+                            <th style="width:60px;">Étapes</th>
+                            <th style="width:80px;">Descr.</th>
                         </tr></thead>
                         <tbody>
-                            <?php foreach ($group as $ti => $term) : ?>
-                            <tr>
+                            <?php foreach ($group as $ti => $term) :
+                                $children  = get_term_children($term->term_id, $taxonomy);
+                                $nb_child  = is_array($children) ? count($children) : 0;
+                                $has_desc  = trim((string) $term->description) !== '';
+                                $parent    = $term->parent ? get_term($term->parent, $taxonomy) : null;
+                                $parent_lbl = ($parent && !is_wp_error($parent)) ? $parent->name : '—';
+                                // Signale une ligne "vraie étape" (vide, décrite, sous un parent) à ne pas supprimer.
+                                $is_real_step = $has_desc && $nb_child === 0 && (int) $term->count === 0 && $term->parent;
+                            ?>
+                            <tr<?php echo $is_real_step ? ' style="background:#fffbeb;"' : ''; ?>>
                                 <td>
                                     <input type="radio" name="scl-dup-keep-<?php echo esc_attr($taxonomy . '-' . $gi); ?>"
                                            class="scl-dup-keep" value="<?php echo esc_attr($term->term_id); ?>"
                                            <?php checked($ti === 0); ?>>
                                 </td>
-                                <td><?php echo esc_html($term->name); ?></td>
+                                <td><?php echo esc_html($term->name); ?><?php if ($is_real_step) : ?> <span title="Vide mais décrite sous un parent : probablement une vraie étape" style="color:#b45309;">⚠ étape ?</span><?php endif; ?></td>
+                                <td style="font-size:11px;color:#64748b;"><code><?php echo esc_html($term->slug); ?></code></td>
+                                <td style="font-size:12px;color:#64748b;"><?php echo esc_html($parent_lbl); ?></td>
                                 <td><?php echo (int) $term->count; ?></td>
+                                <td><?php echo (int) $nb_child; ?></td>
+                                <td><?php echo $has_desc ? '<span style="color:#15803d;">oui</span>' : '<span style="color:#94a3b8;">—</span>'; ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
