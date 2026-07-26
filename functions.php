@@ -61,12 +61,15 @@ Schilo_Usx_Integration::init();
 add_action( 'wp_head',    'schilo_inject_favicon' );
 add_action( 'admin_head', 'schilo_inject_favicon' );
 function schilo_inject_favicon() {
+    // Icone SVG (nette a toute taille) pour les navigateurs modernes.
     $url = SCHILO_ASSETS . '/img/favicon.svg';
     echo '<link rel="icon" type="image/svg+xml" href="' . esc_url( $url ) . '">' . "\n";
-    echo '<link rel="alternate icon" href="' . esc_url( $url ) . '">' . "\n";
 }
-// DÃƒÂ©sactive le favicon WordPress (customizer) pour ÃƒÂ©viter le doublon
-add_filter( 'get_site_icon_url', '__return_empty_string' );
+// WordPress emet le reste du jeu d'icones a partir du site icon (Reglages >
+// General > Icone du site, attachment deja decline par WP) : PNG 32/192,
+// apple-touch-icon 180 (indispensable sur iPad/tablettes qui ignorent le SVG),
+// tuile Windows. On NE le supprime plus (avant, seul le SVG sortait -> pas
+// d'icone d'onglet sur tablette).
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Notices admin : supprimer tout sauf les confirmations de sauvegarde Ã¢â€â‚¬Ã¢â€â‚¬
 add_action( 'admin_head', function () {
