@@ -510,16 +510,33 @@ class ClassementService
         $terms = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false]);
         if (is_wp_error($terms)) return [];
 
+        // Regroupe par NOM normalise (tous parents confondus) : capture aussi les
+        // doublons crees pendant le transfert de taxonomies avec des PARENTS
+        // DIFFERENTS (slugs « -2 » ou « -<slug-parent> »), que l'ancien
+        // regroupement par (parent + nom) manquait.
         $groups = [];
         foreach ($terms as $term) {
-            $key = $term->parent . '|' . $this->normalizeTermNameLoose($term->name);
-            $groups[$key][] = $term;
+            $groups[$this->normalizeTermNameLoose($term->name)][] = $term;
         }
 
         $duplicates = [];
         foreach ($groups as $group) {
             if (count($group) < 2) continue;
-            usort($group, fn($a, $b) => $b->count <=> $a->count);
+
+            // Ordre = le terme le plus « structurel » d'abord (celui à GARDER par
+            // defaut) : avec description, puis avec enfants, puis le plus
+            // d'articles, puis le plus petit term_id. L'utilisateur reste libre
+            // de choisir un autre « à garder » dans l'interface.
+            usort($group, function ($a, $b) use ($taxonomy) {
+                $ad = trim((string) $a->description) !== '' ? 1 : 0;
+                $bd = trim((string) $b->description) !== '' ? 1 : 0;
+                if ($ad !== $bd) return $bd <=> $ad;
+                $ac = count((array) get_term_children($a->term_id, $taxonomy));
+                $bc = count((array) get_term_children($b->term_id, $taxonomy));
+                if ($ac !== $bc) return $bc <=> $ac;
+                if ((int) $a->count !== (int) $b->count) return (int) $b->count <=> (int) $a->count;
+                return $a->term_id <=> $b->term_id;
+            });
             $duplicates[] = $group;
         }
         return $duplicates;
