@@ -98,51 +98,61 @@ get_header();
 	<?php foreach ( $sections as $section ) :
 		$terms = $schilo_top_terms( $section['taxonomy'] );
 	?>
-	<div class="schilo-card" style="margin-bottom:1.25rem">
-		<div class="schilo-card__head">
-			<div class="schilo-card__head-left">
-				<div class="schilo-card__icon schilo-card__icon--dark"><i class="ti <?php echo esc_attr( $section['icon'] ); ?>"></i></div>
-				<h2 class="schilo-card__title"><?php echo esc_html( $section['title'] ); ?></h2>
-			</div>
+	<div class="schilo-terms-section">
+		<?php if ( $current_axe === '' ) : // Vue "Tout" : titre par axe. En vue filtrée, le hero l'affiche déjà. ?>
+		<div class="schilo-terms-section__heading">
+			<h2 class="schilo-terms-section__title"><i class="ti <?php echo esc_attr( $section['icon'] ); ?>" aria-hidden="true"></i> <?php echo esc_html( $section['title'] ); ?></h2>
+			<p class="schilo-terms-section__desc"><?php echo esc_html( $section['description'] ); ?></p>
 		</div>
-		<div class="schilo-card__body">
-			<p style="color:var(--schilo-text-secondary,#64748b);margin-top:0;"><?php echo esc_html( $section['description'] ); ?></p>
+		<?php endif; ?>
 
-			<?php if ( empty( $terms ) ) : ?>
-				<p style="color:var(--schilo-text-secondary,#64748b);"><?php esc_html_e( 'Aucun terme classé pour le moment.', 'schilo' ); ?></p>
-			<?php else : ?>
-				<div class="schilo-parcours-grid">
-					<?php foreach ( $terms as $term ) :
-						$children = get_term_children( $term->term_id, $section['taxonomy'] );
-						$children = is_array( $children ) ? $children : [];
-					?>
-					<a href="<?php echo esc_url( get_term_link( $term, $section['taxonomy'] ) ); ?>" class="schilo-parcours-grid__item">
-						<h3><?php echo esc_html( $term->name ); ?></h3>
-						<?php if ( $term->description ) : ?>
-							<p><?php echo esc_html( wp_trim_words( $term->description, 22, '…' ) ); ?></p>
-						<?php endif; ?>
-						<span class="schilo-parcours-grid__meta">
+		<?php if ( empty( $terms ) ) : ?>
+			<p class="schilo-terms-empty"><?php esc_html_e( 'Aucun terme classé pour le moment.', 'schilo' ); ?></p>
+		<?php else : ?>
+			<div class="schilo-terms-grid">
+				<?php foreach ( $terms as $t_index => $term ) :
+					$children = get_term_children( $term->term_id, $section['taxonomy'] );
+					$children = is_array( $children ) ? $children : [];
+					$tone     = $t_index % 5;
+				?>
+				<a href="<?php echo esc_url( get_term_link( $term, $section['taxonomy'] ) ); ?>" class="schilo-term-card schilo-term-card--t<?php echo esc_attr( $tone ); ?>">
+					<div class="schilo-term-card__top">
+						<span class="schilo-term-card__icon"><i class="ti <?php echo esc_attr( $section['icon'] ); ?>" aria-hidden="true"></i></span>
+						<span class="schilo-term-card__badge">
 							<?php
-							$meta_articles = sprintf(
+							echo esc_html( sprintf(
 								/* translators: %s: nombre d'articles */
 								_n( '%s article', '%s articles', (int) $term->count, 'schilo' ),
 								number_format_i18n( (int) $term->count )
-							);
-							$meta_etapes = $children
-								? ' · ' . sprintf(
+							) );
+							?>
+						</span>
+					</div>
+					<h3><?php echo esc_html( $term->name ); ?></h3>
+					<?php if ( $term->description ) : ?>
+						<p><?php echo esc_html( wp_trim_words( $term->description, 20, '…' ) ); ?></p>
+					<?php endif; ?>
+					<div class="schilo-term-card__meta">
+						<span>
+							<?php
+							echo $children
+								? esc_html( sprintf(
 									/* translators: %s: nombre d'étapes (sous-termes) */
 									_n( '%s étape', '%s étapes', count( $children ), 'schilo' ),
 									number_format_i18n( count( $children ) )
-								)
+								) )
 								: '';
-							echo esc_html( $meta_articles . $meta_etapes );
 							?>
 						</span>
-					</a>
-					<?php endforeach; ?>
-				</div>
-			<?php endif; ?>
-		</div>
+						<span class="schilo-term-card__link">
+							<?php esc_html_e( 'Découvrir', 'schilo' ); ?>
+							<i class="ti ti-arrow-right" aria-hidden="true"></i>
+						</span>
+					</div>
+				</a>
+				<?php endforeach; ?>
+			</div>
+		<?php endif; ?>
 	</div>
 	<?php endforeach; ?>
 
