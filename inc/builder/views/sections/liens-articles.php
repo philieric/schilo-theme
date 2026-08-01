@@ -2,11 +2,17 @@
 $data = method_exists($section, 'getData') ? $section->getData() : array();
 
 $links = isset($data['links']) && is_array($data['links']) ? $data['links'] : array();
-// Déduplique l'intro si la migration a concaténé la même phrase (ex: "A : A : A :")
-$intro_raw = isset($data['intro']) ? (string) $data['intro'] : '';
-$intro = $intro_raw !== ''
-    ? preg_replace('/^(.{5,}?)(?:\s*:\s*\1)+(\s*:?\s*)$/u', '$1$2', trim($intro_raw))
-    : '';
+// Déduplique l'intro que la migration a concaténé (une phrase par lien).
+$intro = trim(isset($data['intro']) ? (string) $data['intro'] : '');
+if ($intro !== '') {
+    // 1) Même phrase répétée avec ':' comme séparateur (ex "A : A : A").
+    $intro = preg_replace('/^(.{5,}?)(?:\s*:\s*\1)+(\s*:?\s*)$/u', '$1$2', $intro);
+    // 2) Phrases "Vous pouvez consulter …" concaténées (séparées par des
+    //    espaces, une par lien) : ne garder que la première occurrence.
+    if (preg_match_all('/Vous pouvez consulter/iu', $intro, $m, PREG_OFFSET_CAPTURE) && count($m[0]) > 1) {
+        $intro = rtrim(substr($intro, 0, $m[0][1][1]));
+    }
+}
 $texteLibre = isset($data['texte_libre']) ? $data['texte_libre'] : '';
 ?>
 <section class="<?php echo esc_attr($sectionClass); ?>">
