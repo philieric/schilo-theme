@@ -290,7 +290,7 @@ $category_description_fallbacks = [
                 <?php esc_html_e( 'au-delà du grand homme', 'schilo' ); ?>
             </h1>
             <p class="schilo-home-hero__description">
-                <?php esc_html_e( "Un site d'étude biblique structuré, rigoureux et accessible. Parcourez les Évangiles verset par verset, thème par thème, à votre propre rythme.", 'schilo' ); ?>
+                <?php esc_html_e( "Un site d'études bibliques structurées, rigoureux et accessible. Parcourez les Évangiles verset par verset, thème par thème, à votre propre rythme.", 'schilo' ); ?>
             </p>
             <div class="schilo-home-hero__actions">
                 <a href="#parcours" class="schilo-home-button schilo-home-button--primary">
