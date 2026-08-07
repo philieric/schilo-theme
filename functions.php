@@ -4,7 +4,7 @@
  */
 defined( 'ABSPATH' ) || exit;
 
-define( 'SCHILO_VERSION', '1.1.22' );
+define( 'SCHILO_VERSION', '1.1.24' );
 define( 'SCHILO_DIR',     get_template_directory() );
 define( 'SCHILO_URI',     get_template_directory_uri() );
 define( 'SCHILO_ASSETS',  SCHILO_URI . '/assets' );

@@ -253,7 +253,12 @@
             e.stopImmediatePropagation();
             window.SchiloBibRefDetect.runBeforeSave( function () {
                 bypass = true;
-                pub.click();
+                /* setTimeout : un re-clic synchrone et imbrique dans le
+                   gestionnaire de clic du meme bouton "submit" ne declenche
+                   pas fiablement la soumission native (le navigateur la
+                   considere deja "en cours" dans la meme pile d'appels).
+                   Sortir de la pile synchrone resout le probleme. */
+                setTimeout( function () { pub.click(); }, 0 );
             } );
         }, true );
     } );
