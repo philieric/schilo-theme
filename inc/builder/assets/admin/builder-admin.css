@@ -877,25 +877,36 @@
 .schilo-version-card__header .stc-checkbox { margin: 0; }
 
 .schilo-version-card__body {
-    margin-top: 12px;
-    padding-top: 12px;
+    margin-top: 10px;
+    padding-top: 10px;
     border-top: 1px solid #f0f0f1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.schilo-version-card__row {
+/* Ligne compacte label + champ, sur le même modèle que les autres réglages
+   du metabox (label court à gauche, champ à droite, une ligne par réglage). */
+.schilo-version-row {
     display: flex;
     align-items: flex-start;
-    gap: 24px;
-    flex-wrap: wrap;
+    gap: 12px;
 }
 
-.schilo-version-field--type { flex: 0 0 220px; }
-.schilo-version-field--search { flex: 1 1 320px; min-width: 260px; }
-.schilo-version-field--primary {
-    flex: 0 0 200px;
-    align-items: flex-start !important;
+.schilo-version-row__label {
+    flex: 0 0 140px;
+    padding-top: 7px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #3c434a;
 }
-.schilo-version-field--primary .description { font-size: 11px; color: #8c8f94; margin: 0; }
+
+.schilo-version-row__control { flex: 1 1 auto; min-width: 0; }
+
+.schilo-version-row .stc-select { max-width: 260px; }
+.schilo-version-row .schilo-version-article-search { max-width: 320px; }
+
+.schilo-version-row .stc-checkbox { font-size: 12px; padding-top: 6px; }
 
 .schilo-version-linked-list {
     list-style: none;
