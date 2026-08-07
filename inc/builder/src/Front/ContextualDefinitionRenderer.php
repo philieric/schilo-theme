@@ -3,6 +3,7 @@
 namespace Schilo\Builder\Front;
 
 use Schilo\Builder\Service\ContextualDefinitionService;
+use Schilo\Builder\Service\ContentFilter;
 
 class ContextualDefinitionRenderer
 {
@@ -68,15 +69,16 @@ class ContextualDefinitionRenderer
     private function getBody(\WP_Post $source): string
     {
         $sections = get_post_meta($source->ID, '_schilo_builder_sections', true);
+        $contentFilter = new ContentFilter();
         $body = '';
         if (is_array($sections)) {
             foreach ($sections as $section) {
                 if (empty($section['content'])) continue;
                 if (!empty($section['title'])) $body .= '<h3>' . esc_html($section['title']) . '</h3>';
-                $body .= wpautop(wp_kses_post($section['content']));
+                $body .= $contentFilter->render($section['content']);
             }
         }
-        return $body !== '' ? $body : wpautop(wp_kses_post($source->post_content));
+        return $body !== '' ? $body : $contentFilter->render($source->post_content);
     }
 
     private function replaceEligibleOccurrences(string $content, string $pattern, string $modalId, string $code): array

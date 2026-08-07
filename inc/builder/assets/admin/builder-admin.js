@@ -569,7 +569,7 @@
             extraFields = liensArticlesTemplate(index);
         }
 
-        if (type === 'titre-simple') {
+        if (type === 'titre-simple' || type === 'titre-partie') {
             contentEditorHtml = '<input type="hidden" name="schilo_sections[' + index + '][content]" value="">';
             extraFields = '';
         }

@@ -15,6 +15,8 @@
     'schilo-section-paragraphe':                  'sec-commentaires',
     'schilo-section-questions':                   'sec-questions',
     'schilo-section-references':                  'sec-articles',
+    'schilo-section-contexte':                    'sec-contexte',
+    'schilo-section-conclusion':                  'sec-conclusion',
   };
 
   // ── Barre de progression de lecture ──────────────────────────────────
@@ -190,8 +192,16 @@
     }
 
     // 3. Scroll spy simple (IntersectionObserver)
+    // Les sections a observer sont derivees des data-anchor des onglets eux-
+    // memes (pas d'un selecteur [id^="sec-"] fige) : certains onglets pointent
+    // directement sur l'id du titre de section (ex : plusieurs blocs du meme
+    // type avec des titres distincts) plutot que sur un id sec-XXX pose ici.
     var links = tabnav.querySelectorAll('.schilo-tabnav-link');
-    var sections = Array.from(document.querySelectorAll('[id^="sec-"]'));
+    var sections = [];
+    links.forEach(function (l) {
+      var el = document.getElementById(l.getAttribute('data-anchor') || '');
+      if (el) sections.push(el);
+    });
     if (!sections.length || !links.length) return;
 
     var navH = tabnav.offsetHeight;
