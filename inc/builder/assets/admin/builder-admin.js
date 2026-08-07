@@ -953,10 +953,21 @@
             return; // déjà lié
         }
 
+        const availableLabels = (window.SchiloBuilderAdmin && window.SchiloBuilderAdmin.versionAvailableLabels) || [];
+        const labelSelect = $('<select></select>').attr({
+            name: 'schilo_version_linked_labels[' + id + ']',
+            class: 'schilo-version-linked-label',
+            'aria-label': 'Type de version pour cet article lié'
+        });
+        availableLabels.forEach(function (labelOption) {
+            labelSelect.append($('<option></option>').attr('value', labelOption).text(labelOption));
+        });
+
         list.append(
             $('<li></li>').attr('data-id', id).append(
                 $('<span></span>').text(title),
                 $('<input>').attr({ type: 'hidden', name: 'schilo_version_linked_ids[]', value: id }),
+                labelSelect,
                 $('<button></button>').attr({ type: 'button', class: 'schilo-version-remove-link', 'aria-label': 'Retirer' }).html('&times;')
             )
         );

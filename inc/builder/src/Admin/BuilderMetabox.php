@@ -143,6 +143,7 @@ class BuilderMetabox
                 'ajaxUrl'              => admin_url('admin-ajax.php'),
                 'versionSearchNonce'   => wp_create_nonce('schilo_search_version_articles'),
                 'currentPostId'        => $postIdForNav,
+                'versionAvailableLabels' => (new \Schilo\Builder\Service\ArticleVersionService())->getAvailableLabels(),
             )
         );
     }
@@ -204,9 +205,11 @@ class BuilderMetabox
         foreach ($versionService->getLinkedIds($postId) as $linkedId) {
             $linkedPost = get_post($linkedId);
             if ($linkedPost) {
+                $linkedLabel = $versionService->getLabel($linkedId);
                 $versionLinkedPosts[] = array(
                     'id' => $linkedId,
                     'title' => html_entity_decode(get_the_title($linkedPost), ENT_QUOTES, 'UTF-8'),
+                    'label' => $linkedLabel !== '' ? $linkedLabel : '',
                 );
             }
         }
@@ -254,7 +257,14 @@ class BuilderMetabox
         $versionLabel = isset($_POST['schilo_version_label']) ? sanitize_text_field(wp_unslash($_POST['schilo_version_label'])) : '';
         $versionIsPrimary = !empty($_POST['schilo_version_is_primary']);
 
-        (new ArticleVersionService())->saveVersion($postId, $versionEnabled, $versionLinkedIds, $versionLabel, $versionIsPrimary);
+        $versionLinkedLabels = array();
+        if (isset($_POST['schilo_version_linked_labels']) && is_array($_POST['schilo_version_linked_labels'])) {
+            foreach (wp_unslash($_POST['schilo_version_linked_labels']) as $linkedId => $linkedLabelValue) {
+                $versionLinkedLabels[(int) $linkedId] = sanitize_text_field((string) $linkedLabelValue);
+            }
+        }
+
+        (new ArticleVersionService())->saveVersion($postId, $versionEnabled, $versionLinkedIds, $versionLabel, $versionIsPrimary, $versionLinkedLabels);
 
         $rawSections = (isset($_POST['schilo_sections']) && is_array($_POST['schilo_sections']))
             ? wp_unslash($_POST['schilo_sections'])

@@ -79,13 +79,16 @@ class ArticleVersionService
      * label/primaire pour CE post, et garantit qu'un seul membre du groupe
      * est marque primaire (celui coche efface le flag chez les autres).
      *
-     * @param int   $postId
-     * @param bool  $enabled
-     * @param int[] $linkedIds  IDs des autres articles du groupe (sans le post courant)
+     * @param int    $postId
+     * @param bool   $enabled
+     * @param int[]  $linkedIds     IDs des autres articles du groupe (sans le post courant)
      * @param string $label
-     * @param bool  $isPrimary
+     * @param bool   $isPrimary
+     * @param array  $linkedLabels  [id lié => type de version choisi pour cet article,
+     *                               depuis l'écran courant] — évite d'avoir à rouvrir
+     *                               chaque article lié pour lui assigner son type.
      */
-    public function saveVersion($postId, $enabled, array $linkedIds, $label, $isPrimary)
+    public function saveVersion($postId, $enabled, array $linkedIds, $label, $isPrimary, array $linkedLabels = array())
     {
         $postId = (int) $postId;
         $linkedIds = array_values(array_unique(array_filter(array_map('intval', $linkedIds), function ($id) use ($postId) {
@@ -135,7 +138,11 @@ class ArticleVersionService
                 )));
                 update_post_meta($memberId, self::META_ENABLED, '1');
                 update_post_meta($memberId, self::META_LINKED, $memberLinked);
-                if ($this->getLabel($memberId) === '') {
+
+                if (isset($linkedLabels[$memberId]) && trim((string) $linkedLabels[$memberId]) !== '') {
+                    // Type choisi explicitement pour ce lien depuis l'écran courant.
+                    update_post_meta($memberId, self::META_LABEL, sanitize_text_field((string) $linkedLabels[$memberId]));
+                } elseif ($this->getLabel($memberId) === '') {
                     update_post_meta($memberId, self::META_LABEL, 'Version');
                 }
             } else {

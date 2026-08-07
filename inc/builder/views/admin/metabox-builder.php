@@ -129,6 +129,13 @@ echo wp_json_encode( $schiloArticlesPayload );
                             <li data-id="<?php echo esc_attr( $linked['id'] ); ?>">
                                 <span><?php echo esc_html( $linked['title'] ); ?></span>
                                 <input type="hidden" name="schilo_version_linked_ids[]" value="<?php echo esc_attr( $linked['id'] ); ?>">
+                                <select name="schilo_version_linked_labels[<?php echo esc_attr( $linked['id'] ); ?>]" class="schilo-version-linked-label" aria-label="Type de version pour cet article li&eacute;">
+                                    <?php foreach ( $versionAvailableLabels as $labelOption ) : ?>
+                                        <option value="<?php echo esc_attr( $labelOption ); ?>" <?php selected( $linked['label'], $labelOption ); ?>>
+                                            <?php echo esc_html( $labelOption ); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                                 <button type="button" class="schilo-version-remove-link" aria-label="Retirer">&times;</button>
                             </li>
                         <?php endforeach; ?>
