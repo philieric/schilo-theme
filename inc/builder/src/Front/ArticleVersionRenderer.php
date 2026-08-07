@@ -9,6 +9,8 @@ class ArticleVersionRenderer
     public function register()
     {
         add_action('pre_get_posts', array($this, 'excludeNonPrimaryFromListings'));
+        add_filter('get_previous_post_where', array($this, 'excludeNonPrimaryFromAdjacent'));
+        add_filter('get_next_post_where', array($this, 'excludeNonPrimaryFromAdjacent'));
         add_action('wp_ajax_schilo_switch_version', array($this, 'ajaxSwitchVersion'));
         add_action('wp_ajax_nopriv_schilo_switch_version', array($this, 'ajaxSwitchVersion'));
         add_action('wp_enqueue_scripts', array($this, 'enqueueAssets'));
@@ -38,6 +40,27 @@ class ArticleVersionRenderer
         $existing = is_array($existing) ? $existing : array();
 
         $query->set('post__not_in', array_values(array_unique(array_merge($existing, $excluded))));
+    }
+
+    /**
+     * get_previous_post()/get_next_post() (nav précédent/suivant de
+     * single.php) construisent leur propre SQL directement, hors WP_Query :
+     * pas concernés par excludeNonPrimaryFromListings() ci-dessus. Même
+     * exclusion ici via les filtres dédiés de get_adjacent_post().
+     */
+    public function excludeNonPrimaryFromAdjacent($where)
+    {
+        global $wpdb;
+
+        $excluded = (new ArticleVersionService())->getExcludedFromListingsIds();
+
+        if (empty($excluded)) {
+            return $where;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($excluded), '%d'));
+
+        return $where . $wpdb->prepare(" AND p.ID NOT IN ({$placeholders})", $excluded);
     }
 
     public function enqueueAssets()

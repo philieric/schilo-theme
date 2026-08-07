@@ -16,7 +16,7 @@ if ( ! $term instanceof WP_Term ) {
 }
 
 $get_ordered_post_ids = function ( int $term_id ) use ( $taxonomy ): array {
-	$query = new WP_Query( [
+	$args = [
 		'post_type'      => 'post',
 		'post_status'    => 'publish',
 		'posts_per_page' => -1,
@@ -25,7 +25,18 @@ $get_ordered_post_ids = function ( int $term_id ) use ( $taxonomy ): array {
 		'meta_key'       => '_schilo_ordre_' . $term_id,
 		'orderby'        => 'meta_value_num',
 		'order'          => 'ASC',
-	] );
+	];
+
+	// Requête secondaire (pas la requête principale) : pas couverte par le
+	// filtre pre_get_posts qui exclut les versions non-primaires ailleurs.
+	if ( class_exists( '\Schilo\Builder\Service\ArticleVersionService' ) ) {
+		$excluded = ( new \Schilo\Builder\Service\ArticleVersionService() )->getExcludedFromListingsIds();
+		if ( ! empty( $excluded ) ) {
+			$args['post__not_in'] = $excluded;
+		}
+	}
+
+	$query = new WP_Query( $args );
 	return $query->posts;
 };
 
