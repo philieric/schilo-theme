@@ -97,7 +97,9 @@ class ArticleVersionRenderer
 
         $rawTitle = get_post_field('post_title', $toId);
         $cleanTitle = $rawTitle;
+        $perCode = '';
         if (preg_match('/^([A-Z]+\d+)\s*[\x{2013}\x{2014}\-]+\s*/u', $rawTitle, $m)) {
+            $perCode = $m[1];
             $cleanTitle = preg_replace('/^[A-Z]+\d+\s*[\x{2013}\x{2014}\-]+\s*/u', '', $rawTitle);
         }
 
@@ -120,6 +122,7 @@ class ArticleVersionRenderer
             'content'    => $content,
             'permalink'  => get_permalink($toId),
             'postId'     => $toId,
+            'perCode'    => esc_html($perCode),
             'switcher'   => $switcher,
         ));
     }

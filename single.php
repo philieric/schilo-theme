@@ -346,7 +346,7 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
         <?php endif; ?>
         <?php if ( $per_code ) : ?>
           <span aria-hidden="true">›</span>
-          <span><?php echo esc_html( $per_code ); ?></span>
+          <span class="schilo-single-hero__breadcrumb-code"><?php echo esc_html( $per_code ); ?></span>
         <?php endif; ?>
       </nav>
 

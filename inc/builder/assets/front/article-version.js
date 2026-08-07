@@ -39,6 +39,17 @@ Schilo.ArticleVersion = (function () {
             excerptEl.innerHTML = data.excerpt;
         }
 
+        if (typeof data.perCode === 'string') {
+            var perBadgeEl = document.querySelector('.schilo-single-hero__per');
+            if (perBadgeEl) {
+                perBadgeEl.innerHTML = data.perCode;
+            }
+            var breadcrumbCodeEl = document.querySelector('.schilo-single-hero__breadcrumb-code');
+            if (breadcrumbCodeEl) {
+                breadcrumbCodeEl.innerHTML = data.perCode;
+            }
+        }
+
         var contentEl = document.getElementById('schilo-single-main');
         if (contentEl && typeof data.content === 'string') {
             contentEl.innerHTML = data.content;
