@@ -147,9 +147,17 @@ class ArticleVersionService
                 }
             } else {
                 // Retire uniquement le lien vers le post courant, conserve le
-                // reste du groupe de ce membre s'il en a un.
+                // reste du groupe de ce membre s'il en a un (groupe à 3+).
                 $memberLinked = array_values(array_diff($memberLinked, array($postId)));
                 update_post_meta($memberId, self::META_LINKED, $memberLinked);
+
+                if (empty($memberLinked)) {
+                    // Plus aucun lien restant pour ce membre : il ne fait plus
+                    // partie d'aucun groupe, l'option ne doit plus être cochée.
+                    delete_post_meta($memberId, self::META_ENABLED);
+                    delete_post_meta($memberId, self::META_LABEL);
+                    delete_post_meta($memberId, self::META_PRIMARY);
+                }
             }
         }
 
