@@ -95,12 +95,16 @@ class ArticleVersionService
             return $id > 0 && $id !== $postId;
         })));
 
-        if (!$enabled) {
+        if (!$enabled || empty($linkedIds)) {
             // Désactiver ici équivaut à retirer ce post de tous ses liens :
             // même nettoyage en cascade que le retrait d'un lien individuel
             // (si un membre lié n'a plus aucun lien après ça, il est aussi
             // décoché), sinon il reste orphelin, encore coché, pointant vers
             // un groupe qui n'existe plus côté post courant.
+            // "empty($linkedIds)" couvre le cas où la case est restée cochée
+            // mais que le dernier article lié vient d'être retiré : un post
+            // "version multiple" sans aucun lien n'a pas de sens, on le
+            // décoche aussi (règle symétrique à celle des membres du groupe).
             foreach ($this->getLinkedIds($postId) as $memberId) {
                 $memberId = (int) $memberId;
                 $memberLinked = array_values(array_diff($this->getLinkedIds($memberId), array($postId)));
