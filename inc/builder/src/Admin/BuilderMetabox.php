@@ -9,6 +9,7 @@ use Schilo\Builder\Service\ArticleTypeService;
 use Schilo\Builder\Service\SectionTypeService;
 use Schilo\Builder\Service\SectionStructureService;
 use Schilo\Builder\Service\TemplateApplicationService;
+use Schilo\Builder\Service\ArticleVersionService;
 
 class BuilderMetabox
 {
@@ -137,6 +138,22 @@ class BuilderMetabox
             $applyTemplateUrlBase
         );
 
+        $versionService = new ArticleVersionService();
+        $versionEnabled = $versionService->isEnabled($postId);
+        $versionLabel = $versionService->getLabel($postId);
+        $versionIsPrimary = $versionService->isPrimary($postId);
+        $versionAvailableLabels = $versionService->getAvailableLabels();
+        $versionLinkedPosts = array();
+        foreach ($versionService->getLinkedIds($postId) as $linkedId) {
+            $linkedPost = get_post($linkedId);
+            if ($linkedPost) {
+                $versionLinkedPosts[] = array(
+                    'id' => $linkedId,
+                    'title' => html_entity_decode(get_the_title($linkedPost), ENT_QUOTES, 'UTF-8'),
+                );
+            }
+        }
+
         include SCHILO_BUILDER_PATH . 'views/admin/metabox-builder.php';
     }
 
@@ -172,6 +189,15 @@ class BuilderMetabox
             : 'AUTO';
 
         $this->articleTypeService->saveSelectedType($postId, $selectedType);
+
+        $versionEnabled = !empty($_POST['schilo_version_enabled']);
+        $versionLinkedIds = isset($_POST['schilo_version_linked_ids']) && is_array($_POST['schilo_version_linked_ids'])
+            ? array_map('intval', wp_unslash($_POST['schilo_version_linked_ids']))
+            : array();
+        $versionLabel = isset($_POST['schilo_version_label']) ? sanitize_text_field(wp_unslash($_POST['schilo_version_label'])) : '';
+        $versionIsPrimary = !empty($_POST['schilo_version_is_primary']);
+
+        (new ArticleVersionService())->saveVersion($postId, $versionEnabled, $versionLinkedIds, $versionLabel, $versionIsPrimary);
 
         $rawSections = (isset($_POST['schilo_sections']) && is_array($_POST['schilo_sections']))
             ? wp_unslash($_POST['schilo_sections'])

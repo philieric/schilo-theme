@@ -885,6 +885,42 @@
         }
     });
 
+    // ── Versions liées (case à cocher + recherche d'article + primaire) ──
+    $(document).on('change', '#schilo_version_enabled', function () {
+        $('#schilo-version-fields').toggle($(this).is(':checked'));
+    });
+
+    $(document).on('focus input', '.schilo-version-article-search', function () {
+        renderComboboxList($(this));
+    });
+
+    $(document).on('click', '.schilo-version-combobox .schilo-combobox-list li', function () {
+        const item = $(this);
+        const combobox = item.closest('.schilo-version-combobox');
+        const id = item.data('id');
+        const title = item.data('title');
+        const list = $('#schilo-version-linked-list');
+
+        combobox.find('.schilo-version-article-search').val('');
+        combobox.find('.schilo-combobox-list').empty().hide();
+
+        if (list.find('li[data-id="' + id + '"]').length) {
+            return; // déjà lié
+        }
+
+        list.append(
+            $('<li></li>').attr('data-id', id).append(
+                $('<span></span>').text(title),
+                $('<input>').attr({ type: 'hidden', name: 'schilo_version_linked_ids[]', value: id }),
+                $('<button></button>').attr({ type: 'button', class: 'schilo-version-remove-link', 'aria-label': 'Retirer' }).html('&times;')
+            )
+        );
+    });
+
+    $(document).on('click', '.schilo-version-remove-link', function () {
+        $(this).closest('li').remove();
+    });
+
     $(document).on('click', '.schilo-add-link', function () {
         const button = $(this);
         const field = button.closest('.schilo-links-field');

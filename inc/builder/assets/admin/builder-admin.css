@@ -768,7 +768,7 @@
 /* v0.9.4 — top-grid redesign compact */
 .schilo-builder-top-grid {
     display: grid;
-    grid-template-columns: 180px 1fr 240px;
+    grid-template-columns: 180px 1fr 260px 240px;
     gap: 0;
     margin: 0 0 20px;
     background: #fff;
@@ -858,7 +858,49 @@
 }
 .stc-last { font-size: 11px; color: #8c8f94; }
 
-/* Colonne 3 — image (photo gauche, boutons droite) */
+/* Colonne 3 — versions liées */
+.schilo-top-card--version { justify-content: flex-start; gap: 8px; }
+#schilo-version-fields { display: flex; flex-direction: column; gap: 8px; }
+
+.schilo-version-linked-list {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 110px;
+    overflow-y: auto;
+}
+.schilo-version-linked-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    background: #f0f0f1;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: #1d2327;
+}
+.schilo-version-linked-list li span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.schilo-version-remove-link {
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    color: #b32d2e;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    padding: 0 2px;
+}
+.schilo-version-remove-link:hover { color: #dc3232; }
+
+/* Colonne 4 — image (photo gauche, boutons droite) */
 .schilo-top-card--image { padding: 10px 14px; gap: 6px; }
 
 .stc-thumb--set {

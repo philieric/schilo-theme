@@ -242,6 +242,8 @@ class Plugin
 
         (new ContextualDefinitionRenderer())->register();
 
+        (new \Schilo\Builder\Front\ArticleVersionRenderer())->register();
+
         $relatedArticlesShortcode = new RelatedArticlesShortcode();
         $relatedArticlesShortcode->register();
 
