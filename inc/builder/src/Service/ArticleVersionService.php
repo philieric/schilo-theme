@@ -96,6 +96,23 @@ class ArticleVersionService
         })));
 
         if (!$enabled) {
+            // Désactiver ici équivaut à retirer ce post de tous ses liens :
+            // même nettoyage en cascade que le retrait d'un lien individuel
+            // (si un membre lié n'a plus aucun lien après ça, il est aussi
+            // décoché), sinon il reste orphelin, encore coché, pointant vers
+            // un groupe qui n'existe plus côté post courant.
+            foreach ($this->getLinkedIds($postId) as $memberId) {
+                $memberId = (int) $memberId;
+                $memberLinked = array_values(array_diff($this->getLinkedIds($memberId), array($postId)));
+                update_post_meta($memberId, self::META_LINKED, $memberLinked);
+
+                if (empty($memberLinked)) {
+                    delete_post_meta($memberId, self::META_ENABLED);
+                    delete_post_meta($memberId, self::META_LABEL);
+                    delete_post_meta($memberId, self::META_PRIMARY);
+                }
+            }
+
             delete_post_meta($postId, self::META_ENABLED);
             delete_post_meta($postId, self::META_LINKED);
             delete_post_meta($postId, self::META_LABEL);
