@@ -138,6 +138,12 @@ class ArticleVersionRenderer
             return array();
         }
 
+        // Ordre stable (par ID croissant), indépendant de l'article "courant" :
+        // sinon la position des pastilles change à chaque switch (le post
+        // courant passait toujours en tête), ce qui est déroutant côté
+        // utilisateur (les boutons semblent s'inverser à chaque clic).
+        sort($groupIds);
+
         $items = array();
         foreach ($groupIds as $id) {
             $label = $service->getLabel($id);
