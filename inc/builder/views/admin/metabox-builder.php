@@ -74,50 +74,6 @@ echo wp_json_encode( $schiloArticlesPayload );
             <?php endif; ?>
         </div>
 
-        <div class="schilo-top-card schilo-top-card--version">
-            <div class="stc-label">Versions de l&apos;article</div>
-            <label class="stc-checkbox">
-                <input type="checkbox" name="schilo_version_enabled" id="schilo_version_enabled" value="1" <?php checked( $versionEnabled ); ?>>
-                Activer les versions multiples
-            </label>
-
-            <div id="schilo-version-fields" style="<?php echo $versionEnabled ? '' : 'display:none'; ?>">
-                <div class="stc-field">
-                    <label for="schilo_version_label" class="stc-field-label">Type de cette version</label>
-                    <select name="schilo_version_label" id="schilo_version_label" class="stc-select">
-                        <?php foreach ( $versionAvailableLabels as $labelOption ) : ?>
-                            <option value="<?php echo esc_attr( $labelOption ); ?>" <?php selected( $versionLabel, $labelOption ); ?>>
-                                <?php echo esc_html( $labelOption ); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-
-                <div class="stc-field">
-                    <label class="stc-field-label">Articles li&eacute;s (autres versions)</label>
-                    <div class="schilo-combobox schilo-version-combobox">
-                        <input type="text" class="schilo-version-article-search" placeholder="Rechercher un article &agrave; lier&hellip;" autocomplete="off">
-                        <ul class="schilo-combobox-list" style="display:none"></ul>
-                    </div>
-                    <ul id="schilo-version-linked-list" class="schilo-version-linked-list">
-                        <?php foreach ( $versionLinkedPosts as $linked ) : ?>
-                            <li data-id="<?php echo esc_attr( $linked['id'] ); ?>">
-                                <span><?php echo esc_html( $linked['title'] ); ?></span>
-                                <input type="hidden" name="schilo_version_linked_ids[]" value="<?php echo esc_attr( $linked['id'] ); ?>">
-                                <button type="button" class="schilo-version-remove-link" aria-label="Retirer">&times;</button>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-
-                <label class="stc-checkbox">
-                    <input type="checkbox" name="schilo_version_is_primary" value="1" <?php checked( $versionIsPrimary ); ?>>
-                    Article principal (affich&eacute; dans les archives)
-                </label>
-                <p class="description">Un seul article du groupe peut &ecirc;tre principal ; le cocher ici d&eacute;cochera automatiquement les autres.</p>
-            </div>
-        </div>
-
         <div class="schilo-top-card schilo-top-card--image" id="schilo-featured-image-slot">
             <div class="stc-label">Image mise en avant</div>
             <?php if ( $thumbnailId && $thumbnailSrc ) : ?>
@@ -137,6 +93,56 @@ echo wp_json_encode( $schiloArticlesPayload );
                 </div>
             <?php endif; ?>
             <input type="hidden" id="schilo_thumbnail_id" name="_thumbnail_id" value="<?php echo esc_attr( $thumbnailId ? $thumbnailId : -1 ); ?>">
+        </div>
+    </div>
+
+    <div class="schilo-version-card">
+        <div class="schilo-version-card__header">
+            <span class="stc-label">Versions de l&apos;article</span>
+            <label class="stc-checkbox">
+                <input type="checkbox" name="schilo_version_enabled" id="schilo_version_enabled" value="1" <?php checked( $versionEnabled ); ?>>
+                Activer les versions multiples
+            </label>
+        </div>
+
+        <div id="schilo-version-fields" class="schilo-version-card__body" style="<?php echo $versionEnabled ? '' : 'display:none'; ?>">
+            <div class="schilo-version-card__row">
+                <div class="stc-field schilo-version-field--type">
+                    <label for="schilo_version_label" class="stc-field-label">Type de cette version</label>
+                    <select name="schilo_version_label" id="schilo_version_label" class="stc-select">
+                        <?php foreach ( $versionAvailableLabels as $labelOption ) : ?>
+                            <option value="<?php echo esc_attr( $labelOption ); ?>" <?php selected( $versionLabel, $labelOption ); ?>>
+                                <?php echo esc_html( $labelOption ); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="stc-field schilo-version-field--search">
+                    <label class="stc-field-label">Articles li&eacute;s (autres versions)</label>
+                    <div class="schilo-combobox schilo-version-combobox">
+                        <input type="text" class="schilo-version-article-search" placeholder="Rechercher un article &agrave; lier&hellip;" autocomplete="off">
+                        <ul class="schilo-combobox-list" style="display:none"></ul>
+                    </div>
+                </div>
+
+                <label class="stc-checkbox schilo-version-field--primary">
+                    <input type="checkbox" name="schilo_version_is_primary" value="1" <?php checked( $versionIsPrimary ); ?>>
+                    Article principal<br><span class="description">(affich&eacute; dans les archives)</span>
+                </label>
+            </div>
+
+            <ul id="schilo-version-linked-list" class="schilo-version-linked-list">
+                <?php foreach ( $versionLinkedPosts as $linked ) : ?>
+                    <li data-id="<?php echo esc_attr( $linked['id'] ); ?>">
+                        <span><?php echo esc_html( $linked['title'] ); ?></span>
+                        <input type="hidden" name="schilo_version_linked_ids[]" value="<?php echo esc_attr( $linked['id'] ); ?>">
+                        <button type="button" class="schilo-version-remove-link" aria-label="Retirer">&times;</button>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+
+            <p class="description">Un seul article du groupe peut &ecirc;tre principal ; le cocher ici d&eacute;cochera automatiquement les autres.</p>
         </div>
     </div>
 

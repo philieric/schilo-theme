@@ -768,7 +768,7 @@
 /* v0.9.4 — top-grid redesign compact */
 .schilo-builder-top-grid {
     display: grid;
-    grid-template-columns: 180px 1fr 260px 240px;
+    grid-template-columns: 180px 1fr 240px;
     gap: 0;
     margin: 0 0 20px;
     background: #fff;
@@ -858,30 +858,64 @@
 }
 .stc-last { font-size: 11px; color: #8c8f94; }
 
-/* Colonne 3 — versions liées */
-.schilo-top-card--version { justify-content: flex-start; gap: 8px; }
-#schilo-version-fields { display: flex; flex-direction: column; gap: 8px; }
+/* Bloc Versions — pleine largeur, sous le top-grid (pas dans sa grille à
+   colonnes fixes : casse sinon la mise en page des cartes Template/Image). */
+.schilo-version-card {
+    background: #fff;
+    border: 1px solid #e2e4e7;
+    border-radius: 12px;
+    margin: 0 0 20px;
+    padding: 14px 16px;
+}
+
+.schilo-version-card__header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+.schilo-version-card__header .stc-checkbox { margin: 0; }
+
+.schilo-version-card__body {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f1;
+}
+
+.schilo-version-card__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.schilo-version-field--type { flex: 0 0 220px; }
+.schilo-version-field--search { flex: 1 1 320px; min-width: 260px; }
+.schilo-version-field--primary {
+    flex: 0 0 200px;
+    align-items: flex-start !important;
+}
+.schilo-version-field--primary .description { font-size: 11px; color: #8c8f94; margin: 0; }
 
 .schilo-version-linked-list {
     list-style: none;
-    margin: 4px 0 0;
+    margin: 14px 0 0;
     padding: 0;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-    max-height: 110px;
-    overflow-y: auto;
+    flex-wrap: wrap;
+    gap: 6px;
 }
+.schilo-version-linked-list:empty { margin: 0; }
 .schilo-version-linked-list li {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 6px;
     background: #f0f0f1;
-    border-radius: 6px;
-    padding: 4px 8px;
+    border-radius: 99px;
+    padding: 5px 6px 5px 12px;
     font-size: 12px;
     color: #1d2327;
+    max-width: 260px;
 }
 .schilo-version-linked-list li span {
     overflow: hidden;

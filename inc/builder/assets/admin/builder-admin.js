@@ -890,8 +890,53 @@
         $('#schilo-version-fields').toggle($(this).is(':checked'));
     });
 
+    // Recherche live cote serveur (pas de blob client plafonne : sur un site
+    // de plusieurs milliers d'articles tries par titre, un prefixe tardif
+    // comme PER n'apparaitrait jamais dans les 300 premiers).
+    let versionSearchTimer = null;
+    let versionSearchXhr = null;
+
+    function searchVersionArticles(input) {
+        const combobox = input.closest('.schilo-version-combobox');
+        const list = combobox.find('.schilo-combobox-list');
+        const query = input.val().trim();
+        const cfg = window.SchiloBuilderAdmin || {};
+
+        if (versionSearchXhr) {
+            versionSearchXhr.abort();
+        }
+
+        versionSearchXhr = $.get(cfg.ajaxUrl, {
+            action: 'schilo_search_version_articles',
+            nonce: cfg.versionSearchNonce,
+            term: query,
+            exclude: cfg.currentPostId || 0
+        }).done(function (response) {
+            const results = (response && response.success && Array.isArray(response.data)) ? response.data : [];
+
+            if (!results.length) {
+                list.empty().hide();
+                return;
+            }
+
+            list.empty();
+            results.forEach(function (article) {
+                const item = $('<li></li>')
+                    .text(article.title)
+                    .attr('data-id', article.id)
+                    .attr('data-title', article.title);
+                list.append(item);
+            });
+            list.show();
+        });
+    }
+
     $(document).on('focus input', '.schilo-version-article-search', function () {
-        renderComboboxList($(this));
+        const input = $(this);
+        clearTimeout(versionSearchTimer);
+        versionSearchTimer = setTimeout(function () {
+            searchVersionArticles(input);
+        }, 250);
     });
 
     $(document).on('click', '.schilo-version-combobox .schilo-combobox-list li', function () {

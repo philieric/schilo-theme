@@ -30,6 +30,61 @@ class BuilderMetabox
         add_action('save_post', array($this, 'save'), 10, 2);
         add_action('admin_enqueue_scripts', array($this, 'enqueueAssets'));
         add_action('admin_post_schilo_apply_template', array($this, 'handleApplyTemplate'));
+        add_action('wp_ajax_schilo_search_version_articles', array($this, 'ajaxSearchVersionArticles'));
+    }
+
+    /**
+     * Recherche live (par titre) pour le combobox "Articles liés" de la
+     * carte Versions — contrairement a #schilo-articles-data (plafonne a
+     * 300 articles, trie alphabetiquement : les prefixes tardifs comme PER
+     * n'y apparaissent jamais sur un site de plusieurs milliers d'articles),
+     * interroge la base a la demande, sans limite de couverture.
+     */
+    public function ajaxSearchVersionArticles()
+    {
+        check_ajax_referer('schilo_search_version_articles', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(array('message' => 'Accès refusé.'), 403);
+        }
+
+        $term = isset($_GET['term']) ? sanitize_text_field(wp_unslash($_GET['term'])) : '';
+        $excludeId = isset($_GET['exclude']) ? (int) $_GET['exclude'] : 0;
+
+        global $wpdb;
+
+        // Recherche par TITRE uniquement (LIKE direct), pas la recherche WP
+        // generique 's' qui matche aussi le contenu et melange la pertinence :
+        // pour retrouver un article par son code (ex. "PER" -> PER001, PER002...)
+        // seul un match sur le titre a du sens ici.
+        $sql = "SELECT ID, post_title FROM {$wpdb->posts}
+                WHERE post_type IN ('post', 'page')
+                AND post_status = 'publish'";
+        $params = array();
+
+        if ($term !== '') {
+            $sql .= ' AND post_title LIKE %s';
+            $params[] = '%' . $wpdb->esc_like($term) . '%';
+        }
+
+        if ($excludeId > 0) {
+            $sql .= ' AND ID != %d';
+            $params[] = $excludeId;
+        }
+
+        $sql .= ' ORDER BY post_title ASC LIMIT 20';
+
+        $rows = !empty($params) ? $wpdb->get_results($wpdb->prepare($sql, $params)) : $wpdb->get_results($sql);
+
+        $results = array();
+        foreach ($rows as $row) {
+            $results[] = array(
+                'id' => (int) $row->ID,
+                'title' => html_entity_decode((string) $row->post_title, ENT_QUOTES, 'UTF-8'),
+            );
+        }
+
+        wp_send_json_success($results);
     }
 
     public function enqueueAssets($hook)
@@ -86,6 +141,8 @@ class BuilderMetabox
                 'templateSectionOrder' => $templateSectionOrder,
                 'sectionTypeLabels'    => $sectionTypeLabels,
                 'ajaxUrl'              => admin_url('admin-ajax.php'),
+                'versionSearchNonce'   => wp_create_nonce('schilo_search_version_articles'),
+                'currentPostId'        => $postIdForNav,
             )
         );
     }
