@@ -75,10 +75,25 @@
             });
         }
 
-        /* Clic Enregistrer */
+        /* Clic Enregistrer
+           WP désactive #publish (classe "disabled", pas l'attribut natif)
+           pendant 5s après chaque modification, le temps que l'autosave
+           parte (cf wp-includes/js/autosave.js:disableButtons()). Le clic
+           natif de WP sur #publish ignore alors le clic (post.js) : on
+           réessaie donc jusqu'à ce que le blocage soit levé plutôt que de
+           laisser le clic disparaître silencieusement. */
         function doSave() {
             var pub = document.getElementById('publish');
-            if (pub) { markClean(); pub.click(); }
+            var btn = document.getElementById('se-save');
+            if (!pub) return;
+            if (pub.classList.contains('disabled')) {
+                if (btn) btn.disabled = true;
+                setTimeout(doSave, 300);
+                return;
+            }
+            if (btn) btn.disabled = false;
+            markClean();
+            pub.click();
         }
         wrap.addEventListener('click', function (e) {
             if (e.target.id === 'se-save' || e.target.closest('#se-save')) doSave();
