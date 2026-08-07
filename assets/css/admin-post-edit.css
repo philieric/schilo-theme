@@ -112,6 +112,7 @@ body.post-php.post-type-post #post-body-content { display: none !important; }
     line-height: 1.5 !important;
 }
 .se-btn-save:hover { background: var(--se-accent2) !important; }
+.se-btn-save:disabled { opacity: .55 !important; cursor: wait !important; }
 
 /* ── Champ titre + slug ─────────────────────────────────────── */
 #se-title-zone { display: flex; flex-direction: column; gap: 0; }
