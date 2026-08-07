@@ -236,26 +236,37 @@ class Plugin
                 );
             });
 
-            // Colonne + filtre listing : versions multiples (grand public/academique...)
+            // Colonnes + filtre listing : versions multiples (grand public/academique...)
             add_filter('manage_post_posts_columns', function (array $cols): array {
-                $cols['schilo_version'] = '<span class="dashicons dashicons-randomize" style="font-size:14px;height:14px;width:14px;vertical-align:middle;" title="Versions"></span> Versions';
+                $cols['schilo_version_multi']   = '<span class="dashicons dashicons-randomize" style="font-size:14px;height:14px;width:14px;vertical-align:middle;" title="Article multi"></span> Article multi';
+                $cols['schilo_version_primary'] = '<span class="dashicons dashicons-star-filled" style="font-size:14px;height:14px;width:14px;vertical-align:middle;" title="Principal"></span> Principal';
                 return $cols;
             });
 
             add_action('manage_post_posts_custom_column', function (string $col, int $post_id): void {
-                if ($col !== 'schilo_version') return;
+                if ($col !== 'schilo_version_multi' && $col !== 'schilo_version_primary') return;
+
                 $service = new \Schilo\Builder\Service\ArticleVersionService();
-                if (!$service->isEnabled($post_id)) { echo '<span style="color:#cbd5e1;">—</span>'; return; }
+                $enabled = $service->isEnabled($post_id);
 
-                $label = $service->getLabel($post_id);
-                $isPrimary = $service->isPrimary($post_id);
-                $linkedCount = count($service->getLinkedIds($post_id));
+                if ($col === 'schilo_version_multi') {
+                    if (!$enabled) { echo '<span style="color:#cbd5e1;">—</span>'; return; }
 
-                echo '<span style="background:#e0e7ff;color:#3730a3;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:700;">' . esc_html($label !== '' ? $label : 'Version') . '</span>';
-                echo '<br><span style="font-size:11px;color:#94a3b8;">';
-                echo $isPrimary ? 'Principal' : 'Lié';
-                echo ' · ' . $linkedCount . ' article' . ($linkedCount > 1 ? 's' : '') . ' lié' . ($linkedCount > 1 ? 's' : '');
-                echo '</span>';
+                    $label = $service->getLabel($post_id);
+                    $linkedCount = count($service->getLinkedIds($post_id));
+
+                    echo '<span style="background:#e0e7ff;color:#3730a3;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:700;">' . esc_html($label !== '' ? $label : 'Version') . '</span>';
+                    echo '<br><span style="font-size:11px;color:#94a3b8;">' . $linkedCount . ' article' . ($linkedCount > 1 ? 's' : '') . ' lié' . ($linkedCount > 1 ? 's' : '') . '</span>';
+                    return;
+                }
+
+                // schilo_version_primary
+                if (!$enabled) { echo '<span style="color:#cbd5e1;">—</span>'; return; }
+                if ($service->isPrimary($post_id)) {
+                    echo '<span class="dashicons dashicons-star-filled" style="color:#d97706;" title="Article principal"></span>';
+                } else {
+                    echo '<span style="font-size:11px;color:#94a3b8;">Lié</span>';
+                }
             }, 10, 2);
 
             // Filtre déroulant en haut du listing des articles
