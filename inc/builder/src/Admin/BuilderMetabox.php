@@ -97,7 +97,17 @@ class BuilderMetabox
             $params[] = $excludeId;
         }
 
-        $sql .= ' ORDER BY post_title ASC LIMIT 20';
+        if ($term !== '') {
+            // Un titre qui COMMENCE par le terme (ex. "PER373 - ...") passe
+            // avant un titre qui le contient juste quelque part (ex. "Le
+            // Père Noël" pour une recherche "PER") : sans ca, chercher un
+            // prefixe d'article ("PER", "INF"...) noie les vrais articles
+            // sous des correspondances fortuites sur des mots courants.
+            $sql .= ' ORDER BY (post_title LIKE %s) DESC, post_title ASC LIMIT 30';
+            $params[] = $wpdb->esc_like($term) . '%';
+        } else {
+            $sql .= ' ORDER BY post_title ASC LIMIT 30';
+        }
 
         $rows = !empty($params) ? $wpdb->get_results($wpdb->prepare($sql, $params)) : $wpdb->get_results($sql);
 
