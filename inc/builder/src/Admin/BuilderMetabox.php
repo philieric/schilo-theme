@@ -31,6 +31,31 @@ class BuilderMetabox
         add_action('admin_enqueue_scripts', array($this, 'enqueueAssets'));
         add_action('admin_post_schilo_apply_template', array($this, 'handleApplyTemplate'));
         add_action('wp_ajax_schilo_search_version_articles', array($this, 'ajaxSearchVersionArticles'));
+        add_action('wp_ajax_schilo_add_version_type', array($this, 'ajaxAddVersionType'));
+    }
+
+    /**
+     * Crée un nouveau type de version à la volée depuis la popup "type déjà
+     * pris" de la metabox (voir builder-admin.js), sans quitter l'écran
+     * d'édition ni passer par la page de réglages dédiée.
+     */
+    public function ajaxAddVersionType()
+    {
+        check_ajax_referer('schilo_add_version_type', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(array('message' => 'Accès refusé.'), 403);
+        }
+
+        $label = isset($_POST['label']) ? sanitize_text_field(wp_unslash($_POST['label'])) : '';
+
+        if (trim($label) === '') {
+            wp_send_json_error(array('message' => 'Le nom du type ne peut pas être vide.'));
+        }
+
+        $labels = (new ArticleVersionService())->addAvailableLabel($label);
+
+        wp_send_json_success(array('labels' => $labels));
     }
 
     /**
@@ -142,6 +167,7 @@ class BuilderMetabox
                 'sectionTypeLabels'    => $sectionTypeLabels,
                 'ajaxUrl'              => admin_url('admin-ajax.php'),
                 'versionSearchNonce'   => wp_create_nonce('schilo_search_version_articles'),
+                'versionAddTypeNonce' => wp_create_nonce('schilo_add_version_type'),
                 'currentPostId'        => $postIdForNav,
                 'versionAvailableLabels' => (new \Schilo\Builder\Service\ArticleVersionService())->getAvailableLabels(),
             )

@@ -124,8 +124,30 @@ class ArticleVersionService
             return;
         }
 
+        // Un type de version (label) doit être UNIQUE au sein d'un groupe : deux
+        // membres ne peuvent pas être tous les deux "Grand public", par exemple.
+        // On calcule le label "voulu" de chaque membre (post courant + liés
+        // restants) AVANT toute écriture, on résout les conflits (le membre qui
+        // vient de changer de type "prend" celui d'un membre inchangé, qui
+        // hérite alors automatiquement de l'ancien type du premier), puis
+        // seulement on écrit les valeurs définitives.
+        $previousLabels = array($postId => $this->getLabel($postId));
+        $intendedLabels = array($postId => sanitize_text_field((string) $label));
+        foreach ($linkedIds as $memberId) {
+            $memberId = (int) $memberId;
+            $previousLabels[$memberId] = $this->getLabel($memberId);
+            if (isset($linkedLabels[$memberId]) && trim((string) $linkedLabels[$memberId]) !== '') {
+                $intendedLabels[$memberId] = sanitize_text_field((string) $linkedLabels[$memberId]);
+            } elseif ($previousLabels[$memberId] !== '') {
+                $intendedLabels[$memberId] = $previousLabels[$memberId];
+            } else {
+                $intendedLabels[$memberId] = 'Version';
+            }
+        }
+        $resolvedLabels = $this->resolveLabelConflicts($previousLabels, $intendedLabels);
+
         update_post_meta($postId, self::META_ENABLED, '1');
-        update_post_meta($postId, self::META_LABEL, sanitize_text_field((string) $label));
+        update_post_meta($postId, self::META_LABEL, $resolvedLabels[$postId]);
 
         // Union de l'ancien groupe (pour ne pas laisser d'anciens membres
         // orphelins si on retire un lien) et du nouveau, avant resynchronisation.
@@ -159,13 +181,7 @@ class ArticleVersionService
                 )));
                 update_post_meta($memberId, self::META_ENABLED, '1');
                 update_post_meta($memberId, self::META_LINKED, $memberLinked);
-
-                if (isset($linkedLabels[$memberId]) && trim((string) $linkedLabels[$memberId]) !== '') {
-                    // Type choisi explicitement pour ce lien depuis l'écran courant.
-                    update_post_meta($memberId, self::META_LABEL, sanitize_text_field((string) $linkedLabels[$memberId]));
-                } elseif ($this->getLabel($memberId) === '') {
-                    update_post_meta($memberId, self::META_LABEL, 'Version');
-                }
+                update_post_meta($memberId, self::META_LABEL, $resolvedLabels[$memberId]);
             } else {
                 // Retire uniquement le lien vers le post courant, conserve le
                 // reste du groupe de ce membre s'il en a un (groupe à 3+).
@@ -183,6 +199,84 @@ class ArticleVersionService
         }
 
         $this->setPrimary($postId, (bool) $isPrimary);
+    }
+
+    /**
+     * Résout les conflits de label au sein d'un groupe : un membre "statique"
+     * (dont le label voulu == son label précédent, donc pas touché sur cette
+     * sauvegarde) qui se retrouve avec le même label qu'un membre "mobile"
+     * (dont le label voulu diffère de son label précédent) hérite de l'ANCIEN
+     * label du membre mobile — c'est l'échange automatique demandé : si B
+     * passe à "Grand public" (déjà pris par A, inchangé), A repasse à
+     * l'ancien label de B ("Académique").
+     *
+     * Plusieurs passes pour propager les échanges en chaîne sur un groupe à
+     * 3+ membres (un membre qui vient d'être décalé peut à son tour entrer
+     * en conflit avec un autre membre statique).
+     *
+     * @param array $previousLabels [id => label avant cette sauvegarde]
+     * @param array $intendedLabels [id => label voulu par cette sauvegarde]
+     * @return array [id => label définitif]
+     */
+    private function resolveLabelConflicts(array $previousLabels, array $intendedLabels)
+    {
+        $final = $intendedLabels;
+        $ids = array_keys($intendedLabels);
+
+        for ($pass = 0; $pass < count($ids); $pass++) {
+            $changed = false;
+
+            foreach ($ids as $moverId) {
+                $prev = isset($previousLabels[$moverId]) ? $previousLabels[$moverId] : '';
+                $new  = $final[$moverId];
+
+                if ($new === $prev || $prev === '') {
+                    continue; // pas un mouvement exploitable pour liberer une place
+                }
+
+                foreach ($ids as $staticId) {
+                    if ($staticId === $moverId) {
+                        continue;
+                    }
+
+                    $staticPrev = isset($previousLabels[$staticId]) ? $previousLabels[$staticId] : '';
+                    if ($final[$staticId] !== $staticPrev) {
+                        continue; // ce membre a lui-meme deja bouge sur cette sauvegarde
+                    }
+
+                    if ($final[$staticId] === $new) {
+                        $final[$staticId] = $prev;
+                        $changed = true;
+                    }
+                }
+            }
+
+            if (!$changed) {
+                break;
+            }
+        }
+
+        return $final;
+    }
+
+    /**
+     * Ajoute un nouveau type de version à la liste disponible (si absent) et
+     * retourne la liste à jour — utilisé par la popup "type déjà pris" de la
+     * metabox pour créer un type à la volée sans quitter l'écran d'édition.
+     *
+     * @return string[]
+     */
+    public function addAvailableLabel($label)
+    {
+        $label = trim(sanitize_text_field((string) $label));
+        $labels = $this->getAvailableLabels();
+
+        if ($label !== '' && !in_array($label, $labels, true)) {
+            $labels[] = $label;
+            $this->saveAvailableLabels($labels);
+        }
+
+        return $labels;
     }
 
     /**

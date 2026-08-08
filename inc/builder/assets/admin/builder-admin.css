@@ -1680,3 +1680,50 @@
     height: 14px;
     font-size: 14px;
 }
+
+/* Popup "type déjà pris" (voir builder-admin.js) */
+.schilo-version-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 34, 40, .55);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.schilo-version-modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, .25);
+}
+.schilo-version-modal h3 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    color: #1d2327;
+}
+.schilo-version-modal p {
+    margin: 0 0 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #3c434a;
+}
+.schilo-version-modal__label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #3c434a;
+    margin-bottom: 6px;
+}
+.schilo-version-modal input[type="text"] {
+    width: 100%;
+    margin-bottom: 18px;
+}
+.schilo-version-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
