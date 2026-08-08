@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SCHILO_BUILDER_VERSION', '0.52.7');
+define('SCHILO_BUILDER_VERSION', '0.52.8');
 define('SCHILO_BUILDER_FILE', __FILE__);
 define('SCHILO_BUILDER_PATH', plugin_dir_path(__FILE__));
 define('SCHILO_BUILDER_URL', plugin_dir_url(__FILE__));

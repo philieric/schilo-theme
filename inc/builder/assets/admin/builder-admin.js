@@ -944,12 +944,13 @@
         const combobox = item.closest('.schilo-version-combobox');
         const id = item.data('id');
         const title = item.data('title');
-        const list = $('#schilo-version-linked-list');
+        const tbody = $('#schilo-version-linked-list');
+        const table = $('#schilo-version-linked-table');
 
         combobox.find('.schilo-version-article-search').val('');
         combobox.find('.schilo-combobox-list').empty().hide();
 
-        if (list.find('li[data-id="' + id + '"]').length) {
+        if (tbody.find('tr[data-id="' + id + '"]').length) {
             return; // déjà lié
         }
 
@@ -963,18 +964,28 @@
             labelSelect.append($('<option></option>').attr('value', labelOption).text(labelOption));
         });
 
-        list.append(
-            $('<li></li>').attr('data-id', id).append(
-                $('<span></span>').text(title),
-                $('<input>').attr({ type: 'hidden', name: 'schilo_version_linked_ids[]', value: id }),
-                labelSelect,
-                $('<button></button>').attr({ type: 'button', class: 'schilo-version-remove-link', 'aria-label': 'Retirer' }).html('&times;')
+        tbody.append(
+            $('<tr></tr>').attr('data-id', id).append(
+                $('<td></td>').append(
+                    $('<span></span>').text(title),
+                    $('<input>').attr({ type: 'hidden', name: 'schilo_version_linked_ids[]', value: id })
+                ),
+                $('<td></td>').append(labelSelect),
+                $('<td></td>').append(
+                    $('<button></button>').attr({ type: 'button', class: 'schilo-version-remove-link', 'aria-label': 'Retirer' }).html('&times;')
+                )
             )
         );
+        table.show();
     });
 
     $(document).on('click', '.schilo-version-remove-link', function () {
-        $(this).closest('li').remove();
+        const row = $(this).closest('tr');
+        const tbody = row.closest('tbody');
+        row.remove();
+        if (!tbody.find('tr').length) {
+            $('#schilo-version-linked-table').hide();
+        }
     });
 
     $(document).on('click', '.schilo-add-link', function () {

@@ -908,49 +908,57 @@
 
 .schilo-version-row .stc-checkbox { font-size: 12px; padding-top: 6px; }
 
-.schilo-version-linked-list {
-    list-style: none;
+/* Case "Article principal" à droite du select "Type de cette version",
+   sur la même ligne (au lieu d'une ligne dédiée en dessous). */
+.schilo-version-row__primary {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.schilo-version-linked-table {
+    width: 100%;
+    max-width: 560px;
     margin: 14px 0 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-.schilo-version-linked-list:empty { margin: 0; }
-.schilo-version-linked-list li {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: #f0f0f1;
-    border-radius: 8px;
-    padding: 5px 6px 5px 12px;
+    border-collapse: collapse;
     font-size: 12px;
-    color: #1d2327;
-    max-width: 100%;
 }
-.schilo-version-linked-list li span {
+.schilo-version-linked-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: #3c434a;
+    padding: 4px 8px;
+    border-bottom: 1px solid #dcdcde;
+}
+.schilo-version-linked-table td {
+    padding: 5px 8px;
+    border-bottom: 1px solid #f0f0f1;
+    vertical-align: middle;
+}
+.schilo-version-linked-table tr:last-child td { border-bottom: none; }
+.schilo-version-linked-table td:first-child span {
+    display: inline-block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 260px;
+    max-width: 280px;
 }
+.schilo-version-linked-table td:last-child { width: 30px; text-align: center; }
 .schilo-version-linked-label {
-    flex-shrink: 0;
-    height: 24px !important;
+    height: 26px !important;
     padding: 0 20px 0 6px !important;
     font-size: 11px !important;
     line-height: 1 !important;
-    max-width: 130px;
+    max-width: 150px;
 }
 .schilo-version-remove-link {
-    flex-shrink: 0;
     border: none;
     background: transparent;
     color: #b32d2e;
     cursor: pointer;
     font-size: 15px;
     line-height: 1;
-    padding: 0 2px;
+    padding: 0 4px;
 }
 .schilo-version-remove-link:hover { color: #dc3232; }
 
