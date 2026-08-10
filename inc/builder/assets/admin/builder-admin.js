@@ -725,33 +725,45 @@
 
     // Parse le contenu d'une section "textes-bibliques" (balises <MT>/<MC>/<LU>/<JE>/<BI>,
     // une reference par balise) en lignes {label, class, reference} pour la section "evangiles".
+    //
+    // Matthieu/Marc/Luc/Jean sont TOUJOURS presents en sortie, dans cet ordre : si un des
+    // quatre n'a pas de balise dans le XML (ex. la parabole n'existe pas chez Jean), sa
+    // ligne est quand meme creee avec juste le nom du livre comme reference (comme les
+    // valeurs par defaut de la section "evangiles"). Ce repli ne s'applique qu'a ces
+    // quatre evangiles ; les autres livres (balise <BI>) ne sont inclus que s'ils sont
+    // reellement presents dans le XML, jamais ajoutes en placeholder.
     function parseTextesBibliquesRefs(contentText) {
-        var refs = [];
+        var byTag = {};
+        var others = [];
         var frag;
         try {
             frag = new DOMParser().parseFromString('<root>' + contentText + '</root>', 'application/xml');
         } catch (e) {
-            return refs;
-        }
-        if (!frag || frag.querySelector('parsererror') || !frag.documentElement) {
-            return refs;
+            frag = null;
         }
 
-        Array.prototype.forEach.call(frag.documentElement.children, function (el) {
-            var reference = (el.textContent || '').trim();
-            if (!reference) return;
+        if (frag && !frag.querySelector('parsererror') && frag.documentElement) {
+            Array.prototype.forEach.call(frag.documentElement.children, function (el) {
+                var reference = (el.textContent || '').trim();
+                if (!reference) return;
 
-            var known = IMPORT_BIBLE_TAG_MAP[el.tagName.toUpperCase()];
-            if (known) {
-                refs.push({ label: known.label, class: known.class, reference: reference });
-                return;
-            }
+                var tag = el.tagName.toUpperCase();
+                if (IMPORT_BIBLE_TAG_MAP[tag]) {
+                    byTag[tag] = reference;
+                    return;
+                }
 
-            var m = reference.match(/^([0-9]?\s?[^\d]+?)\s*\d/);
-            refs.push({ label: m ? m[1].trim() : reference, class: 'citation-bible', reference: reference });
+                var m = reference.match(/^([0-9]?\s?[^\d]+?)\s*\d/);
+                others.push({ label: m ? m[1].trim() : reference, class: 'citation-bible', reference: reference });
+            });
+        }
+
+        var gospels = ['MT', 'MC', 'LU', 'JE'].map(function (tag) {
+            var known = IMPORT_BIBLE_TAG_MAP[tag];
+            return { label: known.label, class: known.class, reference: byTag[tag] || known.label };
         });
 
-        return refs;
+        return gospels.concat(others);
     }
 
     function importSectionsFromXml(xmlText) {
