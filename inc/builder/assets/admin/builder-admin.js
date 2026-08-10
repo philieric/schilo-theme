@@ -694,9 +694,20 @@
        <title><![CDATA[...]]></title><content><![CDATA[...]]></content>
        </section>...</schilo_sections> (genere par ex. par
        Schilo Article Composer). Purement cote client : les nouvelles
-       sections sont de simples sections "paragraphe" comme les autres,
-       persistees au clic sur "Enregistrer" comme n'importe quelle
-       section ajoutee a la main. ────────────────────────────── */
+       sections sont de simples sections "paragraphe" (ou "intro", voir
+       ci-dessous) comme les autres, persistees au clic sur "Enregistrer"
+       comme n'importe quelle section ajoutee a la main.
+
+       Une section dont le TITRE est exactement "Introduction" est creee
+       avec le vrai type "intro" du template (pas "paragraphe" generique),
+       pour beneficier du meme traitement que la section Introduction
+       existante (ordre du template, styles dedies). ─────────────────── */
+    var IMPORT_TYPE_LABELS = { intro: 'Introduction', paragraphe: 'Paragraphe' };
+
+    function importTargetType(title) {
+        return (title || '').trim().toLowerCase() === 'introduction' ? 'intro' : 'paragraphe';
+    }
+
     function importSectionsFromXml(xmlText) {
         var xmlDoc;
         try {
@@ -718,15 +729,33 @@
             return;
         }
 
-        var existing = $('#schilo-sections-list .schilo-section-item').filter(function () {
-            return $(this).find('.schilo-section-type-input').val() === 'paragraphe';
+        var targetTypesUsed = {};
+        var mapped = xmlSections.map(function (xmlSection) {
+            var titleEl   = xmlSection.querySelector('title');
+            var contentEl = xmlSection.querySelector('content');
+            var title     = titleEl ? titleEl.textContent : '';
+            var content   = contentEl ? contentEl.textContent : '';
+            var type      = importTargetType(title);
+
+            targetTypesUsed[type] = true;
+
+            return { title: title, content: content, type: type };
         });
 
+        var existing = $('#schilo-sections-list .schilo-section-item').filter(function () {
+            return !!targetTypesUsed[$(this).find('.schilo-section-type-input').val()];
+        });
+
+        var typeCounts = {};
+        mapped.forEach(function (m) { typeCounts[m.type] = (typeCounts[m.type] || 0) + 1; });
+        var typeSummary = Object.keys(typeCounts).map(function (type) {
+            return typeCounts[type] + ' ' + (IMPORT_TYPE_LABELS[type] || type);
+        }).join(', ');
+
         var confirmMsg = existing.length > 0
-            ? 'Remplacer les ' + existing.length + ' section(s) "Paragraphe" existante(s) par les '
-                + xmlSections.length + ' section(s) du fichier XML ? Les autres sections (liens, evangiles, '
-                + 'details techniques...) ne sont pas touchees.'
-            : 'Ajouter les ' + xmlSections.length + ' section(s) "Paragraphe" du fichier XML ?';
+            ? 'Remplacer les ' + existing.length + ' section(s) existante(s) (' + typeSummary + ') par celles du '
+                + 'fichier XML ? Les autres sections (liens, evangiles, details techniques...) ne sont pas touchees.'
+            : 'Ajouter ' + typeSummary + ' depuis le fichier XML ?';
 
         if (!confirm(confirmMsg)) {
             return;
@@ -748,15 +777,10 @@
             item.remove();
         });
 
-        xmlSections.forEach(function (xmlSection) {
-            var titleEl   = xmlSection.querySelector('title');
-            var contentEl = xmlSection.querySelector('content');
-            var title     = titleEl ? titleEl.textContent : '';
-            var content   = contentEl ? contentEl.textContent : '';
-
-            var item = $(createSection('paragraphe'));
-            item.find('.schilo-title-input').val(title);
-            item.find('textarea.schilo-dynamic-editor').val(content);
+        mapped.forEach(function (m) {
+            var item = $(createSection(m.type));
+            item.find('.schilo-title-input').val(m.title);
+            item.find('textarea.schilo-dynamic-editor').val(m.content);
 
             if (marker) {
                 marker.before(item);
@@ -773,7 +797,7 @@
 
         refreshIndexes();
 
-        alert(xmlSections.length + ' section(s) importee(s). Pensez a cliquer sur "Enregistrer" pour les sauvegarder.');
+        alert(mapped.length + ' section(s) importee(s). Pensez a cliquer sur "Enregistrer" pour les sauvegarder.');
     }
 
     $(document).on('click', '#schilo-btn-import-xml', function () {
