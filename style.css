@@ -173,7 +173,6 @@ h1.serif, h2.serif, .schilo-serif {
   font-style: normal;
 }
 
-p { margin-bottom: 1rem; }
 p:last-child { margin-bottom: 0; }
 
 blockquote {

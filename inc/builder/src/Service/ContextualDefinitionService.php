@@ -116,24 +116,24 @@ class ContextualDefinitionService
     {
         $term = wp_strip_all_tags($term);
         $term = str_replace('’', "'", $term);
-        $isBiblicalReference = (bool)preg_match('/\p{L}[\p{L}\s\'’.:-]*\s\d+(?:[.:]\d+)(?:\s*[-–]\s*\d+)?/u', $term);
+        // Apostrophes, points, deux-points et tirets sont toujours conservés
+        // tels quels (pas seulement pour les références bibliques : un titre
+        // "Titre : sous-titre" doit matcher le texte réel, qui garde sa
+        // ponctuation — les remplacer par un espace y ferait toujours échouer
+        // la comparaison exacte contre le texte affiché).
         $term = str_replace("'", 'SCHILOAPOSTROPHEPLACEHOLDER', $term);
-        if ($isBiblicalReference) {
-            $term = str_replace(
-                array('.', ':', '-', '–', ','),
-                array('SCHILODOTPLACEHOLDER', 'SCHILOCOLONPLACEHOLDER', 'SCHILODASHPLACEHOLDER', 'SCHILODASHPLACEHOLDER', 'SCHILOCOMMAPLACEHOLDER'),
-                $term
-            );
-        }
+        $term = str_replace(
+            array('.', ':', '-', '–', ','),
+            array('SCHILODOTPLACEHOLDER', 'SCHILOCOLONPLACEHOLDER', 'SCHILODASHPLACEHOLDER', 'SCHILODASHPLACEHOLDER', 'SCHILOCOMMAPLACEHOLDER'),
+            $term
+        );
         $term = preg_replace('/[\p{P}\p{S}]+/u', ' ', $term);
         $term = str_replace('SCHILOAPOSTROPHEPLACEHOLDER', "'", (string)$term);
-        if ($isBiblicalReference) {
-            $term = str_replace(
-                array('SCHILODOTPLACEHOLDER', 'SCHILOCOLONPLACEHOLDER', 'SCHILODASHPLACEHOLDER', 'SCHILOCOMMAPLACEHOLDER'),
-                array('.', ':', '-', ','),
-                $term
-            );
-        }
+        $term = str_replace(
+            array('SCHILODOTPLACEHOLDER', 'SCHILOCOLONPLACEHOLDER', 'SCHILODASHPLACEHOLDER', 'SCHILOCOMMAPLACEHOLDER'),
+            array('.', ':', '-', ','),
+            $term
+        );
         $term = preg_replace('/\s+/u', ' ', (string)$term);
         $term = mb_strtolower(trim((string)$term), 'UTF-8');
         $term = preg_replace('/^(?:le|la|les|un|une|des)\s+/u', '', $term);

@@ -99,4 +99,10 @@ return array(
         'description' => 'Un simple titre de section (H2), sans contenu ni image.',
         'fields' => array(),
     ),
+
+    'titre-partie' => array(
+        'label' => 'Titre de partie',
+        'description' => 'Marque le début d’une nouvelle partie dans un article très long (visible dans le contenu, ajouté au sommaire de l’article).',
+        'fields' => array(),
+    ),
 );

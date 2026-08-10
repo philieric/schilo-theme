@@ -493,6 +493,13 @@ body.schilo-definition-open { overflow: hidden; }
   color: var(--schilo-text-primary);
   padding-bottom: .65rem;
   border-bottom: 1px solid var(--schilo-border);
+  scroll-margin-top: calc(var(--schilo-nav-h, 56px) + 52px);
+}
+
+.schilo-section-paragraphe .schilo-section-title,
+.schilo-section-contexte .schilo-section-title,
+.schilo-section-conclusion .schilo-section-title {
+  font-weight: 700;
 }
 
 .schilo-section-content {
@@ -502,8 +509,45 @@ body.schilo-definition-open { overflow: hidden; }
   color: var(--schilo-text-primary);
 }
 
-.schilo-section-content p { margin: 0 0 .85rem; }
+.schilo-section-content p { margin: 0 0 .1rem; }
 .schilo-section-content p:last-child { margin-bottom: 0; }
+
+.schilo-section-content h3 {
+  margin: 1.75rem 0 .75rem;
+  font-family: var(--schilo-font-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--schilo-accent-dark);
+}
+.schilo-section-content h3:first-child { margin-top: 0; }
+
+.schilo-section-content ul,
+.schilo-section-content ol {
+  margin: 0 0 1rem;
+  padding-left: 1.3rem;
+}
+.schilo-section-content ul:last-child,
+.schilo-section-content ol:last-child { margin-bottom: 0; }
+
+.schilo-section-content ul { list-style: disc; }
+.schilo-section-content ol { list-style: decimal; }
+
+.schilo-section-content li {
+  margin-bottom: .45rem;
+  line-height: 1.75;
+  padding-left: .2rem;
+}
+.schilo-section-content li:last-child { margin-bottom: 0; }
+.schilo-section-content li::marker {
+  color: var(--schilo-accent);
+  font-weight: 600;
+}
+
+.schilo-section-content li > ul,
+.schilo-section-content li > ol {
+  margin-top: .45rem;
+}
 
 .schilo-section-content a {
   color: var(--schilo-accent);
@@ -518,6 +562,71 @@ body.schilo-definition-open { overflow: hidden; }
 
 /* Titre simple masqué (dans le hero) */
 .schilo-section-titre-simple { display: none; }
+
+/* ── Titre de partie (articles multi-parties) ─────────────────────── */
+.schilo-section-titre-partie {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 1.5rem 0 .25rem;
+}
+
+.schilo-section-titre-partie::before { display: none; }
+
+.schilo-article-part-title {
+  margin: 0;
+  font-family: var(--schilo-font-serif);
+  font-size: clamp(19px, 2.6vw, 24px);
+  font-weight: 600;
+  color: var(--schilo-text-primary);
+  padding-bottom: .6rem;
+  border-bottom: 2px solid var(--schilo-accent);
+  /* Sous le nav global (sticky), sinon le titre se cache derriere la barre. */
+  scroll-margin-top: calc(var(--schilo-nav-h, 56px) + 20px);
+}
+
+/* ── Sommaire de l'article (articles multi-parties) ───────────────── */
+.schilo-article-sommaire { margin-bottom: 1.25rem; }
+
+.schilo-article-sommaire__list {
+  list-style: none;
+  counter-reset: schilo-sommaire;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.schilo-article-sommaire__list li {
+  counter-increment: schilo-sommaire;
+}
+
+.schilo-article-sommaire__list a {
+  display: flex;
+  align-items: baseline;
+  gap: .6rem;
+  padding: .5rem .6rem;
+  border-radius: var(--schilo-radius-sm);
+  font-family: var(--schilo-font-sans);
+  font-size: 14px;
+  color: var(--schilo-text-primary);
+  text-decoration: none;
+  transition: background .15s, color .15s;
+}
+
+.schilo-article-sommaire__list a::before {
+  content: counter(schilo-sommaire);
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--schilo-accent);
+  min-width: 1.2em;
+}
+
+.schilo-article-sommaire__list a:hover {
+  background: var(--schilo-bg-muted);
+  color: var(--schilo-accent);
+}
 
 /* ── Intro ──────────────────────────────────────────────────────────── */
 .schilo-section-intro {
@@ -535,7 +644,6 @@ body.schilo-definition-open { overflow: hidden; }
 /* ── Contexte ───────────────────────────────────────────────────────── */
 .schilo-section-contexte {
   border-left: 3px solid var(--schilo-accent);
-  border-radius: 0 var(--schilo-radius-lg) var(--schilo-radius-lg) 0;
 }
 
 /* ── Conclusion ─────────────────────────────────────────────────────── */
@@ -551,6 +659,30 @@ body.schilo-definition-open { overflow: hidden; }
 
 .schilo-section-conclusion .schilo-section-content { color: rgba(255,255,255,.85); }
 .schilo-section-conclusion .schilo-section-content a { color: rgba(255,255,255,.7); }
+
+/* Cohérent avec le code couleur des Évangiles utilisé partout ailleurs dans
+   l'article (bandeau d'accent ::before, pastilles de référence bibliques
+   dans la sidebar) : même paire fond pâle / texte foncé que .citation-*,
+   plutôt qu'un rouge saturé illisible en fond de bloc. */
+.schilo-section-conclusion.schilo-section--matthieu { background: var(--schilo-mat-bg); border-color: var(--schilo-mat-border); }
+.schilo-section-conclusion.schilo-section--marc     { background: var(--schilo-marc-bg); border-color: var(--schilo-marc-border); }
+.schilo-section-conclusion.schilo-section--luc      { background: var(--schilo-luc-bg); border-color: var(--schilo-luc-border); }
+.schilo-section-conclusion.schilo-section--jean     { background: var(--schilo-jean-bg); border-color: var(--schilo-jean-border); }
+
+.schilo-section-conclusion.schilo-section--matthieu .schilo-section-title { color: var(--schilo-mat-dark); border-color: var(--schilo-mat-border); }
+.schilo-section-conclusion.schilo-section--marc     .schilo-section-title { color: var(--schilo-marc-dark); border-color: var(--schilo-marc-border); }
+.schilo-section-conclusion.schilo-section--luc      .schilo-section-title { color: var(--schilo-luc-dark); border-color: var(--schilo-luc-border); }
+.schilo-section-conclusion.schilo-section--jean     .schilo-section-title { color: var(--schilo-jean-dark); border-color: var(--schilo-jean-border); }
+
+.schilo-section-conclusion.schilo-section--matthieu .schilo-section-content { color: var(--schilo-mat-dark); }
+.schilo-section-conclusion.schilo-section--marc     .schilo-section-content { color: var(--schilo-marc-dark); }
+.schilo-section-conclusion.schilo-section--luc      .schilo-section-content { color: var(--schilo-luc-dark); }
+.schilo-section-conclusion.schilo-section--jean     .schilo-section-content { color: var(--schilo-jean-dark); }
+
+.schilo-section-conclusion.schilo-section--matthieu .schilo-section-content a,
+.schilo-section-conclusion.schilo-section--marc     .schilo-section-content a,
+.schilo-section-conclusion.schilo-section--luc      .schilo-section-content a,
+.schilo-section-conclusion.schilo-section--jean     .schilo-section-content a { color: inherit; text-decoration-color: currentColor; }
 
 /* ── Textes bibliques ───────────────────────────────────────────────── */
 .schilo-section-evangiles {
