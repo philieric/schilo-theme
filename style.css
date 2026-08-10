@@ -4,12 +4,13 @@ Theme URI:   https://schilo.org
 Author:      Schilo.org
 Author URI:  https://schilo.org
 Description: Thème principal de Schilo.org — site d'étude biblique structuré autour des quatre Évangiles. Design moderne, épuré et professionnel. Conçu pour fonctionner avec le plugin Schilo Builder.
-Version:     1.10.2
+Version:     1.11.0
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
 License:     Propriétaire
 Text Domain: schilo
+Domain Path: /languages
 GitHub Theme URI: philieric/schilo-theme
 GitHub Branch: master
 */

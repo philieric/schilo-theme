@@ -1,0 +1,1602 @@
+# Traductions du thème schilo.
+# Copyright (C) schilo.org
+# This file is distributed under the same license as the schilo theme.
+msgid ""
+msgstr ""
+"Project-Id-Version: schilo 1.9.16\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-26 16:11+0000\n"
+"PO-Revision-Date: 2026-07-26 16:11+0000\n"
+"Last-Translator: \n"
+"Language-Team: English (United States)\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: schilo make_pot.php\n"
+"X-Domain: schilo\n"
+#: 404.php:14 inc/classes/class-schilo-meta.php:262
+msgid "Page introuvable"
+msgstr ""
+
+#: 404.php:14 inc/classes/class-schilo-meta.php:262
+msgid "Page introuvable"
+msgstr "Page not found"
+
+#: 404.php:17
+msgid "La page que vous cherchez n'existe pas ou a été déplacée."
+msgstr "The page you are looking for doesn't exist or has been moved."
+
+#: 404.php:21 page-contact.php:188 search.php:305
+msgid "Retour à l'accueil"
+msgstr "Back to home"
+
+#: archive.php:125 page-parcours.php:128 template-parts/home-fallback.php:575
+msgid "%s article"
+msgid_plural "%s articles"
+msgstr[0] "%s article"
+msgstr[1] "%s articles"
+
+#: archive.php:130 search.php:100
+msgid "page %1$s / %2$s"
+msgstr "page %1$s / %2$s"
+
+#: archive.php:144 search.php:114
+msgid "Trier par"
+msgstr "Sort by"
+
+#: archive.php:165 search.php:135
+msgid "Articles par page"
+msgstr "Articles per page"
+
+#: archive.php:183 archive.php:189 footer.php:209 search.php:153 search.php:159
+msgid "Taille du texte"
+msgstr "Text size"
+
+#: archive.php:194 search.php:164
+msgid "Mode d'affichage"
+msgstr "Display mode"
+
+#: archive.php:198 search.php:168
+msgid "Vue grille"
+msgstr "Grid view"
+
+#: archive.php:204 search.php:174
+msgid "Vue liste"
+msgstr "List view"
+
+#: archive.php:280 search.php:238
+msgid "Date de création"
+msgstr "Creation date"
+
+#: archive.php:285 search.php:243
+msgid "Dernière modification"
+msgstr "Last modified"
+
+#: archive.php:292 search.php:250
+msgid "Lire l'étude"
+msgstr "Read the study"
+
+#: archive.php:304 search.php:262
+msgid "Pagination"
+msgstr "Pagination"
+
+#: archive.php:311 search.php:269
+msgid "Précédent"
+msgstr "Previous"
+
+#: archive.php:312 search.php:270
+msgid "Suivant"
+msgstr "Next"
+
+#: archive.php:324
+msgid "Aucun article trouvé dans cette catégorie."
+msgstr "No articles found in this category."
+
+#: archive.php:45 search.php:14
+msgid "Plus récent"
+msgstr "Most recent"
+
+#: archive.php:46 search.php:15
+msgid "Plus ancien"
+msgstr "Oldest"
+
+#: archive.php:47 search.php:16
+msgid "Titre A → Z"
+msgstr "Title A → Z"
+
+#: archive.php:48 search.php:17
+msgid "Titre Z → A"
+msgstr "Title Z → A"
+
+#: archive.php:49 search.php:18
+msgid "Mis à jour récemment"
+msgstr "Recently updated"
+
+#: archive.php:50 search.php:19
+msgid "Plus commentés"
+msgstr "Most commented"
+
+#: archive.php:63 search.php:28
+msgid "Tous"
+msgstr "All"
+
+#: archive.php:85 archive.php:93 single.php:335
+msgid "Fil d'Ariane"
+msgstr "Breadcrumb"
+
+#: archive.php:86 archive.php:94 inc/classes/class-schilo-login.php:84 inc/classes/class-schilo-meta.php:475 inc/classes/class-schilo-meta.php:512
+msgid "Accueil"
+msgstr "Home"
+
+#: footer.php:102 header.php:65 page-apropos.php:15
+msgid "À propos"
+msgstr "About"
+
+#: footer.php:118 header.php:91 page-avancements.php:35
+msgid "Avancements"
+msgstr "Updates"
+
+#: footer.php:134 header.php:117 page-sitemap.php:18
+msgid "Plan du site"
+msgstr "Site map"
+
+#: footer.php:150 page-accessibilite.php:39 page-apropos.php:66
+msgid "Accessibilité"
+msgstr "Accessibility"
+
+#: footer.php:167 inc/classes/class-schilo-login.php:87
+msgid "Contactez-nous"
+msgstr "Contact us"
+
+#: footer.php:179 inc/classes/class-schilo-login.php:96
+msgid "Tous droits réservés"
+msgstr "All rights reserved"
+
+#: footer.php:184 inc/classes/class-schilo-login.php:99
+msgid "Matthieu"
+msgstr "Matthew"
+
+#: footer.php:188 inc/classes/class-schilo-login.php:100
+msgid "Marc"
+msgstr "Mark"
+
+#: footer.php:192 inc/classes/class-schilo-login.php:101
+msgid "Luc"
+msgstr "Luke"
+
+#: footer.php:196 inc/classes/class-schilo-login.php:102 page-contact.php:234
+msgid "Jean"
+msgstr "John"
+
+#: footer.php:200
+msgid "Autres livres"
+msgstr "Other books"
+
+#: footer.php:210
+msgid "Réduire le texte"
+msgstr "Decrease text size"
+
+#: footer.php:210
+msgid "Réduire"
+msgstr "Decrease"
+
+#: footer.php:214
+msgid "Agrandir le texte"
+msgstr "Increase text size"
+
+#: footer.php:214
+msgid "Agrandir"
+msgstr "Increase"
+
+#: footer.php:226 header.php:37 search.php:69
+msgid "Rechercher"
+msgstr "Search"
+
+#: footer.php:232
+msgid "Un personnage, un lieu, un thème, une référence…"
+msgstr "A person, a place, a theme, a reference…"
+
+#: footer.php:234
+msgid "Fermer la recherche"
+msgstr "Close search"
+
+#: footer.php:240
+msgid "Tapez au moins 2 lettres pour découvrir des suggestions issues de nos articles."
+msgstr "Type at least 2 letters to discover suggestions from our articles."
+
+#: footer.php:47
+msgid "Un site d'étude biblique consacré à la découverte de Jésus — à travers les quatre Évangiles, leurs contextes historiques et leurs messages intemporels."
+msgstr "A Bible study site devoted to discovering Jesus — through the four Gospels, their historical contexts and their timeless messages."
+
+#: footer.php:53 footer.php:54 page-parcours.php:33 taxonomy-schilo_parcours.php:89
+msgid "Parcours"
+msgstr "Journeys"
+
+#: footer.php:69 footer.php:70 page-parcours.php:40 template-parts/home-fallback.php:327 template-parts/home-fallback.php:442
+msgid "Thèmes"
+msgstr "Themes"
+
+#: footer.php:85 footer.php:86
+msgid "Site"
+msgstr "Site"
+
+#: header.php:146 page-contact.php:137
+msgid "Contact"
+msgstr "Contact"
+
+#: header.php:15
+msgid "Aller au contenu"
+msgstr "Skip to content"
+
+#: header.php:155
+msgid "Commencer"
+msgstr "Start"
+
+#: header.php:40
+msgid "Rechercher…"
+msgstr "Search…"
+
+#: inc/builder/src/Front/ContextualDefinitionRenderer.php:58
+msgid "Fermer la définition"
+msgstr "Close definition"
+
+#: inc/builder/views/admin/classement-config.php:261
+msgid "Passe immédiatement au lot suivant, sans attendre la fréquence configurée."
+msgstr "Immediately moves to the next batch, without waiting for the configured frequency."
+
+#: inc/builder/views/admin/classement-config.php:261
+msgid "Activez la rotation pour cette section afin de pouvoir la forcer."
+msgstr "Enable rotation for this section in order to force it."
+
+#: inc/classes/class-schilo-login.php:50
+msgid "Retour au site"
+msgstr "Back to site"
+
+#: inc/classes/class-schilo-login.php:77
+msgid "Découvrir Jésus à travers les quatre Évangiles."
+msgstr "Discover Jesus through the four Gospels."
+
+#: inc/classes/class-schilo-login.php:82
+msgid "Liens utiles"
+msgstr "Useful links"
+
+#: inc/classes/class-schilo-login.php:98
+msgid "Les quatre Évangiles"
+msgstr "The four Gospels"
+
+#: inc/classes/class-schilo-meta.php:259 search.php:54
+msgid "Résultats pour « %s »"
+msgstr "Results for “%s”"
+
+#: inc/classes/class-schilo-meta.php:382
+msgid "Site conçu selon les principes d'accessibilité (objectif WCAG 2.1 AA) : lien d'évitement, navigation au clavier, structure sémantique (titres et repères ARIA), textes alternatifs des images, taille du texte ajustable et respect de la préférence « réduire les animations »."
+msgstr "Site designed according to accessibility principles (WCAG 2.1 AA target): skip link, keyboard navigation, semantic structure (headings and ARIA landmarks), image alternative text, adjustable text size and respect for the “reduce motion” preference."
+
+#: inc/classes/class-schilo-otp.php:106
+msgid "Code de vérification"
+msgstr "Verification code"
+
+#: inc/classes/class-schilo-otp.php:113
+msgid "Activer l’OTP sur mon compte"
+msgstr "Enable OTP on my account"
+
+#: inc/classes/class-schilo-otp.php:118
+msgid "Valider et enregistrer"
+msgstr "Validate and save"
+
+#: inc/classes/class-schilo-otp.php:119
+msgid "Regénérer la clé OTP ? L’ancienne application ne fonctionnera plus."
+msgstr "Regenerate the OTP key? The old app will no longer work."
+
+#: inc/classes/class-schilo-otp.php:120
+msgid "Regénérer la clé"
+msgstr "Regenerate the key"
+
+#: inc/classes/class-schilo-otp.php:129
+msgid "Pour tester le flux complet, déconnecte-toi puis reconnecte-toi depuis %s."
+msgstr "To test the full flow, log out then log back in from %s."
+
+#: inc/classes/class-schilo-otp.php:130
+msgid "la page de connexion"
+msgstr "the login page"
+
+#: inc/classes/class-schilo-otp.php:196
+msgid "Code OTP invalide. Reviens en arrière et saisis le code actuel de ton application."
+msgstr "Invalid OTP code. Go back and enter the current code from your app."
+
+#: inc/classes/class-schilo-otp.php:220
+msgid "Validation OTP requise."
+msgstr "OTP validation required."
+
+#: inc/classes/class-schilo-otp.php:259
+msgid "Code OTP invalide ou expiré."
+msgstr "Invalid or expired OTP code."
+
+#: inc/classes/class-schilo-otp.php:278
+msgid "Configuration OTP"
+msgstr "OTP setup"
+
+#: inc/classes/class-schilo-otp.php:278
+msgid "Validation OTP"
+msgstr "OTP validation"
+
+#: inc/classes/class-schilo-otp.php:286
+msgid "Scanne le QR code avec ton application d’authentification, puis saisis le code généré."
+msgstr "Scan the QR code with your authentication app, then enter the generated code."
+
+#: inc/classes/class-schilo-otp.php:293
+msgid "Saisis le code à 6 chiffres de ton application d’authentification."
+msgstr "Enter the 6-digit code from your authentication app."
+
+#: inc/classes/class-schilo-otp.php:297
+msgid "Code OTP"
+msgstr "OTP code"
+
+#: inc/classes/class-schilo-otp.php:30 inc/classes/class-schilo-otp.php:31 inc/classes/class-schilo-otp.php:52
+msgid "OTP administration"
+msgstr "Administration OTP"
+
+#: inc/classes/class-schilo-otp.php:302
+msgid "Valider"
+msgstr "Validate"
+
+#: inc/classes/class-schilo-otp.php:40 inc/classes/class-schilo-otp.php:158
+msgid "Accès refusé."
+msgstr "Access denied."
+
+#: inc/classes/class-schilo-otp.php:55
+msgid "Réglages enregistrés."
+msgstr "Settings saved."
+
+#: inc/classes/class-schilo-otp.php:59
+msgid "Réglages généraux"
+msgstr "General settings"
+
+#: inc/classes/class-schilo-otp.php:67
+msgid "Activer l’OTP pour l’administration"
+msgstr "Enable OTP for administration"
+
+#: inc/classes/class-schilo-otp.php:72
+msgid "Quand cette option est active, les comptes ciblés doivent valider un code à 6 chiffres après la connexion WordPress."
+msgstr "When this option is enabled, targeted accounts must validate a 6-digit code after logging in to WordPress."
+
+#: inc/classes/class-schilo-otp.php:76
+msgid "Rôles concernés"
+msgstr "Roles concerned"
+
+#: inc/classes/class-schilo-otp.php:86
+msgid "Enregistrer les réglages"
+msgstr "Save settings"
+
+#: inc/classes/class-schilo-otp.php:92
+msgid "Mon application OTP"
+msgstr "My OTP app"
+
+#: inc/classes/class-schilo-otp.php:93
+msgid "Scanne ce QR code avec Google Authenticator, Microsoft Authenticator, 1Password, Bitwarden ou une application compatible TOTP."
+msgstr "Scan this QR code with Google Authenticator, Microsoft Authenticator, 1Password, Bitwarden or a TOTP-compatible app."
+
+#: inc/classes/class-schilo-otp.php:97 inc/classes/class-schilo-otp.php:289
+msgid "Clé manuelle :"
+msgstr "Manual key:"
+
+#: inc/classes/class-schilo-security.php:110
+msgid "Identifiants incorrects."
+msgstr "Incorrect credentials."
+
+#: inc/classes/class-schilo-security.php:115
+msgid "Si un compte est associé à cette adresse, vous recevrez un e-mail."
+msgstr "If an account is linked to this address, you will receive an email."
+
+#: inc/classes/class-schilo-security.php:163
+msgid "Accès non autorisé."
+msgstr "Unauthorized access."
+
+#: inc/classes/class-schilo-setup.php:101
+msgid "Sidebar accueil"
+msgstr "Home sidebar"
+
+#: inc/classes/class-schilo-setup.php:103
+msgid "Widgets affichés dans la sidebar de la page d'accueil"
+msgstr "Widgets displayed in the home page sidebar"
+
+#: inc/classes/class-schilo-setup.php:79
+msgid "Navigation principale"
+msgstr "Main navigation"
+
+#: inc/classes/class-schilo-setup.php:80
+msgid "Footer — Parcours"
+msgstr "Footer — Journeys"
+
+#: inc/classes/class-schilo-setup.php:81
+msgid "Footer — Thèmes"
+msgstr "Footer — Themes"
+
+#: inc/classes/class-schilo-setup.php:82
+msgid "Footer — Site"
+msgstr "Footer — Site"
+
+#: inc/classes/class-schilo-setup.php:95
+msgid "Sidebar article"
+msgstr "Article sidebar"
+
+#: inc/classes/class-schilo-setup.php:97
+msgid "Widgets affichés dans la sidebar des articles"
+msgstr "Widgets displayed in the article sidebar"
+
+#: inc/classes/usx/class-schilo-usx-popup.php:32
+msgid "Référence biblique"
+msgstr "Bible reference"
+
+#: inc/classes/usx/class-schilo-usx-popup.php:35 template-parts/classement-shared.php:291
+msgid "Fermer"
+msgstr "Close"
+
+#: inc/classes/usx/class-schilo-usx-version-switcher.php:187 inc/classes/usx/class-schilo-usx-version-switcher.php:573
+msgid "Choisir la version de la Bible"
+msgstr "Choose the Bible version"
+
+#: inc/helpers.php:144 page-parcours.php:67
+msgid "Parcours, thèmes & séries"
+msgstr "Journeys, themes & series"
+
+#: index.php:31
+msgid "Aucun contenu trouvé."
+msgstr "No content found."
+
+#: page-accessibilite.php:100
+msgid "Fonctionnalités d'accessibilité"
+msgstr "Accessibility features"
+
+#: page-accessibilite.php:105
+msgid "Lien « Aller au contenu » en début de page pour sauter la navigation."
+msgstr "“Skip to content” link at the top of the page to bypass navigation."
+
+#: page-accessibilite.php:106
+msgid "Navigation entièrement utilisable au clavier, avec un focus visible sur chaque élément interactif."
+msgstr "Fully keyboard-operable navigation, with a visible focus on every interactive element."
+
+#: page-accessibilite.php:107
+msgid "Structure sémantique (repères, titres hiérarchisés, listes) lisible par les lecteurs d'écran et les plages braille."
+msgstr "Semantic structure (landmarks, hierarchical headings, lists) readable by screen readers and braille displays."
+
+#: page-accessibilite.php:108
+msgid "Fenêtres modales (recherche, définitions, résumés) gérées au clavier : ouverture, fermeture par la touche Échap et retour du focus."
+msgstr "Modal windows (search, definitions, summaries) operable by keyboard: opening, closing with the Esc key and focus return."
+
+#: page-accessibilite.php:109
+msgid "Réglage de la taille du texte via le widget de zoom présent sur les pages de contenu."
+msgstr "Text size adjustment via the zoom widget available on content pages."
+
+#: page-accessibilite.php:110
+msgid "Respect de la préférence système « réduire les animations »."
+msgstr "Respect for the system “reduce motion” preference."
+
+#: page-accessibilite.php:122
+msgid "Technologies utilisées"
+msgstr "Technologies used"
+
+#: page-accessibilite.php:127
+msgid "L'accessibilité de Schilo.org s'appuie sur HTML5, les attributs WAI-ARIA, CSS et JavaScript. Le site est conçu pour rester utilisable même lorsque JavaScript est partiellement pris en charge."
+msgstr "Schilo.org's accessibility relies on HTML5, WAI-ARIA attributes, CSS and JavaScript. The site is designed to remain usable even when JavaScript is only partially supported."
+
+#: page-accessibilite.php:139
+msgid "Signaler un problème d'accessibilité"
+msgstr "Report an accessibility problem"
+
+#: page-accessibilite.php:144
+msgid "Vous rencontrez une difficulté pour accéder à un contenu ou une fonctionnalité ? Signalez-le-nous : nous nous engageons à vous répondre et à corriger le problème dans la mesure du possible."
+msgstr "Having difficulty accessing content or a feature? Let us know: we are committed to responding to you and fixing the problem as far as possible."
+
+#: page-accessibilite.php:148
+msgid "Nous signaler un problème"
+msgstr "Report a problem to us"
+
+#: page-accessibilite.php:156
+msgid "Déclaration mise à jour le %s."
+msgstr "Statement updated on %s."
+
+#: page-accessibilite.php:42
+msgid "Déclaration d'accessibilité"
+msgstr "Accessibility statement"
+
+#: page-accessibilite.php:45
+msgid "Schilo.org veut rendre l'étude biblique accessible à toutes et à tous, y compris aux personnes utilisant un lecteur d'écran, une plage braille ou une navigation au clavier."
+msgstr "Schilo.org wants to make Bible study accessible to everyone, including people using a screen reader, a braille display or keyboard navigation."
+
+#: page-accessibilite.php:60
+msgid "Notre engagement"
+msgstr "Our commitment"
+
+#: page-accessibilite.php:65
+msgid "L'accessibilité numérique fait partie des valeurs de Schilo.org : le savoir biblique doit être ouvert à tous, sans barrière technique. Nous nous efforçons de rendre l'ensemble du site conforme aux critères du RGAA (Référentiel général d'amélioration de l'accessibilité) et aux règles internationales WCAG 2.1 niveau AA."
+msgstr "Digital accessibility is part of Schilo.org’s values: biblical knowledge must be open to all, without technical barriers. We strive to make the whole site compliant with the RGAA (French general accessibility guidelines) criteria and the international WCAG 2.1 level AA rules."
+
+#: page-accessibilite.php:68
+msgid "L'accessibilité est une démarche continue : nous corrigeons les défauts au fil des versions et accueillons volontiers vos signalements."
+msgstr "Accessibility is an ongoing process: we fix defects release after release and warmly welcome your reports."
+
+#: page-accessibilite.php:80
+msgid "État de conformité"
+msgstr "Compliance status"
+
+#: page-accessibilite.php:85
+msgid "À ce jour, Schilo.org n'a pas encore fait l'objet d'un audit d'accessibilité formel par un tiers. Le site fait l'objet d'une auto-évaluation et d'une démarche d'amélioration continue visant le niveau WCAG 2.1 AA. Le statut de conformité sera précisé ici à l'issue d'un audit."
+msgstr "To date, Schilo.org has not yet undergone a formal accessibility audit by a third party. The site is subject to a self-assessment and an ongoing improvement process aiming for WCAG 2.1 AA level. The compliance status will be specified here following an audit."
+
+#: page-accessibilite.php:88
+msgid "Certains contenus hérités, en cours de reprise éditoriale, peuvent ne pas encore respecter tous les critères (par exemple des textes alternatifs d'images à compléter)."
+msgstr "Some legacy content, currently being editorially revised, may not yet meet all criteria (for example image alternative texts still to be completed)."
+
+#: page-apropos.php:106
+msgid "Profondeur"
+msgstr "Depth"
+
+#: page-apropos.php:107
+msgid "Chaque sujet est traité avec le contexte historique, linguistique et culturel nécessaire pour en saisir toute la portée."
+msgstr "Each topic is treated with the historical, linguistic and cultural context needed to grasp its full significance."
+
+#: page-apropos.php:115
+msgid "L'histoire du projet"
+msgstr "The project’s history"
+
+#: page-apropos.php:125
+msgid "Les origines"
+msgstr "The origins"
+
+#: page-apropos.php:128
+msgid "Une conviction personnelle"
+msgstr "A personal conviction"
+
+#: page-apropos.php:129
+msgid "Face aux nombreuses critiques adressées à la Bible, il manquait un espace d'étude structuré, rigoureux et accessible au grand public francophone."
+msgstr "Faced with the many criticisms levelled at the Bible, there was a lack of a structured, rigorous study space accessible to the general French-speaking public."
+
+#: page-apropos.php:136
+msgid "Wikilogy"
+msgstr "Wikilogy"
+
+#: page-apropos.php:139
+msgid "La première version"
+msgstr "The first version"
+
+#: page-apropos.php:140
+msgid "Des centaines de fiches d'étude rédigées sur Wikilogy, couvrant les quatre Évangiles et leurs grands thèmes bibliques."
+msgstr "Hundreds of study sheets written on Wikilogy, covering the four Gospels and their major biblical themes."
+
+#: page-apropos.php:147
+msgid "Migration"
+msgstr "Migration"
+
+#: page-apropos.php:150
+msgid "Naissance de Schilo.org"
+msgstr "The birth of Schilo.org"
+
+#: page-apropos.php:151
+msgid "Le contenu migré vers Schilo.org — un site dédié, repensé autour d'un design épuré et d'une navigation intuitive."
+msgstr "The content migrated to Schilo.org — a dedicated site, redesigned around a clean design and intuitive navigation."
+
+#: page-apropos.php:158
+msgid "Aujourd'hui"
+msgstr "Today"
+
+#: page-apropos.php:161
+msgid "Un site en constante évolution"
+msgstr "A constantly evolving site"
+
+#: page-apropos.php:162
+msgid "Schilo.org continue de s'enrichir de nouvelles fiches et parcours. L'objectif : accompagner chaque lecteur dans sa découverte de Jésus."
+msgstr "Schilo.org keeps growing with new study sheets and journeys. The goal: to accompany every reader in their discovery of Jesus."
+
+#: page-apropos.php:173
+msgid "La signification de « Schilo »"
+msgstr "The meaning of “Schilo”"
+
+#: page-apropos.php:18
+msgid "Découvrir Jésus, au-delà du grand homme"
+msgstr "Discovering Jesus, beyond the great man"
+
+#: page-apropos.php:182
+msgid "« Le sceptre ne s'éloignera pas de Juda, ni le bâton de commandement d'entre ses pieds, jusqu'à ce que vienne Schilo, et que les peuples lui obéissent. »"
+msgstr "“The sceptre shall not depart from Judah, nor the ruler’s staff from between his feet, until Shiloh comes, and to him shall be the obedience of the peoples.”"
+
+#: page-apropos.php:186
+msgid "Le terme « Schilo » apparaît dans la Genèse, au sein de la bénédiction de Jacob sur ses fils. Il est généralement traduit par « celui à qui cela appartient » ou « celui qui doit venir » — une prophétie messianique qui annonce un personnage issu de la tribu de Juda, à qui les peuples du monde obéiront."
+msgstr "The term “Schilo” appears in Genesis, within Jacob’s blessing on his sons. It is generally translated as “he to whom it belongs” or “he who is to come” — a messianic prophecy announcing a figure from the tribe of Judah, whom the peoples of the world will obey."
+
+#: page-apropos.php:187
+msgid "Pour nous, ce nom symbolise notre conviction centrale : Jésus est ce Schilo — le Messie annoncé, fils de David, fils d'Abraham, vers qui pointent toutes les Écritures. Notre site porte ce nom en hommage à cette prophétie et à Celui qu'elle désigne."
+msgstr "For us, this name symbolises our central conviction: Jesus is that Schilo — the promised Messiah, son of David, son of Abraham, to whom all the Scriptures point. Our site bears this name in tribute to that prophecy and to the One it designates."
+
+#: page-apropos.php:208
+msgid "Pour aller plus loin"
+msgstr "Going further"
+
+#: page-apropos.php:21 page-contact.php:412
+msgid "Schilo.org est un site d'étude biblique indépendant, gratuit et sans publicité, consacré à la découverte de Jésus à travers les quatre Évangiles."
+msgstr "Schilo.org is an independent Bible study site, free and ad-free, devoted to discovering Jesus through the four Gospels."
+
+#: page-apropos.php:232
+msgid "Lire l'article"
+msgstr "Read the article"
+
+#: page-apropos.php:244
+msgid "Prêt à commencer votre étude ?"
+msgstr "Ready to start your study?"
+
+#: page-apropos.php:247
+msgid "Parcourez les Évangiles fiche par fiche, explorez les thèmes ou posez-nous une question."
+msgstr "Browse the Gospels sheet by sheet, explore the themes or ask us a question."
+
+#: page-apropos.php:254 page-avancements.php:267 page-sitemap.php:126 template-parts/home-fallback.php:298
+msgid "Commencer un parcours"
+msgstr "Start a journey"
+
+#: page-apropos.php:264 page-avancements.php:276 page-sitemap.php:136
+msgid "Nous écrire"
+msgstr "Write to us"
+
+#: page-apropos.php:36
+msgid "Notre démarche"
+msgstr "Our approach"
+
+#: page-apropos.php:41
+msgid "Schilo.org est né d'une conviction simple : la Bible, et en particulier les quatre Évangiles, demeure une référence indéniable pour comprendre la vie, le message et l'identité de Jésus. Notre objectif n'est pas de promouvoir une idéologie, un courant de pensée particulier ou un mouvement religieux — mais de mettre le texte biblique au centre, et de l'étudier avec rigueur et honnêteté."
+msgstr "Schilo.org was born from a simple conviction: the Bible, and in particular the four Gospels, remains an undeniable reference for understanding the life, message and identity of Jesus. Our aim is not to promote an ideology, a particular school of thought or a religious movement — but to place the biblical text at the centre, and to study it with rigour and honesty."
+
+#: page-apropos.php:42
+msgid "Bien que nous soyons chrétiens, nous accueillons tout chercheur sincère, quelle que soit sa position de départ. Nous affirmons l'inerrance de la Bible et nous répondons aux critiques qui la remettent en cause — non par dogmatisme, mais parce que nous sommes convaincus que ces textes, lus attentivement, s'harmonisent pour délivrer un message cohérent et crucial pour l'avenir de nos vies."
+msgstr "Although we are Christians, we welcome every sincere seeker, whatever their starting point. We affirm the inerrancy of the Bible and we respond to the criticisms that challenge it — not out of dogmatism, but because we are convinced that these texts, read attentively, harmonise to deliver a coherent message that is crucial for the future of our lives."
+
+#: page-apropos.php:50
+msgid "Nos valeurs"
+msgstr "Our values"
+
+#: page-apropos.php:58
+msgid "Rigueur"
+msgstr "Rigour"
+
+#: page-apropos.php:59
+msgid "Chaque fiche est rédigée après étude approfondie des textes, de leur contexte historique et des différentes traductions disponibles."
+msgstr "Each sheet is written after in-depth study of the texts, their historical context and the various available translations."
+
+#: page-apropos.php:67
+msgid "Le site est entièrement gratuit, sans publicité et sans inscription. Le savoir biblique doit être accessible à tous, partout dans le monde."
+msgstr "The site is entirely free, ad-free and requires no registration. Biblical knowledge must be accessible to everyone, everywhere in the world."
+
+#: page-apropos.php:74
+msgid "Honnêteté"
+msgstr "Honesty"
+
+#: page-apropos.php:75
+msgid "Nous n'évitons pas les questions difficiles. Les passages complexes, les contradictions apparentes et les critiques sont abordés frontalement."
+msgstr "We do not avoid difficult questions. Complex passages, apparent contradictions and criticisms are addressed head-on."
+
+#: page-apropos.php:82
+msgid "Universalité"
+msgstr "Universality"
+
+#: page-apropos.php:83
+msgid "Le message de Jésus s'adresse à toute l'humanité. Le site est traduit en plusieurs langues pour toucher le plus grand nombre."
+msgstr "Jesus’ message is addressed to all humanity. The site is translated into several languages to reach as many people as possible."
+
+#: page-apropos.php:90
+msgid "Progressivité"
+msgstr "Progressiveness"
+
+#: page-apropos.php:91
+msgid "Les parcours sont structurés pour accompagner le lecteur pas à pas, du débutant curieux au lecteur confirmé souhaitant approfondir."
+msgstr "The journeys are structured to guide the reader step by step, from the curious beginner to the seasoned reader wishing to go deeper."
+
+#: page-apropos.php:98
+msgid "Indépendance"
+msgstr "Independence"
+
+#: page-apropos.php:99
+msgid "Schilo.org n'est affilié à aucune église, denomination ou organisation. Notre seule autorité de référence est le texte biblique lui-même."
+msgstr "Schilo.org is not affiliated with any church, denomination or organisation. Our only reference authority is the biblical text itself."
+
+#: page-avancements.php:105
+msgid "Contenus récemment mis à jour"
+msgstr "Recently updated content"
+
+#: page-avancements.php:114
+msgid "Mises à jour — 3 derniers mois"
+msgstr "Updates — last 3 months"
+
+#: page-avancements.php:117 page-avancements.php:185
+msgid "%d résultat(s)"
+msgstr "%d result(s)"
+
+#: page-avancements.php:125 page-avancements.php:193
+msgid "Titre"
+msgstr "Title"
+
+#: page-avancements.php:126
+msgid "Modifié le"
+msgstr "Modified on"
+
+#: page-avancements.php:127 page-avancements.php:195
+msgid "Type"
+msgstr "Type"
+
+#: page-avancements.php:164
+msgid "Aucune mise à jour récente trouvée."
+msgstr "No recent updates found."
+
+#: page-avancements.php:182
+msgid "Nouvelles publications — 3 derniers mois"
+msgstr "New publications — last 3 months"
+
+#: page-avancements.php:194
+msgid "Publié le"
+msgstr "Published on"
+
+#: page-avancements.php:233
+msgid "Aucune nouvelle publication récente trouvée."
+msgstr "No recent new publications found."
+
+#: page-avancements.php:245
+msgid "Comment sont sélectionnés ces contenus ?"
+msgstr "How is this content selected?"
+
+#: page-avancements.php:248
+msgid "Seuls les articles et pages publiés et modifiés au cours des 90 derniers jours apparaissent ici. Les pages système (accueil, archives) peuvent également figurer dans la liste lorsqu'elles sont mises à jour."
+msgstr "Only articles and pages published and modified during the last 90 days appear here. System pages (home, archives) may also appear in the list when they are updated."
+
+#: page-avancements.php:258
+msgid "Envie d'explorer davantage ?"
+msgstr "Want to explore further?"
+
+#: page-avancements.php:261
+msgid "Parcourez les Évangiles fiche par fiche ou suivez un parcours guidé."
+msgstr "Browse the Gospels sheet by sheet or follow a guided journey."
+
+#: page-avancements.php:293
+msgid "Suivi en direct"
+msgstr "Live tracking"
+
+#: page-avancements.php:298
+msgid "Cette page se met à jour automatiquement à chaque visite. Aucune inscription n'est nécessaire pour suivre l'évolution du site."
+msgstr "This page updates automatically on each visit. No registration is required to follow the site’s progress."
+
+#: page-avancements.php:302
+msgid "Données en temps réel"
+msgstr "Real-time data"
+
+#: page-avancements.php:314
+msgid "Types de contenu"
+msgstr "Content types"
+
+#: page-avancements.php:320
+msgid "Article"
+msgstr "Article"
+
+#: page-avancements.php:321
+msgid "Fiche d'étude biblique (texte, verset, thème)"
+msgstr "Bible study sheet (text, verse, theme)"
+
+#: page-avancements.php:324
+msgid "Page"
+msgstr "Page"
+
+#: page-avancements.php:325
+msgid "Page du site (parcours, index, À propos…)"
+msgstr "Site page (journey, index, About…)"
+
+#: page-avancements.php:338
+msgid "Activité récente"
+msgstr "Recent activity"
+
+#: page-avancements.php:346
+msgid "Mises à jour (90 j)"
+msgstr "Updates (90 d)"
+
+#: page-avancements.php:353
+msgid "Nouvelles fiches (90 j)"
+msgstr "New sheets (90 d)"
+
+#: page-avancements.php:368
+msgid "Une idée ?"
+msgstr "An idea?"
+
+#: page-avancements.php:373
+msgid "Vous souhaitez qu'un sujet biblique soit traité ou qu'une fiche existante soit approfondie ? Écrivez-nous."
+msgstr "Would you like a biblical topic to be covered or an existing sheet to be developed further? Write to us."
+
+#: page-avancements.php:38
+msgid "Ce qui a changé sur le site"
+msgstr "What has changed on the site"
+
+#: page-avancements.php:382 page-contact.php:385
+msgid "Suggérer un contenu"
+msgstr "Suggest content"
+
+#: page-avancements.php:41
+msgid "Suivez en temps réel l'évolution du contenu de Schilo.org — mises à jour des fiches existantes et nouvelles publications parues ces trois derniers mois."
+msgstr "Follow in real time the evolution of Schilo.org’s content — updates to existing sheets and new publications from the last three months."
+
+#: page-avancements.php:58
+msgid "Mises à jour récentes"
+msgstr "Recent updates"
+
+#: page-avancements.php:68 page-avancements.php:173
+msgid "Nouvelles publications"
+msgstr "New publications"
+
+#: page-avancements.php:78
+msgid "Dernière consultation"
+msgstr "Last visit"
+
+#: page-avancements.php:94
+msgid "Schilo.org est un site vivant, régulièrement enrichi de nouvelles fiches d'étude et de corrections. Cette page vous permet de rester informé des dernières évolutions sans avoir à parcourir l'ensemble du site."
+msgstr "Schilo.org is a living site, regularly enriched with new study sheets and corrections. This page lets you stay informed of the latest developments without having to browse the whole site."
+
+#: page-avancements.php:97
+msgid "Les tableaux ci-dessous couvrent une fenêtre glissante de 3 mois. Cliquez sur un titre pour accéder directement à la fiche concernée."
+msgstr "The tables below cover a rolling 3-month window. Click a title to go directly to the relevant sheet."
+
+#: page-contact.php:100
+msgid "Existe-t-il des parallèles entre [PASSAGE] et d'autres textes bibliques ?"
+msgstr "Are there parallels between [PASSAGE] and other biblical texts?"
+
+#: page-contact.php:104
+msgid "Merci pour votre vigilance ! Indiquez le code de la fiche (ex. PER001), la nature de l'erreur (texte, référence, traduction…) et, si possible, la correction proposée."
+msgstr "Thank you for your vigilance! Indicate the sheet code (e.g. PER001), the nature of the error (text, reference, translation…) and, if possible, the proposed correction."
+
+#: page-contact.php:108
+msgid "Toutes les suggestions sont lues attentivement. Décrivez le thème, le passage ou le parcours que vous aimeriez voir développé sur Schilo."
+msgstr "All suggestions are read carefully. Describe the theme, passage or journey you would like to see developed on Schilo."
+
+#: page-contact.php:110
+msgid "Je souhaiterais un parcours dédié à [THÈME / LIVRE BIBLIQUE]."
+msgstr "I would like a journey dedicated to [THEME / BIBLICAL BOOK]."
+
+#: page-contact.php:111
+msgid "Pourriez-vous ajouter une fiche sur [SUJET] dans l'Évangile de [MATTHIEU / MARC / LUC / JEAN] ?"
+msgstr "Could you add a sheet on [TOPIC] in the Gospel of [MATTHEW / MARK / LUKE / JOHN]?"
+
+#: page-contact.php:112
+msgid "Il manque selon moi une étude sur [PASSAGE OU THÈME]. Voici pourquoi…"
+msgstr "I think a study on [PASSAGE OR THEME] is missing. Here is why…"
+
+#: page-contact.php:116
+msgid "Décrivez le problème rencontré : page concernée, navigateur utilisé, message d'erreur affiché. Une capture d'écran peut être jointe en répondant à notre e-mail de confirmation."
+msgstr "Describe the problem encountered: page concerned, browser used, error message displayed. A screenshot can be attached by replying to our confirmation email."
+
+#: page-contact.php:120
+msgid "Présentez brièvement votre projet, votre organisation et la nature de la collaboration envisagée."
+msgstr "Briefly present your project, your organisation and the nature of the envisaged collaboration."
+
+#: page-contact.php:124
+msgid "N'hésitez pas à détailler votre demande. Nous lisons chaque message."
+msgstr "Feel free to detail your request. We read every message."
+
+#: page-contact.php:140
+msgid "Écrire à l'équipe Schilo"
+msgstr "Write to the Schilo team"
+
+#: page-contact.php:143
+msgid "Une question biblique, une erreur à signaler, une suggestion d'étude ? Nous lisons chaque message avec attention."
+msgstr "A biblical question, an error to report, a study suggestion? We read every message carefully."
+
+#: page-contact.php:160
+msgid "Que vous ayez une question sur un passage biblique, une remarque sur une fiche, ou simplement envie d'entamer une conversation — nous serons heureux de vous lire."
+msgstr "Whether you have a question about a biblical passage, a comment on a sheet, or simply want to start a conversation — we will be happy to hear from you."
+
+#: page-contact.php:163
+msgid "Choisissez un sujet dans le formulaire ci-dessous pour obtenir des conseils de rédaction adaptés. Nous répondons en général sous 48 h."
+msgstr "Choose a subject in the form below to get tailored writing tips. We usually reply within 48 hours."
+
+#: page-contact.php:17
+msgid "Erreur de sécurité. Veuillez recharger la page."
+msgstr "Security error. Please reload the page."
+
+#: page-contact.php:175
+msgid "Message envoyé avec succès"
+msgstr "Message sent successfully"
+
+#: page-contact.php:180
+msgid "Merci %s ! Nous avons bien reçu votre message et vous répondrons à l'adresse %s."
+msgstr "Thank you %s! We have received your message and will reply to you at %s."
+
+#: page-contact.php:202
+msgid "Envoyer un message"
+msgstr "Send a message"
+
+#: page-contact.php:230
+msgid "Prénom"
+msgstr "First name"
+
+#: page-contact.php:239
+msgid "Nom"
+msgstr "Last name"
+
+#: page-contact.php:241
+msgid "Dupont"
+msgstr "Smith"
+
+#: page-contact.php:251
+msgid "Adresse e-mail"
+msgstr "Email address"
+
+#: page-contact.php:255
+msgid "jean@exemple.fr"
+msgstr "john@example.com"
+
+#: page-contact.php:261
+msgid "Sujet"
+msgstr "Subject"
+
+#: page-contact.php:290
+msgid "Cliquez sur une question pour l'utiliser comme point de départ :"
+msgstr "Click a question to use it as a starting point:"
+
+#: page-contact.php:300
+msgid "Message"
+msgstr "Message"
+
+#: page-contact.php:304
+msgid "Votre message… Choisissez d'abord un sujet pour obtenir de l'aide à la rédaction."
+msgstr "Your message… Choose a subject first to get writing help."
+
+#: page-contact.php:313
+msgid "Je souhaite recevoir les nouvelles fiches et parcours par e-mail (optionnel)"
+msgstr "I would like to receive new sheets and journeys by email (optional)"
+
+#: page-contact.php:321
+msgid "Données protégées — jamais partagées"
+msgstr "Protected data — never shared"
+
+#: page-contact.php:325
+msgid "Envoyer le message"
+msgstr "Send the message"
+
+#: page-contact.php:33
+msgid "Veuillez indiquer votre prénom."
+msgstr "Please enter your first name."
+
+#: page-contact.php:340
+msgid "Confidentialité & respect"
+msgstr "Privacy & respect"
+
+#: page-contact.php:343
+msgid "Vos données personnelles ne sont jamais partagées ni revendues. Elles sont utilisées uniquement pour répondre à votre message. Vous pouvez nous demander leur suppression à tout moment."
+msgstr "Your personal data is never shared or sold. It is used solely to reply to your message. You can ask us to delete it at any time."
+
+#: page-contact.php:35
+msgid "L'adresse e-mail est invalide."
+msgstr "The email address is invalid."
+
+#: page-contact.php:363
+msgid "Pourquoi nous écrire ?"
+msgstr "Why write to us?"
+
+#: page-contact.php:37
+msgid "Veuillez choisir un sujet."
+msgstr "Please choose a subject."
+
+#: page-contact.php:371
+msgid "Question biblique"
+msgstr "Biblical question"
+
+#: page-contact.php:372
+msgid "Un verset, un passage, un thème — posez votre question."
+msgstr "A verse, a passage, a theme — ask your question."
+
+#: page-contact.php:378
+msgid "Signaler une erreur"
+msgstr "Report an error"
+
+#: page-contact.php:379
+msgid "Vous avez repéré une imprécision ? Aidez-nous à améliorer."
+msgstr "Spotted an inaccuracy? Help us improve."
+
+#: page-contact.php:386
+msgid "Un sujet manquant ? Une idée de parcours ? Partagez-la."
+msgstr "A missing topic? An idea for a journey? Share it."
+
+#: page-contact.php:39
+msgid "Le message est trop court (10 caractères minimum)."
+msgstr "The message is too short (10 characters minimum)."
+
+#: page-contact.php:392
+msgid "Délai de réponse"
+msgstr "Response time"
+
+#: page-contact.php:393
+msgid "En général sous 48 h, jours ouvrés."
+msgstr "Usually within 48 hours, business days."
+
+#: page-contact.php:407
+msgid "À propos de Schilo"
+msgstr "About Schilo"
+
+#: page-contact.php:417
+msgid "Découvrir les parcours"
+msgstr "Discover the journeys"
+
+#: page-contact.php:429
+msgid "Questions fréquentes"
+msgstr "Frequently asked questions"
+
+#: page-contact.php:435
+msgid "Le site est-il gratuit ?"
+msgstr "Is the site free?"
+
+#: page-contact.php:436
+msgid "Oui, entièrement. Aucune inscription, aucune publicité, aucun abonnement."
+msgstr "Yes, entirely. No registration, no advertising, no subscription."
+
+#: page-contact.php:439
+msgid "Puis-je citer vos fiches ?"
+msgstr "May I quote your sheets?"
+
+#: page-contact.php:440
+msgid "Oui, avec mention de la source (schilo.org). Contactez-nous pour toute utilisation commerciale."
+msgstr "Yes, with attribution of the source (schilo.org). Contact us for any commercial use."
+
+#: page-contact.php:443
+msgid "Êtes-vous affiliés à une église ?"
+msgstr "Are you affiliated with a church?"
+
+#: page-contact.php:444
+msgid "Non. Schilo.org est indépendant de toute église, dénomination ou organisation."
+msgstr "No. Schilo.org is independent of any church, denomination or organisation."
+
+#: page-contact.php:60
+msgid "Une erreur est survenue lors de l'envoi. Veuillez réessayer."
+msgstr "An error occurred while sending. Please try again."
+
+#: page-contact.php:68
+msgid "Choisir un sujet…"
+msgstr "Choose a subject…"
+
+#: page-contact.php:69
+msgid "Question sur un article ou une fiche"
+msgstr "Question about an article or sheet"
+
+#: page-contact.php:70
+msgid "Question biblique ou théologique"
+msgstr "Biblical or theological question"
+
+#: page-contact.php:71
+msgid "Signaler une erreur ou une imprécision"
+msgstr "Report an error or inaccuracy"
+
+#: page-contact.php:72
+msgid "Suggestion de contenu ou de parcours"
+msgstr "Content or journey suggestion"
+
+#: page-contact.php:73
+msgid "Problème technique"
+msgstr "Technical problem"
+
+#: page-contact.php:74
+msgid "Partenariat / collaboration"
+msgstr "Partnership / collaboration"
+
+#: page-contact.php:75
+msgid "Autre"
+msgstr "Other"
+
+#: page-contact.php:87
+msgid "Indiquez le code de la fiche (ex. PER001) ou le titre de l'article, puis posez votre question aussi précisément que possible."
+msgstr "Indicate the sheet code (e.g. PER001) or the article title, then ask your question as precisely as possible."
+
+#: page-contact.php:89
+msgid "Je n'ai pas bien compris le commentaire de la fiche [CODE]. Pourriez-vous m'expliquer… ?"
+msgstr "I did not fully understand the commentary of sheet [CODE]. Could you explain…?"
+
+#: page-contact.php:90
+msgid "Le verset [RÉFÉRENCE] cité dans la fiche [CODE] me pose question : que signifie… ?"
+msgstr "The verse [REFERENCE] cited in sheet [CODE] raises a question for me: what does it mean…?"
+
+#: page-contact.php:91
+msgid "Y a-t-il d'autres fiches sur le thème abordé dans [CODE] ?"
+msgstr "Are there other sheets on the theme covered in [CODE]?"
+
+#: page-contact.php:95
+msgid "Précisez si possible le livre, le chapitre et le verset concernés. Plus votre question est précise, plus notre réponse sera utile."
+msgstr "Specify the book, chapter and verse concerned if possible. The more precise your question, the more useful our answer."
+
+#: page-contact.php:97
+msgid "Que signifie exactement [TERME / PASSAGE] dans son contexte original ?"
+msgstr "What exactly does [TERM / PASSAGE] mean in its original context?"
+
+#: page-contact.php:98
+msgid "Quelle est la différence entre ce que dit [ÉVANGILE A] et [ÉVANGILE B] sur ce sujet ?"
+msgstr "What is the difference between what [GOSPEL A] and [GOSPEL B] say on this subject?"
+
+#: page-contact.php:99
+msgid "Comment interpréter [PASSAGE] à la lumière de l'Ancien Testament ?"
+msgstr "How should [PASSAGE] be interpreted in the light of the Old Testament?"
+
+#: page-parcours.php:112
+msgid "Aucun terme classé pour le moment."
+msgstr "No term classified yet."
+
+#: page-parcours.php:134
+msgid "%s étape"
+msgid_plural "%s étapes"
+msgstr[0] "%s step"
+msgstr[1] "%s steps"
+
+#: page-parcours.php:35
+msgid "Des suites de fiches à lire dans l’ordre, étape par étape."
+msgstr "Series of sheets to read in order, step by step."
+
+#: page-parcours.php:42
+msgid "Un classement thématique issu de l’indexation IA des articles."
+msgstr "A thematic classification derived from the AI indexing of the articles."
+
+#: page-parcours.php:47
+msgid "Séries"
+msgstr "Series"
+
+#: page-parcours.php:49
+msgid "Des regroupements transverses d’articles autour d’un même fil."
+msgstr "Cross-cutting groupings of articles around a common thread."
+
+#: page-parcours.php:68
+msgid "Retrouvez les articles classés selon trois axes complémentaires : un parcours de lecture guidé, un thème d’étude, ou une série transverse."
+msgstr "Find the articles classified along three complementary axes: a guided reading journey, a study theme, or a cross-cutting series."
+
+#: page-parcours.php:78
+msgid "Explorer"
+msgstr "Explore"
+
+#: page-parcours.php:87
+msgid "Filtrer par axe"
+msgstr "Filter by axis"
+
+#: page-parcours.php:89
+msgid "Tout"
+msgstr "All"
+
+#: page-sitemap.php:105
+msgid "Le plugin Sitemap par Catégorie n'est pas activé."
+msgstr "The Sitemap by Category plugin is not enabled."
+
+#: page-sitemap.php:116
+msgid "Vous cherchez quelque chose de précis ?"
+msgstr "Looking for something specific?"
+
+#: page-sitemap.php:119
+msgid "Parcourez les Évangiles par thème, suivez un parcours guidé ou posez-nous votre question."
+msgstr "Browse the Gospels by theme, follow a guided journey or ask us your question."
+
+#: page-sitemap.php:142
+msgid "Sitemap XML"
+msgstr "XML sitemap"
+
+#: page-sitemap.php:21
+msgid "Tout le contenu de Schilo, organisé par catégorie"
+msgstr "All of Schilo’s content, organised by category"
+
+#: page-sitemap.php:24
+msgid "Retrouvez l'ensemble des articles, fiches d'étude et parcours du site — classés par thème et sous-thème pour une navigation rapide."
+msgstr "Find all the articles, study sheets and journeys of the site — classified by theme and sub-theme for quick navigation."
+
+#: page-sitemap.php:39
+msgid "Comment naviguer ?"
+msgstr "How to navigate?"
+
+#: page-sitemap.php:50
+msgid "Menu catégories"
+msgstr "Categories menu"
+
+#: page-sitemap.php:51
+msgid "Cliquez sur une catégorie dans la barre gauche pour afficher son contenu."
+msgstr "Click a category in the left bar to display its content."
+
+#: page-sitemap.php:60
+msgid "Recherche rapide"
+msgstr "Quick search"
+
+#: page-sitemap.php:61
+msgid "La barre de recherche filtre les articles en temps réel dans toutes les catégories."
+msgstr "The search bar filters articles in real time across all categories."
+
+#: page-sitemap.php:70
+msgid "Badge Nouveau"
+msgstr "New badge"
+
+#: page-sitemap.php:71
+msgid "Les articles publiés récemment sont signalés par un badge rouge « Nouveau »."
+msgstr "Recently published articles are marked with a red “New” badge."
+
+#: page-sitemap.php:80
+msgid "Vue liste / grille"
+msgstr "List / grid view"
+
+#: page-sitemap.php:81
+msgid "Basculez entre la vue liste et la vue grille avec les boutons en haut à droite de chaque section."
+msgstr "Switch between list view and grid view with the buttons at the top right of each section."
+
+#: page-sitemap.php:96
+msgid "Toutes les catégories"
+msgstr "All categories"
+
+#: page.php:40
+msgid "Sidebar"
+msgstr "Sidebar"
+
+#: search.php:285
+msgid "Aucun résultat trouvé"
+msgstr "No results found"
+
+#: search.php:290
+msgid "Votre recherche « %s » n'a retourné aucun résultat. Essayez avec d'autres mots-clés."
+msgstr "Your search “%s” returned no results. Try other keywords."
+
+#: search.php:296
+msgid "Suggestions :"
+msgstr "Suggestions:"
+
+#: search.php:298
+msgid "Vérifiez l'orthographe de votre recherche"
+msgstr "Check the spelling of your search"
+
+#: search.php:299
+msgid "Essayez des termes plus généraux"
+msgstr "Try more general terms"
+
+#: search.php:300
+msgid "Parcourez nos catégories depuis l'accueil"
+msgstr "Browse our categories from the home page"
+
+#: search.php:316
+msgid "Entrez un terme dans le champ de recherche ci-dessus."
+msgstr "Enter a term in the search field above."
+
+#: search.php:60
+msgid "Recherche"
+msgstr "Search"
+
+#: search.php:76
+msgid "Chercher un article, une thématique…"
+msgstr "Search for an article, a topic…"
+
+#: search.php:78
+msgid "Lancer la recherche"
+msgstr "Start the search"
+
+#: search.php:95
+msgid "%s résultat"
+msgid_plural "%s résultats"
+msgstr[0] "%s result"
+msgstr[1] "%s results"
+
+#: single.php:386
+msgid "Sections de l'article"
+msgstr "Article sections"
+
+#: single.php:413 template-parts/classement-shared.php:73
+msgid "Informations complémentaires"
+msgstr "Additional information"
+
+#: single.php:541
+msgid "Navigation entre fiches"
+msgstr "Navigation between sheets"
+
+#: taxonomy-schilo_parcours.php:12
+msgid "Parcours introuvable."
+msgstr "Journey not found."
+
+#: taxonomy-schilo_parcours.php:135
+msgid "Articles du parcours"
+msgstr "Articles in the journey"
+
+#: taxonomy-schilo_parcours.php:53 taxonomy-schilo_serie.php:59 taxonomy-schilo_theme.php:49
+msgid "En complément"
+msgstr "In addition"
+
+#: taxonomy-schilo_parcours.php:64 taxonomy-schilo_serie.php:69 taxonomy-schilo_theme.php:60
+msgid "Compléments"
+msgstr "Additional material"
+
+#: taxonomy-schilo_parcours.php:98
+msgid "Étapes du parcours"
+msgstr "Journey steps"
+
+#: taxonomy-schilo_serie.php:12
+msgid "Série introuvable."
+msgstr "Series not found."
+
+#: taxonomy-schilo_serie.php:37
+msgid "Série"
+msgstr "Series"
+
+#: taxonomy-schilo_serie.php:52 taxonomy-schilo_theme.php:35
+msgid "Aucun article classé ici pour le moment."
+msgstr "No articles classified here yet."
+
+#: taxonomy-schilo_theme.php:12
+msgid "Thème introuvable."
+msgstr "Theme not found."
+
+#: taxonomy-schilo_theme.php:84
+msgid "Thème"
+msgstr "Theme"
+
+#: taxonomy-schilo_theme.php:93
+msgid "Sous-thèmes"
+msgstr "Sub-themes"
+
+#: template-parts/classement-shared.php:266
+msgid "Résumé détaillé"
+msgstr "Detailed summary"
+
+#: template-parts/classement-shared.php:311
+msgid "Lire l'article complet"
+msgstr "Read the full article"
+
+#: template-parts/classement-shared.php:378
+msgid "Lire la suite"
+msgstr "Read more"
+
+#: template-parts/home-fallback.php:103
+msgid "9 fiches"
+msgstr "9 sheets"
+
+#: template-parts/home-fallback.php:104
+msgid "Les « Je suis » de Jean — la divinité de Jésus"
+msgstr "The “I am” sayings of John — the divinity of Jesus"
+
+#: template-parts/home-fallback.php:105
+msgid "Pain de vie, lumière du monde et résurrection : les révélations de Jésus dans Jean."
+msgstr "Bread of life, light of the world and resurrection: the revelations of Jesus in John."
+
+#: template-parts/home-fallback.php:155 template-parts/home-fallback.php:193 template-parts/home-fallback.php:226
+msgid "%d fiche"
+msgid_plural "%d fiches"
+msgstr[0] "%d sheet"
+msgstr[1] "%d sheets"
+
+#: template-parts/home-fallback.php:157
+msgid "Un parcours de lecture guidé, étape par étape."
+msgstr "A guided reading journey, step by step."
+
+#: template-parts/home-fallback.php:262
+msgid "Découvrez la mission, les valeurs et la démarche éditoriale de Schilo."
+msgstr "Discover the mission, values and editorial approach of Schilo."
+
+#: template-parts/home-fallback.php:263
+msgid "Suivez chronologiquement les événements de la vie et du ministère de Jésus."
+msgstr "Follow chronologically the events of Jesus’ life and ministry."
+
+#: template-parts/home-fallback.php:264
+msgid "Comparez les récits parallèles des Évangiles pour en dégager les nuances propres à chaque auteur."
+msgstr "Compare the parallel accounts of the Gospels to bring out the nuances specific to each author."
+
+#: template-parts/home-fallback.php:265
+msgid "Des précisions techniques et des points d'analyse approfondis sur des sujets ponctuels."
+msgstr "Technical details and in-depth analysis points on specific subjects."
+
+#: template-parts/home-fallback.php:266
+msgid "Les récits de délivrance et de confrontation avec les forces spirituelles dans les Évangiles."
+msgstr "The accounts of deliverance and confrontation with spiritual forces in the Gospels."
+
+#: template-parts/home-fallback.php:267
+msgid "Les guérisons accomplies par Jésus, replacées dans leur contexte historique et théologique."
+msgstr "The healings performed by Jesus, set back in their historical and theological context."
+
+#: template-parts/home-fallback.php:268
+msgid "L'ensemble des miracles rapportés dans les Évangiles, classés et analysés un à un."
+msgstr "All the miracles reported in the Gospels, classified and analysed one by one."
+
+#: template-parts/home-fallback.php:269
+msgid "Les miracles de Jésus sur les éléments naturels : tempêtes apaisées, multiplication des pains, marche sur l'eau."
+msgstr "Jesus’ miracles over the natural elements: stilled storms, multiplication of the loaves, walking on water."
+
+#: template-parts/home-fallback.php:270
+msgid "Des repères sur les lieux, régions et itinéraires mentionnés dans les récits bibliques."
+msgstr "Markers on the places, regions and routes mentioned in the biblical accounts."
+
+#: template-parts/home-fallback.php:271
+msgid "Le contexte historique, politique et culturel qui éclaire les événements racontés dans la Bible."
+msgstr "The historical, political and cultural context that sheds light on the events told in the Bible."
+
+#: template-parts/home-fallback.php:272
+msgid "Les paraboles de Jésus, expliquées une à une pour en saisir le sens et la portée."
+msgstr "Jesus’ parables, explained one by one to grasp their meaning and scope."
+
+#: template-parts/home-fallback.php:273
+msgid "Les récits de résurrection rapportés dans les Évangiles, au-delà de celle de Jésus lui-même."
+msgstr "The resurrection accounts reported in the Gospels, beyond that of Jesus himself."
+
+#: template-parts/home-fallback.php:274
+msgid "Des séries d'articles organisées autour d'un même fil conducteur biblique."
+msgstr "Series of articles organised around a single biblical thread."
+
+#: template-parts/home-fallback.php:275
+msgid "Les textes bibliques présentés et commentés, organisés par thème ou par livre."
+msgstr "The biblical texts presented and commented, organised by theme or by book."
+
+#: template-parts/home-fallback.php:276
+msgid "Des dossiers thématiques regroupant plusieurs études autour d'un même sujet."
+msgstr "Thematic dossiers gathering several studies around a single subject."
+
+#: template-parts/home-fallback.php:285
+msgid "Schilo.org · Enquête sur Jésus"
+msgstr "Schilo.org · Investigating Jesus"
+
+#: template-parts/home-fallback.php:288 template-parts/home-fallback.php:428 template-parts/home-fallback.php:465
+msgid "Découvrir"
+msgstr "Discover"
+
+#: template-parts/home-fallback.php:289
+msgid "Jésus"
+msgstr "Jesus"
+
+#: template-parts/home-fallback.php:290
+msgid "au-delà du grand homme"
+msgstr "beyond the great man"
+
+#: template-parts/home-fallback.php:293
+msgid "Un site d'étude biblique structuré, rigoureux et accessible. Parcourez les Évangiles verset par verset, thème par thème, à votre propre rythme."
+msgstr "A structured, rigorous and accessible Bible study site. Browse the Gospels verse by verse, theme by theme, at your own pace."
+
+#: template-parts/home-fallback.php:302
+msgid "Parcourir les thèmes"
+msgstr "Browse the themes"
+
+#: template-parts/home-fallback.php:307
+msgid "Études à découvrir"
+msgstr "Studies to discover"
+
+#: template-parts/home-fallback.php:314
+msgid "Découvrir l'étude"
+msgstr "Discover the study"
+
+#: template-parts/home-fallback.php:322
+msgid "Le contenu de Schilo"
+msgstr "Schilo’s content"
+
+#: template-parts/home-fallback.php:323
+msgid "Évangiles"
+msgstr "Gospels"
+
+#: template-parts/home-fallback.php:324
+msgid "Fiches d'étude"
+msgstr "Study sheets"
+
+#: template-parts/home-fallback.php:325
+msgid "Annexes"
+msgstr "Appendices"
+
+#: template-parts/home-fallback.php:326
+msgid "Ressources"
+msgstr "Resources"
+
+#: template-parts/home-fallback.php:328
+msgid "Visiteurs"
+msgstr "Visitors"
+
+#: template-parts/home-fallback.php:341
+msgid "Réflexion du jour"
+msgstr "Thought of the day"
+
+#: template-parts/home-fallback.php:341
+msgid "Verset du jour"
+msgstr "Verse of the day"
+
+#: template-parts/home-fallback.php:357
+msgid "Voir les études"
+msgstr "See the studies"
+
+#: template-parts/home-fallback.php:369
+msgid "Parcours d'étude"
+msgstr "Study journey"
+
+#: template-parts/home-fallback.php:370
+msgid "Étudiez les Évangiles fiche par fiche, à votre rythme."
+msgstr "Study the Gospels sheet by sheet, at your own pace."
+
+#: template-parts/home-fallback.php:373
+msgid "Tous les parcours"
+msgstr "All journeys"
+
+#: template-parts/home-fallback.php:392
+msgid "Commencer le parcours"
+msgstr "Start the journey"
+
+#: template-parts/home-fallback.php:404 template-parts/home-fallback.php:441 template-parts/home-fallback.php:530
+msgid "Bibliothèque Schilo"
+msgstr "Schilo library"
+
+#: template-parts/home-fallback.php:405
+msgid "Séries thématiques"
+msgstr "Thematic series"
+
+#: template-parts/home-fallback.php:408
+msgid "Toutes les séries"
+msgstr "All series"
+
+#: template-parts/home-fallback.php:445 template-parts/home-fallback.php:484
+msgid "Tous les thèmes"
+msgstr "All themes"
+
+#: template-parts/home-fallback.php:480
+msgid "Explorer par thème"
+msgstr "Explore by theme"
+
+#: template-parts/home-fallback.php:481
+msgid "Parcourez les grandes catégories éditoriales du site."
+msgstr "Browse the site’s main editorial categories."
+
+#: template-parts/home-fallback.php:506 template-parts/home-fallback.php:549 template-parts/home-fallback.php:598
+msgid "%s article disponible"
+msgid_plural "%s articles disponibles"
+msgstr[0] "%s article available"
+msgstr[1] "%s articles available"
+
+#: template-parts/home-fallback.php:519
+msgid "Voir les articles"
+msgstr "See the articles"
+
+#: template-parts/home-fallback.php:531
+msgid "Ressources et catégories éditoriales"
+msgstr "Resources and editorial categories"
+
+#: template-parts/home-fallback.php:565
+msgid "%s thème"
+msgid_plural "%s thèmes"
+msgstr[0] "%s theme"
+msgstr[1] "%s themes"
+
+#: template-parts/home-fallback.php:619
+msgid "Une étude structurée et accessible"
+msgstr "A structured and accessible study"
+
+#: template-parts/home-fallback.php:620
+msgid "Choisissez un sujet et avancez à votre rythme."
+msgstr "Choose a subject and move forward at your own pace."
+
+#: template-parts/home-fallback.php:624
+msgid "Découvrir les Évangiles"
+msgstr "Discover the Gospels"
+
+#: template-parts/home-fallback.php:627
+msgid "Consulter le plan du site"
+msgstr "View the site map"
+
+#: template-parts/home-fallback.php:85
+msgid "12 fiches"
+msgstr "12 sheets"
+
+#: template-parts/home-fallback.php:86
+msgid "Pourquoi et comment Luc a-t-il écrit son Évangile ?"
+msgstr "Why and how did Luke write his Gospel?"
+
+#: template-parts/home-fallback.php:87
+msgid "Une enquête structurée sur la méthode de l'auteur, le contexte historique et le troisième Évangile."
+msgstr "A structured investigation into the author’s method, the historical context and the third Gospel."
+
+#: template-parts/home-fallback.php:94
+msgid "18 fiches"
+msgstr "18 sheets"
+
+#: template-parts/home-fallback.php:95
+msgid "Le Sermon sur la Montagne selon Matthieu"
+msgstr "The Sermon on the Mount according to Matthew"
+
+#: template-parts/home-fallback.php:96
+msgid "Les Béatitudes, la prière et les enseignements de Jésus étudiés pas à pas."
+msgstr "The Beatitudes, the prayer and the teachings of Jesus studied step by step."
+
+#: template-schilo-index.php:21
+msgid "Page introuvable."
+msgstr "Page not found."
+
+#: template-schilo-index.php:57
+msgid "Tous les articles indexés associés à « %s »."
+msgstr "All indexed articles associated with “%s”."
+
+#: template-schilo-index.php:72
+msgid "Aucun article indexé pour le moment."
+msgstr "No indexed articles yet."
+
