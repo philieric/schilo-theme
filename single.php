@@ -314,6 +314,12 @@ foreach ( $sections_raw as $sec ) {
     }
 }
 
+// ── Versions liées (grand public / académique...) ─────────────────────
+$article_versions = [];
+if ( class_exists( '\Schilo\Builder\Front\ArticleVersionRenderer' ) ) {
+    $article_versions = ( new \Schilo\Builder\Front\ArticleVersionRenderer() )->buildSwitcherData( $post_id );
+}
+
 // ── Navigation précédent / suivant (même catégorie) ───────────────────
 $prev_post = get_previous_post( ! empty( $cats ), '', 'category' );
 $next_post = get_next_post( ! empty( $cats ), '', 'category' );
@@ -384,7 +390,7 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
         <?php endif; ?>
         <?php if ( $per_code ) : ?>
           <span aria-hidden="true">›</span>
-          <span><?php echo esc_html( $per_code ); ?></span>
+          <span class="schilo-single-hero__breadcrumb-code"><?php echo esc_html( $per_code ); ?></span>
         <?php endif; ?>
       </nav>
 
@@ -443,6 +449,26 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
           </li>
         <?php endforeach; ?>
       </ul>
+    </div>
+  </nav>
+  <?php endif; ?>
+
+  <!-- ══ SWITCHER DE VERSIONS ═════════════════════════════════════════ -->
+  <?php if ( ! empty( $article_versions ) ) : ?>
+  <nav class="schilo-version-switcher<?php echo ! empty( $tabs ) ? ' has-tabnav' : ''; ?>" id="schilo-version-switcher"
+       aria-label="<?php esc_attr_e( 'Versions de cet article', 'schilo' ); ?>"
+       data-current-id="<?php echo esc_attr( $post_id ); ?>">
+    <div class="schilo-container schilo-version-switcher__inner">
+      <span class="schilo-version-switcher__label"><?php esc_html_e( 'Version :', 'schilo' ); ?></span>
+      <div class="schilo-version-switcher__pills" id="schilo-version-pills">
+        <?php foreach ( $article_versions as $version ) : ?>
+          <a href="<?php echo esc_url( $version['permalink'] ); ?>"
+             class="schilo-version-pill<?php echo $version['isCurrent'] ? ' is-active' : ''; ?>"
+             data-post-id="<?php echo esc_attr( $version['id'] ); ?>">
+            <?php echo esc_html( $version['label'] ); ?>
+          </a>
+        <?php endforeach; ?>
+      </div>
     </div>
   </nav>
   <?php endif; ?>

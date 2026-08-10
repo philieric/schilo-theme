@@ -15,7 +15,7 @@ if ( ! $term instanceof WP_Term ) {
 	return;
 }
 
-$query = new WP_Query( [
+$schilo_serie_args = [
 	'post_type'      => 'post',
 	'post_status'    => 'publish',
 	'posts_per_page' => -1,
@@ -24,7 +24,18 @@ $query = new WP_Query( [
 	'meta_key'       => '_schilo_ordre_' . $term->term_id,
 	'orderby'        => 'meta_value_num',
 	'order'          => 'ASC',
-] );
+];
+
+// Requête secondaire (pas la requête principale) : pas couverte par le
+// filtre pre_get_posts qui exclut les versions non-primaires ailleurs.
+if ( class_exists( '\Schilo\Builder\Service\ArticleVersionService' ) ) {
+	$schilo_serie_excluded = ( new \Schilo\Builder\Service\ArticleVersionService() )->getExcludedFromListingsIds();
+	if ( ! empty( $schilo_serie_excluded ) ) {
+		$schilo_serie_args['post__not_in'] = $schilo_serie_excluded;
+	}
+}
+
+$query     = new WP_Query( $schilo_serie_args );
 $post_ids  = $query->posts;
 $aggregate = schilo_classement_aggregate_indexation( $post_ids );
 $grouped   = schilo_classement_group_articles_with_complements( $post_ids );

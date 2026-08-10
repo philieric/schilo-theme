@@ -423,6 +423,74 @@ body.schilo-definition-open { overflow: hidden; }
 
 .schilo-tabnav-link .ti { font-size: 14px; }
 
+/* ── Switcher de versions (grand public / académique...) ───────────── */
+/* Sticky uniquement quand le bloc existe (rendu conditionnel côté PHP,
+   voir single.php $article_versions) : rien à activer/désactiver en JS. */
+.schilo-version-switcher {
+  position: sticky;
+  top: var(--schilo-nav-h, 56px);
+  background: var(--schilo-bg-muted);
+  border-bottom: 1px solid var(--schilo-border);
+  z-index: 190;
+}
+
+/* Empile sous la barre d'onglets quand les deux sont présentes (même
+   décalage approximatif que le scroll-margin-top des sections ancrées). */
+.schilo-version-switcher.has-tabnav {
+  top: calc(var(--schilo-nav-h, 56px) + 52px);
+}
+
+.schilo-version-switcher__inner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .6rem;
+  padding: .6rem 0;
+}
+
+.schilo-version-switcher__label {
+  font-family: var(--schilo-font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--schilo-text-muted);
+}
+
+.schilo-version-switcher__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.schilo-version-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: .35rem .85rem;
+  border-radius: 99px;
+  border: 1px solid var(--schilo-border);
+  background: var(--schilo-bg-card);
+  color: var(--schilo-text-secondary);
+  font-family: var(--schilo-font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background .15s, color .15s, border-color .15s;
+}
+
+.schilo-version-pill:hover {
+  border-color: var(--schilo-accent);
+  color: var(--schilo-accent);
+}
+
+.schilo-version-pill.is-active {
+  background: var(--schilo-accent);
+  border-color: var(--schilo-accent);
+  color: #fff;
+}
+
+.schilo-version-switcher.is-loading { opacity: .6; pointer-events: none; }
+
 /* ── Layout 2 colonnes ────────────────────────────────────────────── */
 .schilo-single-layout {
   display: grid;

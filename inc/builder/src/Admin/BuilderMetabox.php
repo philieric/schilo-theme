@@ -9,6 +9,7 @@ use Schilo\Builder\Service\ArticleTypeService;
 use Schilo\Builder\Service\SectionTypeService;
 use Schilo\Builder\Service\SectionStructureService;
 use Schilo\Builder\Service\TemplateApplicationService;
+use Schilo\Builder\Service\ArticleVersionService;
 
 class BuilderMetabox
 {
@@ -29,6 +30,96 @@ class BuilderMetabox
         add_action('save_post', array($this, 'save'), 10, 2);
         add_action('admin_enqueue_scripts', array($this, 'enqueueAssets'));
         add_action('admin_post_schilo_apply_template', array($this, 'handleApplyTemplate'));
+        add_action('wp_ajax_schilo_search_version_articles', array($this, 'ajaxSearchVersionArticles'));
+        add_action('wp_ajax_schilo_add_version_type', array($this, 'ajaxAddVersionType'));
+    }
+
+    /**
+     * Crée un nouveau type de version à la volée depuis la popup "type déjà
+     * pris" de la metabox (voir builder-admin.js), sans quitter l'écran
+     * d'édition ni passer par la page de réglages dédiée.
+     */
+    public function ajaxAddVersionType()
+    {
+        check_ajax_referer('schilo_add_version_type', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(array('message' => 'Accès refusé.'), 403);
+        }
+
+        $label = isset($_POST['label']) ? sanitize_text_field(wp_unslash($_POST['label'])) : '';
+
+        if (trim($label) === '') {
+            wp_send_json_error(array('message' => 'Le nom du type ne peut pas être vide.'));
+        }
+
+        $labels = (new ArticleVersionService())->addAvailableLabel($label);
+
+        wp_send_json_success(array('labels' => $labels));
+    }
+
+    /**
+     * Recherche live (par titre) pour le combobox "Articles liés" de la
+     * carte Versions — contrairement a #schilo-articles-data (plafonne a
+     * 300 articles, trie alphabetiquement : les prefixes tardifs comme PER
+     * n'y apparaissent jamais sur un site de plusieurs milliers d'articles),
+     * interroge la base a la demande, sans limite de couverture.
+     */
+    public function ajaxSearchVersionArticles()
+    {
+        check_ajax_referer('schilo_search_version_articles', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(array('message' => 'Accès refusé.'), 403);
+        }
+
+        $term = isset($_GET['term']) ? sanitize_text_field(wp_unslash($_GET['term'])) : '';
+        $excludeId = isset($_GET['exclude']) ? (int) $_GET['exclude'] : 0;
+
+        global $wpdb;
+
+        // Recherche par TITRE uniquement (LIKE direct), pas la recherche WP
+        // generique 's' qui matche aussi le contenu et melange la pertinence :
+        // pour retrouver un article par son code (ex. "PER" -> PER001, PER002...)
+        // seul un match sur le titre a du sens ici.
+        $sql = "SELECT ID, post_title FROM {$wpdb->posts}
+                WHERE post_type IN ('post', 'page')
+                AND post_status = 'publish'";
+        $params = array();
+
+        if ($term !== '') {
+            $sql .= ' AND post_title LIKE %s';
+            $params[] = '%' . $wpdb->esc_like($term) . '%';
+        }
+
+        if ($excludeId > 0) {
+            $sql .= ' AND ID != %d';
+            $params[] = $excludeId;
+        }
+
+        if ($term !== '') {
+            // Un titre qui COMMENCE par le terme (ex. "PER373 - ...") passe
+            // avant un titre qui le contient juste quelque part (ex. "Le
+            // Père Noël" pour une recherche "PER") : sans ca, chercher un
+            // prefixe d'article ("PER", "INF"...) noie les vrais articles
+            // sous des correspondances fortuites sur des mots courants.
+            $sql .= ' ORDER BY (post_title LIKE %s) DESC, post_title ASC LIMIT 30';
+            $params[] = $wpdb->esc_like($term) . '%';
+        } else {
+            $sql .= ' ORDER BY post_title ASC LIMIT 30';
+        }
+
+        $rows = !empty($params) ? $wpdb->get_results($wpdb->prepare($sql, $params)) : $wpdb->get_results($sql);
+
+        $results = array();
+        foreach ($rows as $row) {
+            $results[] = array(
+                'id' => (int) $row->ID,
+                'title' => html_entity_decode((string) $row->post_title, ENT_QUOTES, 'UTF-8'),
+            );
+        }
+
+        wp_send_json_success($results);
     }
 
     public function enqueueAssets($hook)
@@ -85,6 +176,10 @@ class BuilderMetabox
                 'templateSectionOrder' => $templateSectionOrder,
                 'sectionTypeLabels'    => $sectionTypeLabels,
                 'ajaxUrl'              => admin_url('admin-ajax.php'),
+                'versionSearchNonce'   => wp_create_nonce('schilo_search_version_articles'),
+                'versionAddTypeNonce' => wp_create_nonce('schilo_add_version_type'),
+                'currentPostId'        => $postIdForNav,
+                'versionAvailableLabels' => (new \Schilo\Builder\Service\ArticleVersionService())->getAvailableLabels(),
             )
         );
     }
@@ -139,6 +234,24 @@ class BuilderMetabox
             $applyTemplateUrlBase
         );
 
+        $versionService = new ArticleVersionService();
+        $versionEnabled = $versionService->isEnabled($postId);
+        $versionLabel = $versionService->getLabel($postId);
+        $versionIsPrimary = $versionService->isPrimary($postId);
+        $versionAvailableLabels = $versionService->getAvailableLabels();
+        $versionLinkedPosts = array();
+        foreach ($versionService->getLinkedIds($postId) as $linkedId) {
+            $linkedPost = get_post($linkedId);
+            if ($linkedPost) {
+                $linkedLabel = $versionService->getLabel($linkedId);
+                $versionLinkedPosts[] = array(
+                    'id' => $linkedId,
+                    'title' => html_entity_decode(get_the_title($linkedPost), ENT_QUOTES, 'UTF-8'),
+                    'label' => $linkedLabel !== '' ? $linkedLabel : '',
+                );
+            }
+        }
+
         include SCHILO_BUILDER_PATH . 'views/admin/metabox-builder.php';
     }
 
@@ -174,6 +287,22 @@ class BuilderMetabox
             : 'AUTO';
 
         $this->articleTypeService->saveSelectedType($postId, $selectedType);
+
+        $versionEnabled = !empty($_POST['schilo_version_enabled']);
+        $versionLinkedIds = isset($_POST['schilo_version_linked_ids']) && is_array($_POST['schilo_version_linked_ids'])
+            ? array_map('intval', wp_unslash($_POST['schilo_version_linked_ids']))
+            : array();
+        $versionLabel = isset($_POST['schilo_version_label']) ? sanitize_text_field(wp_unslash($_POST['schilo_version_label'])) : '';
+        $versionIsPrimary = !empty($_POST['schilo_version_is_primary']);
+
+        $versionLinkedLabels = array();
+        if (isset($_POST['schilo_version_linked_labels']) && is_array($_POST['schilo_version_linked_labels'])) {
+            foreach (wp_unslash($_POST['schilo_version_linked_labels']) as $linkedId => $linkedLabelValue) {
+                $versionLinkedLabels[(int) $linkedId] = sanitize_text_field((string) $linkedLabelValue);
+            }
+        }
+
+        (new ArticleVersionService())->saveVersion($postId, $versionEnabled, $versionLinkedIds, $versionLabel, $versionIsPrimary, $versionLinkedLabels);
 
         $rawSections = (isset($_POST['schilo_sections']) && is_array($_POST['schilo_sections']))
             ? wp_unslash($_POST['schilo_sections'])

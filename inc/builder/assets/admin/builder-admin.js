@@ -885,6 +885,291 @@
         }
     });
 
+    // ── Versions liées (case à cocher + recherche d'article + primaire) ──
+    $(document).on('change', '#schilo_version_enabled', function () {
+        $('#schilo-version-fields').toggle($(this).is(':checked'));
+    });
+
+    // Échange EN DIRECT (avant même l'enregistrement) entre le select de
+    // type du post courant et ceux des articles liés : si on choisit ici un
+    // type déjà pris par un autre membre du groupe, ce dernier récupère
+    // aussitôt, à l'écran, l'ancien type de celui qu'on vient de changer —
+    // même règle que côté serveur au moment de l'enregistrement (voir
+    // ArticleVersionService::resolveLabelConflicts()), mais visible
+    // immédiatement sans avoir à sauvegarder pour le constater.
+    function allVersionLabelSelects() {
+        return $('#schilo_version_label, .schilo-version-linked-label');
+    }
+
+    function initVersionLabelPrevValue($select) {
+        $select.data('prevLabel', $select.val());
+    }
+
+    allVersionLabelSelects().each(function () {
+        initVersionLabelPrevValue($(this));
+    });
+
+    $(document).on('change', '#schilo_version_label, .schilo-version-linked-label', function () {
+        const mover = $(this);
+        const prev = mover.data('prevLabel');
+        const next = mover.val();
+
+        if (prev === next) {
+            return;
+        }
+
+        if (prev) {
+            allVersionLabelSelects().each(function () {
+                const other = $(this);
+                if (other.is(mover) || other.val() !== next) {
+                    return;
+                }
+                other.val(prev);
+                initVersionLabelPrevValue(other);
+            });
+        }
+
+        initVersionLabelPrevValue(mover);
+    });
+
+    // Recherche live cote serveur (pas de blob client plafonne : sur un site
+    // de plusieurs milliers d'articles tries par titre, un prefixe tardif
+    // comme PER n'apparaitrait jamais dans les 300 premiers).
+    let versionSearchTimer = null;
+    let versionSearchXhr = null;
+
+    function searchVersionArticles(input) {
+        const combobox = input.closest('.schilo-version-combobox');
+        const list = combobox.find('.schilo-combobox-list');
+        const query = input.val().trim();
+        const cfg = window.SchiloBuilderAdmin || {};
+
+        if (versionSearchXhr) {
+            versionSearchXhr.abort();
+        }
+
+        versionSearchXhr = $.get(cfg.ajaxUrl, {
+            action: 'schilo_search_version_articles',
+            nonce: cfg.versionSearchNonce,
+            term: query,
+            exclude: cfg.currentPostId || 0
+        }).done(function (response) {
+            const results = (response && response.success && Array.isArray(response.data)) ? response.data : [];
+
+            if (!results.length) {
+                list.empty().hide();
+                return;
+            }
+
+            list.empty();
+            results.forEach(function (article) {
+                const item = $('<li></li>')
+                    .text(article.title)
+                    .attr('data-id', article.id)
+                    .attr('data-title', article.title);
+                list.append(item);
+            });
+            list.show();
+        });
+    }
+
+    $(document).on('focus input', '.schilo-version-article-search', function () {
+        const input = $(this);
+        clearTimeout(versionSearchTimer);
+        versionSearchTimer = setTimeout(function () {
+            searchVersionArticles(input);
+        }, 250);
+    });
+
+    // Types deja utilises dans le groupe courant (select "Type de cette
+    // version" + chaque ligne du tableau "Articles lies") : un meme type ne
+    // peut pas etre affecte deux fois au sein du meme groupe.
+    function getTakenVersionLabels() {
+        const taken = [];
+        const ownLabel = $('#schilo_version_label').val();
+        if (ownLabel) taken.push(ownLabel);
+        $('#schilo-version-linked-list .schilo-version-linked-label').each(function () {
+            const val = $(this).val();
+            if (val) taken.push(val);
+        });
+        return taken;
+    }
+
+    function getAvailableVersionLabels() {
+        const all = (window.SchiloBuilderAdmin && window.SchiloBuilderAdmin.versionAvailableLabels) || [];
+        const taken = getTakenVersionLabels();
+        return all.filter(function (labelOption) { return taken.indexOf(labelOption) === -1; });
+    }
+
+    // Reconstruit les options de tous les selects de type (le sien + chaque
+    // ligne liee) apres creation d'un nouveau type, pour qu'il soit proposable
+    // partout sans recharger la page.
+    function refreshVersionLabelSelects() {
+        const all = (window.SchiloBuilderAdmin && window.SchiloBuilderAdmin.versionAvailableLabels) || [];
+        $('#schilo_version_label, .schilo-version-linked-label').each(function () {
+            const select = $(this);
+            const current = select.val();
+            select.empty();
+            all.forEach(function (labelOption) {
+                select.append($('<option></option>').attr('value', labelOption).text(labelOption));
+            });
+            if (current && all.indexOf(current) !== -1) {
+                select.val(current);
+            }
+        });
+    }
+
+    function addLinkedArticleRow(id, title, chosenLabel) {
+        const tbody = $('#schilo-version-linked-list');
+        const table = $('#schilo-version-linked-table');
+        const availableLabels = (window.SchiloBuilderAdmin && window.SchiloBuilderAdmin.versionAvailableLabels) || [];
+
+        const labelSelect = $('<select></select>').attr({
+            name: 'schilo_version_linked_labels[' + id + ']',
+            class: 'schilo-version-linked-label',
+            'aria-label': 'Type de version pour cet article lié'
+        });
+        availableLabels.forEach(function (labelOption) {
+            labelSelect.append($('<option></option>').attr('value', labelOption).text(labelOption));
+        });
+        if (chosenLabel) {
+            labelSelect.val(chosenLabel);
+        }
+        initVersionLabelPrevValue(labelSelect);
+
+        tbody.append(
+            $('<tr></tr>').attr('data-id', id).append(
+                $('<td></td>').append(
+                    $('<span></span>').text(title),
+                    $('<input>').attr({ type: 'hidden', name: 'schilo_version_linked_ids[]', value: id })
+                ),
+                $('<td></td>').append(labelSelect),
+                $('<td></td>').append(
+                    $('<button></button>').attr({ type: 'button', class: 'schilo-version-remove-link', 'aria-label': 'Retirer' }).html('&times;')
+                )
+            )
+        );
+        table.show();
+    }
+
+    // ── Popup "type déjà pris" : tous les types configurés sont déjà
+    //    affectés à d'autres membres du groupe, propose d'en créer un ──
+    let pendingVersionArticle = null;
+
+    function showVersionTypeConflictModal(article) {
+        pendingVersionArticle = article;
+        $('#schilo-version-type-conflict-overlay').remove();
+
+        const overlay = $('<div id="schilo-version-type-conflict-overlay" class="schilo-version-modal-overlay"></div>');
+        const modal = $('<div class="schilo-version-modal"></div>');
+
+        modal.append(
+            $('<h3></h3>').text('Tous les types de version sont déjà pris'),
+            $('<p></p>').text(
+                'Chaque type de version (« Grand public », « Académique »…) ne peut être attribué qu’à un seul article ' +
+                'au sein d’un même groupe de versions liées. Tous les types existants sont déjà utilisés par les articles ' +
+                'actuellement liés — impossible d’ajouter « ' + article.title + ' » sans lui donner un type disponible.'
+            ),
+            $('<label class="schilo-version-modal__label" for="schilo-version-new-type-input">Nom du nouveau type</label>'),
+            $('<input type="text" id="schilo-version-new-type-input" class="regular-text" placeholder="ex. Jeunesse">'),
+            $('<div class="schilo-version-modal__actions"></div>').append(
+                $('<button type="button" class="button" id="schilo-version-type-conflict-cancel">Annuler</button>'),
+                $('<button type="button" class="button button-primary" id="schilo-version-type-conflict-create">Créer ce type et lier l’article</button>')
+            )
+        );
+
+        overlay.append(modal);
+        $('body').append(overlay);
+        $('#schilo-version-new-type-input').trigger('focus');
+    }
+
+    function closeVersionTypeConflictModal() {
+        $('#schilo-version-type-conflict-overlay').remove();
+        pendingVersionArticle = null;
+    }
+
+    $(document).on('click', '#schilo-version-type-conflict-cancel', function () {
+        closeVersionTypeConflictModal();
+    });
+
+    $(document).on('click', '#schilo-version-type-conflict-overlay', function (e) {
+        if (e.target.id === 'schilo-version-type-conflict-overlay') {
+            closeVersionTypeConflictModal();
+        }
+    });
+
+    $(document).on('click', '#schilo-version-type-conflict-create', function () {
+        const input = $('#schilo-version-new-type-input');
+        const newLabel = input.val().trim();
+        const cfg = window.SchiloBuilderAdmin || {};
+
+        if (!newLabel) {
+            input.trigger('focus');
+            return;
+        }
+        if (!pendingVersionArticle) {
+            closeVersionTypeConflictModal();
+            return;
+        }
+
+        const btn = $(this);
+        btn.prop('disabled', true).text('Création…');
+
+        $.post(cfg.ajaxUrl, {
+            action: 'schilo_add_version_type',
+            nonce: cfg.versionAddTypeNonce,
+            label: newLabel
+        }).done(function (response) {
+            if (!response || !response.success) {
+                btn.prop('disabled', false).text('Créer ce type et lier l’article');
+                window.alert((response && response.data && response.data.message) || 'Impossible de créer ce type.');
+                return;
+            }
+
+            cfg.versionAvailableLabels = response.data.labels;
+            refreshVersionLabelSelects();
+
+            const pending = pendingVersionArticle;
+            closeVersionTypeConflictModal();
+            addLinkedArticleRow(pending.id, pending.title, newLabel);
+        }).fail(function () {
+            btn.prop('disabled', false).text('Créer ce type et lier l’article');
+            window.alert('Erreur réseau, réessayez.');
+        });
+    });
+
+    $(document).on('click', '.schilo-version-combobox .schilo-combobox-list li', function () {
+        const item = $(this);
+        const combobox = item.closest('.schilo-version-combobox');
+        const id = item.data('id');
+        const title = item.data('title');
+        const tbody = $('#schilo-version-linked-list');
+
+        combobox.find('.schilo-version-article-search').val('');
+        combobox.find('.schilo-combobox-list').empty().hide();
+
+        if (tbody.find('tr[data-id="' + id + '"]').length) {
+            return; // déjà lié
+        }
+
+        const available = getAvailableVersionLabels();
+        if (!available.length) {
+            showVersionTypeConflictModal({ id: id, title: title });
+            return;
+        }
+
+        addLinkedArticleRow(id, title, available[0]);
+    });
+
+    $(document).on('click', '.schilo-version-remove-link', function () {
+        const row = $(this).closest('tr');
+        const tbody = row.closest('tbody');
+        row.remove();
+        if (!tbody.find('tr').length) {
+            $('#schilo-version-linked-table').hide();
+        }
+    });
+
     $(document).on('click', '.schilo-add-link', function () {
         const button = $(this);
         const field = button.closest('.schilo-links-field');
