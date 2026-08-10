@@ -982,17 +982,31 @@ class ClassementService
     private const SUGGESTION_META_KEY = '_schilo_classement_suggestion';
 
     /**
+     * Valeurs "sentinelles" que l'IA peut renvoyer pour signaler l'absence de
+     * classement pertinent (voir le prompt d'indexation : "ignore \"non
+     * defini\"/\"non applicable\""). Ce ne sont PAS des noms de terme reels :
+     * les laisser passer dans resolveSuggestionTermIds() cree un faux terme
+     * de taxonomie ("Non applicable") assigne aux articles concernes.
+     */
+    private const PLACEHOLDER_TERM_VALUES = ['non applicable', 'non defini'];
+
+    private function isPlaceholderTermValue(string $name): bool
+    {
+        return in_array($this->normalizeTermName($name), self::PLACEHOLDER_TERM_VALUES, true);
+    }
+
+    /**
      * Resout une suggestion IA (noms de termes) en term_id reels, en creant
      * les termes manquants (premier niveau) si aucun terme existant ne correspond.
      */
     public function resolveSuggestionTermIds(array $suggestion): array
     {
         $theme_ids = [];
-        if (!empty($suggestion['theme'])) {
+        if (!empty($suggestion['theme']) && !$this->isPlaceholderTermValue((string) $suggestion['theme'])) {
             $theme = $this->findOrCreateTerm('schilo_theme', (string) $suggestion['theme'], 0);
             if (!is_wp_error($theme)) {
                 $theme_ids[] = (int) $theme['term_id'];
-                if (!empty($suggestion['sous_theme'])) {
+                if (!empty($suggestion['sous_theme']) && !$this->isPlaceholderTermValue((string) $suggestion['sous_theme'])) {
                     $sous_theme = $this->findOrCreateTerm('schilo_theme', (string) $suggestion['sous_theme'], (int) $theme['term_id']);
                     if (!is_wp_error($sous_theme)) $theme_ids[] = (int) $sous_theme['term_id'];
                 }
@@ -1001,7 +1015,7 @@ class ClassementService
 
         $parcours_ids = [];
         foreach ((array) ($suggestion['parcours'] ?? []) as $name) {
-            if (!is_string($name) || trim($name) === '') continue;
+            if (!is_string($name) || trim($name) === '' || $this->isPlaceholderTermValue($name)) continue;
             // Passe par le resolveur hierarchique : si l'IA renvoie "Parent > Etape",
             // l'article est rattache a la vraie etape nichee, pas a un terme plat en double.
             $term_id = $this->resolveHierarchicalTermPath('schilo_parcours', $name);
@@ -1009,7 +1023,7 @@ class ClassementService
         }
 
         $serie_ids = [];
-        if (!empty($suggestion['serie'])) {
+        if (!empty($suggestion['serie']) && !$this->isPlaceholderTermValue((string) $suggestion['serie'])) {
             $serie = $this->findOrCreateTerm('schilo_serie', (string) $suggestion['serie'], 0);
             if (!is_wp_error($serie)) $serie_ids[] = (int) $serie['term_id'];
         }
