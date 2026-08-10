@@ -39,6 +39,9 @@ class SettingsPage
         // Classement (parcours, themes, series)
         $classementPage = new ClassementPage();
         $classementPage->register();
+
+        // Versions d'article (grand public / academique...)
+        (new VersionSettingsPage())->register();
     }
 
     public function addMenu()

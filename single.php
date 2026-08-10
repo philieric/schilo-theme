@@ -86,6 +86,14 @@ if ( ! empty( $sections_raw ) && class_exists( '\Schilo\Builder\Service\Template
     }
 }
 
+// ── Sommaire multi-parties (articles très longs) ──────────────────────
+// Une entrée par section "titre-partie" ; le sommaire n'apparaît qu'à
+// partir de 2 parties déclarées (voir ArticlePartsService).
+$article_parts = [];
+if ( class_exists( '\Schilo\Builder\Service\ArticlePartsService' ) ) {
+    $article_parts = ( new \Schilo\Builder\Service\ArticlePartsService() )->getParts( $sections_raw );
+}
+
 // ── Helpers : livre → classe CSS et label lisible ────────────────────
 if ( ! function_exists( 'schilo_book_class' ) ) :
 function schilo_book_class( string $abbr ): string {
@@ -249,6 +257,21 @@ $schilo_is_sec_empty = function ( array $sec ): bool {
     return ! $has;
 };
 
+// Compte les occurrences par type (hors sections vides) pour distinguer le cas
+// "un seul bloc de ce type" (onglet générique habituel, ancre sec-XXX posée en
+// JS) du cas "plusieurs blocs du même type avec des titres distincts" (ex :
+// 5 sections "paragraphe" nommées Commentaire 1..5) où un onglet générique
+// unique ne peut pointer que vers le premier bloc — d'où l'ancrage direct sur
+// le vrai id du <h2>, déjà posé côté PHP par la vue de section.
+$type_counts = [];
+foreach ( $sections_raw as $sec ) {
+    if ( $schilo_is_sec_empty( $sec ) ) continue;
+    $t = isset( $sec['type'] ) ? $sec['type'] : '';
+    if ( isset( $tab_map[ $t ] ) ) {
+        $type_counts[ $t ] = ( $type_counts[ $t ] ?? 0 ) + 1;
+    }
+}
+
 $tabs = [];
 foreach ( $sections_raw as $sec ) {
     if ( $schilo_is_sec_empty( $sec ) ) {
@@ -256,18 +279,45 @@ foreach ( $sections_raw as $sec ) {
     }
     $type  = isset( $sec['type'] ) ? $sec['type'] : '';
     $title = isset( $sec['title'] ) && trim( $sec['title'] ) !== '' ? trim( $sec['title'] ) : '';
-    if ( isset( $tab_map[ $type ] ) ) {
-        $a = $tab_map[ $type ]['anchor'];
-        if ( ! isset( $tabs[ $a ] ) ) {
-            $tab = $tab_map[ $type ];
-            // N'utilise le titre de section comme label que pour les types "lien/navigation"
-            $title_as_label_types = [ 'liens-articles', 'references', 'titre-simple' ];
-            if ( $title !== '' && in_array( $type, $title_as_label_types, true ) ) {
-                $tab['label'] = $title;
-            }
-            $tabs[ $a ] = $tab;
-        }
+    if ( ! isset( $tab_map[ $type ] ) ) {
+        continue;
     }
+
+    if ( ( $type_counts[ $type ] ?? 0 ) > 1 && $title !== '' ) {
+        $direct_anchor = sanitize_title( $title );
+        if ( ! isset( $tabs[ $direct_anchor ] ) ) {
+            // Libellé court dans l'onglet (ex : "Commentaire 3") pour ne pas
+            // saturer la barre scrollable — l'ancre, elle, reste basée sur le
+            // titre complet, donc inchangée et toujours unique.
+            $short_label = $title;
+            if ( preg_match( '/^([A-ZÀ-Ý][a-zà-ÿ\'’]*\s+\d+)\b/u', $title, $m ) ) {
+                $short_label = $m[1];
+            }
+            $tabs[ $direct_anchor ] = [
+                'label'         => $short_label,
+                'icon'          => $tab_map[ $type ]['icon'],
+                'direct_anchor' => true,
+            ];
+        }
+        continue;
+    }
+
+    $a = $tab_map[ $type ]['anchor'];
+    if ( ! isset( $tabs[ $a ] ) ) {
+        $tab = $tab_map[ $type ];
+        // N'utilise le titre de section comme label que pour les types "lien/navigation"
+        $title_as_label_types = [ 'liens-articles', 'references', 'titre-simple' ];
+        if ( $title !== '' && in_array( $type, $title_as_label_types, true ) ) {
+            $tab['label'] = $title;
+        }
+        $tabs[ $a ] = $tab;
+    }
+}
+
+// ── Versions liées (grand public / académique...) ─────────────────────
+$article_versions = [];
+if ( class_exists( '\Schilo\Builder\Front\ArticleVersionRenderer' ) ) {
+    $article_versions = ( new \Schilo\Builder\Front\ArticleVersionRenderer() )->buildSwitcherData( $post_id );
 }
 
 // ── Navigation précédent / suivant (même catégorie) ───────────────────
@@ -340,7 +390,7 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
         <?php endif; ?>
         <?php if ( $per_code ) : ?>
           <span aria-hidden="true">›</span>
-          <span><?php echo esc_html( $per_code ); ?></span>
+          <span class="schilo-single-hero__breadcrumb-code"><?php echo esc_html( $per_code ); ?></span>
         <?php endif; ?>
       </nav>
 
@@ -386,11 +436,13 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
   <nav class="schilo-single-tabnav" id="schilo-tabnav" aria-label="<?php esc_attr_e( "Sections de l'article", 'schilo' ); ?>">
     <div class="schilo-container schilo-single-tabnav__inner">
       <ul class="schilo-tabnav-list" role="list">
-        <?php foreach ( $tabs as $anchor => $tab ) : ?>
+        <?php foreach ( $tabs as $anchor => $tab ) :
+            $tab_href = ! empty( $tab['direct_anchor'] ) ? $anchor : 'sec-' . $anchor;
+        ?>
           <li>
             <a class="schilo-tabnav-link"
-               href="#sec-<?php echo esc_attr( $anchor ); ?>"
-               data-anchor="sec-<?php echo esc_attr( $anchor ); ?>">
+               href="#<?php echo esc_attr( $tab_href ); ?>"
+               data-anchor="<?php echo esc_attr( $tab_href ); ?>">
               <i class="ti <?php echo esc_attr( $tab['icon'] ); ?>" aria-hidden="true"></i>
               <?php echo esc_html( $tab['label'] ); ?>
             </a>
@@ -401,11 +453,54 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
   </nav>
   <?php endif; ?>
 
+  <!-- ══ SWITCHER DE VERSIONS ═════════════════════════════════════════ -->
+  <?php if ( ! empty( $article_versions ) ) : ?>
+  <nav class="schilo-version-switcher<?php echo ! empty( $tabs ) ? ' has-tabnav' : ''; ?>" id="schilo-version-switcher"
+       aria-label="<?php esc_attr_e( 'Versions de cet article', 'schilo' ); ?>"
+       data-current-id="<?php echo esc_attr( $post_id ); ?>">
+    <div class="schilo-container schilo-version-switcher__inner">
+      <span class="schilo-version-switcher__label"><?php esc_html_e( 'Version :', 'schilo' ); ?></span>
+      <div class="schilo-version-switcher__pills" id="schilo-version-pills">
+        <?php foreach ( $article_versions as $version ) : ?>
+          <a href="<?php echo esc_url( $version['permalink'] ); ?>"
+             class="schilo-version-pill<?php echo $version['isCurrent'] ? ' is-active' : ''; ?>"
+             data-post-id="<?php echo esc_attr( $version['id'] ); ?>">
+            <?php echo esc_html( $version['label'] ); ?>
+          </a>
+        <?php endforeach; ?>
+      </div>
+    </div>
+  </nav>
+  <?php endif; ?>
+
   <!-- ══ LAYOUT PRINCIPAL ══════════════════════════════════════════════ -->
   <div class="schilo-container schilo-single-layout">
 
     <!-- Colonne contenu -->
     <div class="schilo-single-main" id="schilo-single-main">
+
+      <?php if ( count( $article_parts ) > 1 ) : ?>
+      <nav class="schilo-card schilo-article-sommaire" aria-label="<?php esc_attr_e( 'Sommaire de l\'article', 'schilo' ); ?>">
+        <div class="schilo-card__head">
+          <div class="schilo-card__head-left">
+            <div class="schilo-card__icon schilo-card__icon--dark">
+              <i class="ti ti-list-numbers" aria-hidden="true"></i>
+            </div>
+            <span class="schilo-card__title"><?php esc_html_e( 'Sommaire de l\'article', 'schilo' ); ?></span>
+          </div>
+        </div>
+        <div class="schilo-card__body">
+          <ol class="schilo-article-sommaire__list">
+            <?php foreach ( $article_parts as $part ) : ?>
+              <li>
+                <a href="#<?php echo esc_attr( $part['anchor'] ); ?>"><?php echo esc_html( $part['label'] ); ?></a>
+              </li>
+            <?php endforeach; ?>
+          </ol>
+        </div>
+      </nav>
+      <?php endif; ?>
+
       <?php the_content(); ?>
     </div>
 

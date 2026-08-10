@@ -239,12 +239,81 @@ class Plugin
                     'post', 'side', 'high'
                 );
             });
+
+            // Colonnes + filtre listing : versions multiples (grand public/academique...)
+            add_filter('manage_post_posts_columns', function (array $cols): array {
+                $cols['schilo_version_multi']   = '<span class="dashicons dashicons-randomize" style="font-size:14px;height:14px;width:14px;vertical-align:middle;" title="Article multi"></span> Article multi';
+                $cols['schilo_version_primary'] = '<span class="dashicons dashicons-star-filled" style="font-size:14px;height:14px;width:14px;vertical-align:middle;" title="Principal"></span> Principal';
+                return $cols;
+            });
+
+            add_action('manage_post_posts_custom_column', function (string $col, int $post_id): void {
+                if ($col !== 'schilo_version_multi' && $col !== 'schilo_version_primary') return;
+
+                $service = new \Schilo\Builder\Service\ArticleVersionService();
+                $enabled = $service->isEnabled($post_id);
+
+                if ($col === 'schilo_version_multi') {
+                    if (!$enabled) { echo '<span style="color:#cbd5e1;">—</span>'; return; }
+
+                    $label = $service->getLabel($post_id);
+                    $linkedCount = count($service->getLinkedIds($post_id));
+
+                    echo '<span style="background:#e0e7ff;color:#3730a3;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:700;">' . esc_html($label !== '' ? $label : 'Version') . '</span>';
+                    echo '<br><span style="font-size:11px;color:#94a3b8;">' . $linkedCount . ' article' . ($linkedCount > 1 ? 's' : '') . ' lié' . ($linkedCount > 1 ? 's' : '') . '</span>';
+                    return;
+                }
+
+                // schilo_version_primary
+                if (!$enabled) { echo '<span style="color:#cbd5e1;">—</span>'; return; }
+                if ($service->isPrimary($post_id)) {
+                    echo '<span class="dashicons dashicons-star-filled" style="color:#d97706;" title="Article principal"></span>';
+                } else {
+                    echo '<span style="font-size:11px;color:#94a3b8;">Lié</span>';
+                }
+            }, 10, 2);
+
+            // Filtre déroulant en haut du listing des articles
+            add_action('restrict_manage_posts', function (string $post_type): void {
+                if ($post_type !== 'post') return;
+                $current = isset($_GET['schilo_version_filter']) ? sanitize_key(wp_unslash($_GET['schilo_version_filter'])) : '';
+                ?>
+                <select name="schilo_version_filter">
+                    <option value=""><?php esc_html_e('Toutes les versions', 'schilo'); ?></option>
+                    <option value="enabled" <?php selected($current, 'enabled'); ?>><?php esc_html_e('Versions multiples activées', 'schilo'); ?></option>
+                    <option value="primary" <?php selected($current, 'primary'); ?>><?php esc_html_e('— dont : article principal', 'schilo'); ?></option>
+                    <option value="linked" <?php selected($current, 'linked'); ?>><?php esc_html_e('— dont : article lié (non principal)', 'schilo'); ?></option>
+                </select>
+                <?php
+            });
+
+            add_action('pre_get_posts', function (\WP_Query $query): void {
+                if (!is_admin() || !$query->is_main_query() || $query->get('post_type') !== 'post') return;
+                $filter = isset($_GET['schilo_version_filter']) ? sanitize_key(wp_unslash($_GET['schilo_version_filter'])) : '';
+                if ($filter === '') return;
+
+                $metaQuery = (array) $query->get('meta_query');
+
+                if ($filter === 'enabled') {
+                    $metaQuery[] = ['key' => \Schilo\Builder\Service\ArticleVersionService::META_ENABLED, 'value' => '1'];
+                } elseif ($filter === 'primary') {
+                    $metaQuery[] = ['key' => \Schilo\Builder\Service\ArticleVersionService::META_ENABLED, 'value' => '1'];
+                    $metaQuery[] = ['key' => \Schilo\Builder\Service\ArticleVersionService::META_PRIMARY, 'value' => '1'];
+                } elseif ($filter === 'linked') {
+                    $metaQuery[] = ['key' => \Schilo\Builder\Service\ArticleVersionService::META_ENABLED, 'value' => '1'];
+                    $metaQuery[] = ['key' => \Schilo\Builder\Service\ArticleVersionService::META_PRIMARY, 'value' => '1', 'compare' => '!='];
+                }
+
+                $query->set('meta_query', $metaQuery);
+            });
         }
 
         $front = new ContentRenderer();
         $front->register();
 
         (new ContextualDefinitionRenderer())->register();
+
+        (new \Schilo\Builder\Front\ArticleVersionRenderer())->register();
 
         $relatedArticlesShortcode = new RelatedArticlesShortcode();
         $relatedArticlesShortcode->register();

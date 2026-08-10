@@ -108,6 +108,11 @@ class SectionRenderer
                     }
                 }
                 return true;
+
+            // Titre de partie : seul le titre porte le contenu (pas de champ
+            // "content" ni "data"), donc non-vide des qu'un titre est saisi.
+            case 'titre-partie':
+                return trim((string) $section->getTitle()) === '';
         }
 
         // Types generiques a donnees libres : non vide des qu'une valeur scalaire

@@ -31,12 +31,24 @@ class ContentRenderer
             return $content;
         }
 
-        $postId = (int) get_the_ID();
+        return $this->renderPostContent((int) get_the_ID(), $content);
+    }
+
+    /**
+     * Rendu des sections d'un post par ID, sans le garde-fou de boucle
+     * principale de render() (is_singular()/in_the_loop()/is_main_query()) :
+     * utilisable hors du rendu normal d'une page (ex : reponse AJAX du
+     * switcher de versions, qui rend un post different de celui de la
+     * requete en cours).
+     */
+    public function renderPostContent($postId, $fallback = '')
+    {
+        $postId = (int) $postId;
         $repository = new SectionRepository();
         $sections = $repository->findByPostId($postId);
 
         if (empty($sections)) {
-            return $content;
+            return $fallback;
         }
 
         $prefix = (new ArticleTypeService())->resolveType($postId);
@@ -97,7 +109,7 @@ class ContentRenderer
         // Si aucune section n'avait de contenu, retourner le contenu original
         // (article non migré ou migration incomplète) plutôt qu'un div vide.
         if ($rendered === 0) {
-            return $content;
+            return $fallback;
         }
 
         return $output;
