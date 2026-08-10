@@ -67,6 +67,10 @@ class Plugin
             $settingsPage->register();
             (new ContextualDefinitionsPage())->register();
 
+            // renderDuplicateNotice() est appelée directement par
+            // BuilderMetabox::renderAfterTitle() : le hook 'admin_notices'
+            // est nettoyé plus loin dans functions.php (retire tout callback
+            // dont le fichier contient "wp-content/"), donc inutile ici.
             $titleNumberer = new ArticleTitleNumberer();
             add_filter('wp_insert_post_data', array($titleNumberer, 'filterPostData'), 20, 2);
             add_action('save_post', array($titleNumberer, 'normalizeAfterSave'), 999, 3);
