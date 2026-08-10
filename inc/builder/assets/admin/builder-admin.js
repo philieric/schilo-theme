@@ -701,11 +701,57 @@
        Une section dont le TITRE est exactement "Introduction" est creee
        avec le vrai type "intro" du template (pas "paragraphe" generique),
        pour beneficier du meme traitement que la section Introduction
-       existante (ordre du template, styles dedies). ─────────────────── */
-    var IMPORT_TYPE_LABELS = { intro: 'Introduction', paragraphe: 'Paragraphe' };
+       existante (ordre du template, styles dedies).
+
+       Une section XML de type "textes-bibliques" (bloc de references en
+       tete de document, ex. <MT>Matthieu 13.1-23</MT><MC>Marc 4.1-20</MC>)
+       est convertie en section "evangiles" du Builder : une ligne de
+       reference par balise, avec le mapping Matthieu/Marc/Luc/Jean -> classe
+       CSS dediee, toute autre balise (ex. <BI>) -> classe "citation-bible"
+       generique (label derive du debut de la reference, avant le premier
+       chiffre). ────────────────────────────────────────────────────── */
+    var IMPORT_TYPE_LABELS = { intro: 'Introduction', paragraphe: 'Paragraphe', evangiles: 'Évangiles' };
+
+    var IMPORT_BIBLE_TAG_MAP = {
+        MT: { label: 'Matthieu', class: 'citation-matthieu' },
+        MC: { label: 'Marc', class: 'citation-marc' },
+        LU: { label: 'Luc', class: 'citation-luc' },
+        JE: { label: 'Jean', class: 'citation-jean' }
+    };
 
     function importTargetType(title) {
         return (title || '').trim().toLowerCase() === 'introduction' ? 'intro' : 'paragraphe';
+    }
+
+    // Parse le contenu d'une section "textes-bibliques" (balises <MT>/<MC>/<LU>/<JE>/<BI>,
+    // une reference par balise) en lignes {label, class, reference} pour la section "evangiles".
+    function parseTextesBibliquesRefs(contentText) {
+        var refs = [];
+        var frag;
+        try {
+            frag = new DOMParser().parseFromString('<root>' + contentText + '</root>', 'application/xml');
+        } catch (e) {
+            return refs;
+        }
+        if (!frag || frag.querySelector('parsererror') || !frag.documentElement) {
+            return refs;
+        }
+
+        Array.prototype.forEach.call(frag.documentElement.children, function (el) {
+            var reference = (el.textContent || '').trim();
+            if (!reference) return;
+
+            var known = IMPORT_BIBLE_TAG_MAP[el.tagName.toUpperCase()];
+            if (known) {
+                refs.push({ label: known.label, class: known.class, reference: reference });
+                return;
+            }
+
+            var m = reference.match(/^([0-9]?\s?[^\d]+?)\s*\d/);
+            refs.push({ label: m ? m[1].trim() : reference, class: 'citation-bible', reference: reference });
+        });
+
+        return refs;
     }
 
     function importSectionsFromXml(xmlText) {
@@ -721,11 +767,13 @@
         }
 
         var xmlSections = Array.prototype.slice.call(
-            xmlDoc.querySelectorAll('schilo_sections > section[type="paragraphe"]')
+            xmlDoc.querySelectorAll(
+                'schilo_sections > section[type="paragraphe"], schilo_sections > section[type="textes-bibliques"]'
+            )
         );
 
         if (xmlSections.length === 0) {
-            alert('Aucune section de type "paragraphe" trouvee dans ce fichier XML.');
+            alert('Aucune section de type "paragraphe" ou "textes-bibliques" trouvee dans ce fichier XML.');
             return;
         }
 
@@ -735,8 +783,13 @@
             var contentEl = xmlSection.querySelector('content');
             var title     = titleEl ? titleEl.textContent : '';
             var content   = contentEl ? contentEl.textContent : '';
-            var type      = importTargetType(title);
 
+            if (xmlSection.getAttribute('type') === 'textes-bibliques') {
+                targetTypesUsed.evangiles = true;
+                return { title: title || 'Évangiles', type: 'evangiles', versets: parseTextesBibliquesRefs(content) };
+            }
+
+            var type = importTargetType(title);
             targetTypesUsed[type] = true;
 
             return { title: title, content: content, type: type };
@@ -780,7 +833,18 @@
         mapped.forEach(function (m) {
             var item = $(createSection(m.type));
             item.find('.schilo-title-input').val(m.title);
-            item.find('textarea.schilo-dynamic-editor').val(m.content);
+
+            if (m.type === 'evangiles') {
+                var sectionIdx  = item.attr('data-index');
+                var classChoices = getEvangilesConfig().classChoices;
+                var refsContainer = item.find('.schilo-bible-ref-items');
+                refsContainer.empty();
+                m.versets.forEach(function (verset, i) {
+                    refsContainer.append(evangilesRefItemTemplate(sectionIdx, i, verset, classChoices, false));
+                });
+            } else {
+                item.find('textarea.schilo-dynamic-editor').val(m.content);
+            }
 
             if (marker) {
                 marker.before(item);
