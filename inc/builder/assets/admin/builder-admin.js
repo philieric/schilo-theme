@@ -890,6 +890,48 @@
         $('#schilo-version-fields').toggle($(this).is(':checked'));
     });
 
+    // Échange EN DIRECT (avant même l'enregistrement) entre le select de
+    // type du post courant et ceux des articles liés : si on choisit ici un
+    // type déjà pris par un autre membre du groupe, ce dernier récupère
+    // aussitôt, à l'écran, l'ancien type de celui qu'on vient de changer —
+    // même règle que côté serveur au moment de l'enregistrement (voir
+    // ArticleVersionService::resolveLabelConflicts()), mais visible
+    // immédiatement sans avoir à sauvegarder pour le constater.
+    function allVersionLabelSelects() {
+        return $('#schilo_version_label, .schilo-version-linked-label');
+    }
+
+    function initVersionLabelPrevValue($select) {
+        $select.data('prevLabel', $select.val());
+    }
+
+    allVersionLabelSelects().each(function () {
+        initVersionLabelPrevValue($(this));
+    });
+
+    $(document).on('change', '#schilo_version_label, .schilo-version-linked-label', function () {
+        const mover = $(this);
+        const prev = mover.data('prevLabel');
+        const next = mover.val();
+
+        if (prev === next) {
+            return;
+        }
+
+        if (prev) {
+            allVersionLabelSelects().each(function () {
+                const other = $(this);
+                if (other.is(mover) || other.val() !== next) {
+                    return;
+                }
+                other.val(prev);
+                initVersionLabelPrevValue(other);
+            });
+        }
+
+        initVersionLabelPrevValue(mover);
+    });
+
     // Recherche live cote serveur (pas de blob client plafonne : sur un site
     // de plusieurs milliers d'articles tries par titre, un prefixe tardif
     // comme PER n'apparaitrait jamais dans les 300 premiers).
@@ -993,6 +1035,7 @@
         if (chosenLabel) {
             labelSelect.val(chosenLabel);
         }
+        initVersionLabelPrevValue(labelSelect);
 
         tbody.append(
             $('<tr></tr>').attr('data-id', id).append(
