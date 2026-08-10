@@ -97,6 +97,8 @@ class BuilderMetabox
 
         wp_nonce_field('schilo_builder_save', 'schilo_builder_nonce');
 
+        (new \Schilo\Builder\Service\ArticleTitleNumberer())->renderDuplicateNotice();
+
         $postId = (int) $post->ID;
 
         $prefix = $this->articleTypeService->resolveType($postId);
