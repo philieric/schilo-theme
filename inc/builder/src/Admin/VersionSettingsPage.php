@@ -35,6 +35,7 @@ class VersionSettingsPage
     {
         $service = new ArticleVersionService();
         $saved = false;
+        $blockedLabels = array();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[self::NONCE_NAME])) {
             $nonce = sanitize_text_field(wp_unslash($_POST[self::NONCE_NAME]));
@@ -43,13 +44,28 @@ class VersionSettingsPage
                 $rawLabels = isset($_POST['schilo_version_types']) && is_array($_POST['schilo_version_types'])
                     ? wp_unslash($_POST['schilo_version_types'])
                     : array();
+                $rawLabels = array_values(array_filter(array_map(function ($l) {
+                    return trim(sanitize_text_field((string) $l));
+                }, $rawLabels)));
 
-                $service->saveAvailableLabels($rawLabels);
-                $saved = true;
+                // Filet de sécurité serveur (le JS bloque déjà le retrait d'un
+                // type utilisé au clic sur "Retirer") : un type actuellement
+                // affecté à au moins un article ne doit jamais disparaître de
+                // la liste, sinon la metabox de cet article n'aurait plus son
+                // type dans le sélecteur.
+                $before = $service->getAvailableLabels();
+                $removed = array_diff($before, $rawLabels);
+                $blockedLabels = array_values(array_intersect($removed, $service->getUsedLabels()));
+
+                if (empty($blockedLabels)) {
+                    $service->saveAvailableLabels($rawLabels);
+                    $saved = true;
+                }
             }
         }
 
         $labels = $service->getAvailableLabels();
+        $usedLabels = $service->getUsedLabels();
 
         ?>
         <div class="wrap schilo-builder-settings">
@@ -62,6 +78,16 @@ class VersionSettingsPage
 
             <?php if ($saved) : ?>
                 <div class="notice notice-success is-dismissible"><p>Types de version enregistrés.</p></div>
+            <?php endif; ?>
+
+            <?php if (!empty($blockedLabels)) : ?>
+                <div class="notice notice-error is-dismissible">
+                    <p>
+                        Impossible de supprimer <?php echo count($blockedLabels) > 1 ? 'les types suivants, encore utilisés' : 'le type suivant, encore utilisé'; ?>
+                        par au moins un article : <strong><?php echo esc_html(implode(', ', $blockedLabels)); ?></strong>.
+                        Retirez d'abord ce type des articles concernés (metabox « Versions de l'article »), puis réessayez.
+                    </p>
+                </div>
             <?php endif; ?>
 
             <form method="post" class="schilo-tool-card" id="schilo-version-types-form">
@@ -97,6 +123,7 @@ class VersionSettingsPage
         (function () {
             var rows = document.getElementById('schilo-version-types-rows');
             var addBtn = document.getElementById('schilo-version-type-add');
+            var usedLabels = <?php echo wp_json_encode($usedLabels); ?>;
 
             addBtn.addEventListener('click', function () {
                 var tr = document.createElement('tr');
@@ -106,9 +133,22 @@ class VersionSettingsPage
             });
 
             rows.addEventListener('click', function (e) {
-                if (e.target && e.target.classList.contains('schilo-version-type-remove')) {
-                    e.target.closest('tr').remove();
+                if (!e.target || !e.target.classList.contains('schilo-version-type-remove')) {
+                    return;
                 }
+                var tr = e.target.closest('tr');
+                var input = tr.querySelector('input[name="schilo_version_types[]"]');
+                var value = input ? input.value.trim() : '';
+
+                if (value && usedLabels.indexOf(value) !== -1) {
+                    window.alert(
+                        'Impossible de supprimer « ' + value + ' » : ce type est actuellement utilisé par au moins un article.\n\n' +
+                        'Retirez-le d\'abord des articles concernés (metabox « Versions de l\'article »), puis réessayez.'
+                    );
+                    return;
+                }
+
+                tr.remove();
             });
         })();
         </script>

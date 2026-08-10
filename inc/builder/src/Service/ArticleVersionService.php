@@ -37,6 +37,28 @@ class ArticleVersionService
         update_option(self::OPTION_TYPES, $clean, false);
     }
 
+    /**
+     * Labels actuellement affectés à au moins un article. META_LABEL n'est
+     * jamais renseignée sur un post non "activé" (nettoyée en cascade dès
+     * qu'un membre quitte son groupe, voir saveVersion()) : il suffit donc de
+     * lister les valeurs distinctes de cette meta, sans jointure sur
+     * META_ENABLED. Utilisé par la page de réglages pour empêcher la
+     * suppression d'un type encore utilisé.
+     *
+     * @return string[]
+     */
+    public function getUsedLabels()
+    {
+        global $wpdb;
+
+        $values = $wpdb->get_col($wpdb->prepare(
+            "SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value != ''",
+            self::META_LABEL
+        ));
+
+        return array_values(array_unique(array_map('strval', $values)));
+    }
+
     public function isEnabled($postId)
     {
         return get_post_meta((int) $postId, self::META_ENABLED, true) === '1';
@@ -169,13 +191,15 @@ class ArticleVersionService
                 continue;
             }
 
-            $memberLinked = $this->getLinkedIds($memberId);
-
             if ($stillLinked) {
-                // Le membre doit pointer vers tous les autres du groupe (post
-                // courant + le reste), pas seulement vers le post courant.
+                // Le groupe déclaré par l'écran courant (post courant + le
+                // reste de $linkedIds) fait foi : on resynchronise entièrement
+                // la liste du membre dessus plutôt que de fusionner avec son
+                // ancienne liste, qui peut contenir des liens obsolètes vers
+                // un membre entre-temps retiré (sinon ce dernier resterait
+                // "fantôme" — lié du point de vue de ce membre alors que plus
+                // personne ne pointe vers lui, jamais nettoyé).
                 $memberLinked = array_values(array_unique(array_merge(
-                    array_diff($memberLinked, array($postId)),
                     array($postId),
                     array_diff($linkedIds, array($memberId))
                 )));
@@ -183,18 +207,15 @@ class ArticleVersionService
                 update_post_meta($memberId, self::META_LINKED, $memberLinked);
                 update_post_meta($memberId, self::META_LABEL, $resolvedLabels[$memberId]);
             } else {
-                // Retire uniquement le lien vers le post courant, conserve le
-                // reste du groupe de ce membre s'il en a un (groupe à 3+).
-                $memberLinked = array_values(array_diff($memberLinked, array($postId)));
-                update_post_meta($memberId, self::META_LINKED, $memberLinked);
-
-                if (empty($memberLinked)) {
-                    // Plus aucun lien restant pour ce membre : il ne fait plus
-                    // partie d'aucun groupe, l'option ne doit plus être cochée.
-                    delete_post_meta($memberId, self::META_ENABLED);
-                    delete_post_meta($memberId, self::META_LABEL);
-                    delete_post_meta($memberId, self::META_PRIMARY);
-                }
+                // Ce membre ne fait plus partie du groupe déclaré par l'écran
+                // courant : il en sort entièrement (pas de notion de
+                // "sous-groupe" partiel côté UI), donc décoché comme pour une
+                // désactivation complète — sinon il resterait coché, pointant
+                // vers d'anciens membres qui eux ne pointent plus vers lui.
+                delete_post_meta($memberId, self::META_ENABLED);
+                delete_post_meta($memberId, self::META_LINKED);
+                delete_post_meta($memberId, self::META_LABEL);
+                delete_post_meta($memberId, self::META_PRIMARY);
             }
         }
 
