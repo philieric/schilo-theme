@@ -689,6 +689,213 @@
         }
     });
 
+    /* ── Import XML : remplace les sections "paragraphe" ──────
+       Format attendu : <schilo_sections><section type="paragraphe">
+       <title><![CDATA[...]]></title><content><![CDATA[...]]></content>
+       </section>...</schilo_sections> (genere par ex. par
+       Schilo Article Composer). Purement cote client : les nouvelles
+       sections sont de simples sections "paragraphe" (ou "intro", voir
+       ci-dessous) comme les autres, persistees au clic sur "Enregistrer"
+       comme n'importe quelle section ajoutee a la main.
+
+       Une section dont le TITRE est exactement "Introduction" est creee
+       avec le vrai type "intro" du template (pas "paragraphe" generique),
+       pour beneficier du meme traitement que la section Introduction
+       existante (ordre du template, styles dedies).
+
+       Une section XML de type "textes-bibliques" (bloc de references en
+       tete de document, ex. <MT>Matthieu 13.1-23</MT><MC>Marc 4.1-20</MC>)
+       est convertie en section "evangiles" du Builder : une ligne de
+       reference par balise, avec le mapping Matthieu/Marc/Luc/Jean -> classe
+       CSS dediee, toute autre balise (ex. <BI>) -> classe "citation-bible"
+       generique (label derive du debut de la reference, avant le premier
+       chiffre). ────────────────────────────────────────────────────── */
+    var IMPORT_TYPE_LABELS = { intro: 'Introduction', paragraphe: 'Paragraphe', evangiles: 'Évangiles' };
+
+    var IMPORT_BIBLE_TAG_MAP = {
+        MT: { label: 'Matthieu', class: 'citation-matthieu' },
+        MC: { label: 'Marc', class: 'citation-marc' },
+        LU: { label: 'Luc', class: 'citation-luc' },
+        JE: { label: 'Jean', class: 'citation-jean' }
+    };
+
+    function importTargetType(title) {
+        return (title || '').trim().toLowerCase() === 'introduction' ? 'intro' : 'paragraphe';
+    }
+
+    // Parse le contenu d'une section "textes-bibliques" (balises <MT>/<MC>/<LU>/<JE>/<BI>,
+    // une reference par balise) en lignes {label, class, reference} pour la section "evangiles".
+    //
+    // Matthieu/Marc/Luc/Jean sont TOUJOURS presents en sortie, dans cet ordre : si un des
+    // quatre n'a pas de balise dans le XML (ex. la parabole n'existe pas chez Jean), sa
+    // ligne est quand meme creee avec juste le nom du livre comme reference (comme les
+    // valeurs par defaut de la section "evangiles"). Ce repli ne s'applique qu'a ces
+    // quatre evangiles ; les autres livres (balise <BI>) ne sont inclus que s'ils sont
+    // reellement presents dans le XML, jamais ajoutes en placeholder.
+    function parseTextesBibliquesRefs(contentText) {
+        var byTag = {};
+        var others = [];
+        var frag;
+        try {
+            frag = new DOMParser().parseFromString('<root>' + contentText + '</root>', 'application/xml');
+        } catch (e) {
+            frag = null;
+        }
+
+        if (frag && !frag.querySelector('parsererror') && frag.documentElement) {
+            Array.prototype.forEach.call(frag.documentElement.children, function (el) {
+                var reference = (el.textContent || '').trim();
+                if (!reference) return;
+
+                var tag = el.tagName.toUpperCase();
+                if (IMPORT_BIBLE_TAG_MAP[tag]) {
+                    byTag[tag] = reference;
+                    return;
+                }
+
+                var m = reference.match(/^([0-9]?\s?[^\d]+?)\s*\d/);
+                others.push({ label: m ? m[1].trim() : reference, class: 'citation-bible', reference: reference });
+            });
+        }
+
+        var gospels = ['MT', 'MC', 'LU', 'JE'].map(function (tag) {
+            var known = IMPORT_BIBLE_TAG_MAP[tag];
+            return { label: known.label, class: known.class, reference: byTag[tag] || known.label };
+        });
+
+        return gospels.concat(others);
+    }
+
+    function importSectionsFromXml(xmlText) {
+        var xmlDoc;
+        try {
+            xmlDoc = new DOMParser().parseFromString(xmlText, 'application/xml');
+            if (xmlDoc.querySelector('parsererror')) {
+                throw new Error('format XML invalide');
+            }
+        } catch (e) {
+            alert('Fichier XML illisible : ' + e.message);
+            return;
+        }
+
+        var xmlSections = Array.prototype.slice.call(
+            xmlDoc.querySelectorAll(
+                'schilo_sections > section[type="paragraphe"], schilo_sections > section[type="textes-bibliques"]'
+            )
+        );
+
+        if (xmlSections.length === 0) {
+            alert('Aucune section de type "paragraphe" ou "textes-bibliques" trouvee dans ce fichier XML.');
+            return;
+        }
+
+        var targetTypesUsed = {};
+        var mapped = xmlSections.map(function (xmlSection) {
+            var titleEl   = xmlSection.querySelector('title');
+            var contentEl = xmlSection.querySelector('content');
+            var title     = titleEl ? titleEl.textContent : '';
+            var content   = contentEl ? contentEl.textContent : '';
+
+            if (xmlSection.getAttribute('type') === 'textes-bibliques') {
+                targetTypesUsed.evangiles = true;
+                return { title: title || 'Évangiles', type: 'evangiles', versets: parseTextesBibliquesRefs(content) };
+            }
+
+            var type = importTargetType(title);
+            targetTypesUsed[type] = true;
+
+            return { title: title, content: content, type: type };
+        });
+
+        var existing = $('#schilo-sections-list .schilo-section-item').filter(function () {
+            return !!targetTypesUsed[$(this).find('.schilo-section-type-input').val()];
+        });
+
+        var typeCounts = {};
+        mapped.forEach(function (m) { typeCounts[m.type] = (typeCounts[m.type] || 0) + 1; });
+        var typeSummary = Object.keys(typeCounts).map(function (type) {
+            return typeCounts[type] + ' ' + (IMPORT_TYPE_LABELS[type] || type);
+        }).join(', ');
+
+        var confirmMsg = existing.length > 0
+            ? 'Remplacer les ' + existing.length + ' section(s) existante(s) (' + typeSummary + ') par celles du '
+                + 'fichier XML ? Les autres sections (liens, evangiles, details techniques...) ne sont pas touchees.'
+            : 'Ajouter ' + typeSummary + ' depuis le fichier XML ?';
+
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
+        $('.schilo-empty-message').remove();
+
+        var marker = null;
+        if (existing.length > 0) {
+            marker = $('<div class="schilo-import-marker" style="display:none"></div>');
+            existing.first().before(marker);
+        }
+
+        existing.each(function () {
+            var item = $(this);
+            item.find('textarea[id]').each(function () {
+                removeEditor($(this).attr('id'));
+            });
+            item.remove();
+        });
+
+        mapped.forEach(function (m) {
+            var item = $(createSection(m.type));
+            item.find('.schilo-title-input').val(m.title);
+
+            if (m.type === 'evangiles') {
+                var sectionIdx  = item.attr('data-index');
+                var classChoices = getEvangilesConfig().classChoices;
+                var refsContainer = item.find('.schilo-bible-ref-items');
+                refsContainer.empty();
+                m.versets.forEach(function (verset, i) {
+                    refsContainer.append(evangilesRefItemTemplate(sectionIdx, i, verset, classChoices, false));
+                });
+            } else {
+                item.find('textarea.schilo-dynamic-editor').val(m.content);
+            }
+
+            if (marker) {
+                marker.before(item);
+            } else {
+                $('#schilo-sections-list').append(item);
+            }
+
+            initEditorsIn(item);
+        });
+
+        if (marker) {
+            marker.remove();
+        }
+
+        refreshIndexes();
+
+        alert(mapped.length + ' section(s) importee(s). Pensez a cliquer sur "Enregistrer" pour les sauvegarder.');
+    }
+
+    $(document).on('click', '#schilo-btn-import-xml', function () {
+        $('#schilo-import-xml-file').trigger('click');
+    });
+
+    $(document).on('change', '#schilo-import-xml-file', function () {
+        var file = this.files && this.files[0];
+        if (!file) return;
+
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            importSectionsFromXml(e.target.result);
+        };
+        reader.onerror = function () {
+            alert('Impossible de lire ce fichier.');
+        };
+        reader.readAsText(file, 'UTF-8');
+
+        $(this).val('');
+    });
+
     $(document).on('click', '.schilo-duplicate-section', function () {
         if (!confirm(SchiloBuilderAdmin.confirmDuplicate || 'Dupliquer cette section ?')) return;
 

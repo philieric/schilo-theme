@@ -200,6 +200,8 @@ echo wp_json_encode( $schiloArticlesPayload );
             <div class="schilo-builder-toolbar" id="schilo-section-toolbar">
                 <button type="button" class="button schilo-collapse-all">Tout replier</button>
                 <button type="button" class="button schilo-expand-all">Tout ouvrir</button>
+                <button type="button" class="button" id="schilo-btn-import-xml" title="Remplace les sections « Paragraphe » par celles d'un fichier XML (ex. genere par Schilo Article Composer)">Importer depuis XML</button>
+                <input type="file" id="schilo-import-xml-file" accept=".xml,text/xml" style="display:none">
                 <span id="schilo-nav-info" style="margin-left:auto;font-size:12px;color:#6b7280"></span>
             </div>
 
