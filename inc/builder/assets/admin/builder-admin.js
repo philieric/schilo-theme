@@ -689,6 +689,113 @@
         }
     });
 
+    /* ── Import XML : remplace les sections "paragraphe" ──────
+       Format attendu : <schilo_sections><section type="paragraphe">
+       <title><![CDATA[...]]></title><content><![CDATA[...]]></content>
+       </section>...</schilo_sections> (genere par ex. par
+       Schilo Article Composer). Purement cote client : les nouvelles
+       sections sont de simples sections "paragraphe" comme les autres,
+       persistees au clic sur "Enregistrer" comme n'importe quelle
+       section ajoutee a la main. ────────────────────────────── */
+    function importSectionsFromXml(xmlText) {
+        var xmlDoc;
+        try {
+            xmlDoc = new DOMParser().parseFromString(xmlText, 'application/xml');
+            if (xmlDoc.querySelector('parsererror')) {
+                throw new Error('format XML invalide');
+            }
+        } catch (e) {
+            alert('Fichier XML illisible : ' + e.message);
+            return;
+        }
+
+        var xmlSections = Array.prototype.slice.call(
+            xmlDoc.querySelectorAll('schilo_sections > section[type="paragraphe"]')
+        );
+
+        if (xmlSections.length === 0) {
+            alert('Aucune section de type "paragraphe" trouvee dans ce fichier XML.');
+            return;
+        }
+
+        var existing = $('#schilo-sections-list .schilo-section-item').filter(function () {
+            return $(this).find('.schilo-section-type-input').val() === 'paragraphe';
+        });
+
+        var confirmMsg = existing.length > 0
+            ? 'Remplacer les ' + existing.length + ' section(s) "Paragraphe" existante(s) par les '
+                + xmlSections.length + ' section(s) du fichier XML ? Les autres sections (liens, evangiles, '
+                + 'details techniques...) ne sont pas touchees.'
+            : 'Ajouter les ' + xmlSections.length + ' section(s) "Paragraphe" du fichier XML ?';
+
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
+        $('.schilo-empty-message').remove();
+
+        var marker = null;
+        if (existing.length > 0) {
+            marker = $('<div class="schilo-import-marker" style="display:none"></div>');
+            existing.first().before(marker);
+        }
+
+        existing.each(function () {
+            var item = $(this);
+            item.find('textarea[id]').each(function () {
+                removeEditor($(this).attr('id'));
+            });
+            item.remove();
+        });
+
+        xmlSections.forEach(function (xmlSection) {
+            var titleEl   = xmlSection.querySelector('title');
+            var contentEl = xmlSection.querySelector('content');
+            var title     = titleEl ? titleEl.textContent : '';
+            var content   = contentEl ? contentEl.textContent : '';
+
+            var item = $(createSection('paragraphe'));
+            item.find('.schilo-title-input').val(title);
+            item.find('textarea.schilo-dynamic-editor').val(content);
+
+            if (marker) {
+                marker.before(item);
+            } else {
+                $('#schilo-sections-list').append(item);
+            }
+
+            initEditorsIn(item);
+        });
+
+        if (marker) {
+            marker.remove();
+        }
+
+        refreshIndexes();
+
+        alert(xmlSections.length + ' section(s) importee(s). Pensez a cliquer sur "Enregistrer" pour les sauvegarder.');
+    }
+
+    $(document).on('click', '#schilo-btn-import-xml', function () {
+        $('#schilo-import-xml-file').trigger('click');
+    });
+
+    $(document).on('change', '#schilo-import-xml-file', function () {
+        var file = this.files && this.files[0];
+        if (!file) return;
+
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            importSectionsFromXml(e.target.result);
+        };
+        reader.onerror = function () {
+            alert('Impossible de lire ce fichier.');
+        };
+        reader.readAsText(file, 'UTF-8');
+
+        $(this).val('');
+    });
+
     $(document).on('click', '.schilo-duplicate-section', function () {
         if (!confirm(SchiloBuilderAdmin.confirmDuplicate || 'Dupliquer cette section ?')) return;
 
