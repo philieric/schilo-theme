@@ -94,7 +94,7 @@ class ArticleTitleNumberer
         // Cas 1 : préfixe + numéro explicite.
         if (preg_match('/^([A-Za-z]{3})(\d+)(.*)$/u', $title, $matches)) {
             $prefix = strtoupper($matches[1]);
-            $number = (int) $matches[2];
+            $typedNumber = (int) $matches[2];
             $afterNumber = trim($matches[3]);
 
             $cleanTitle = $this->extractRealTitle($afterNumber);
@@ -103,6 +103,8 @@ class ArticleTitleNumberer
                 return null;
             }
 
+            list($number, $digits) = $this->resolveNumberAndDigits($prefix, $typedNumber, (int) $currentPostId);
+
             $conflictPostId = $this->numberExistsForAnotherPost($prefix, $number, (int) $currentPostId);
 
             if ($conflictPostId) {
@@ -110,7 +112,6 @@ class ArticleTitleNumberer
                 return null;
             }
 
-            $digits = $this->digitsForExistingOrNew($prefix, $number, (int) $currentPostId);
             $normalizedTitle = sprintf('%s%0' . $digits . 'd - %s', $prefix, $number, $cleanTitle);
 
             return $normalizedTitle !== $originalTitle ? $normalizedTitle : null;
@@ -127,9 +128,10 @@ class ArticleTitleNumberer
                 return null;
             }
 
-            $number = $this->getNextAvailableNumberForPrefix($prefix, (int) $currentPostId);
+            $digits = $this->digitsForPrefix($prefix);
+            $number = $this->getNextAvailableNumberForPrefix($prefix, (int) $currentPostId, $digits);
 
-            return sprintf('%s%0' . $this->digitsForPrefix($prefix) . 'd - %s', $prefix, $number, $cleanTitle);
+            return sprintf('%s%0' . $digits . 'd - %s', $prefix, $number, $cleanTitle);
         }
 
         return null;
@@ -282,36 +284,114 @@ class ArticleTitleNumberer
     }
 
     /**
-     * Largeur (nombre de chiffres) a utiliser pour CE prefixe+numero precis.
+     * Resout le couple [numero, nombre de chiffres] a utiliser pour CE
+     * prefixe+numero precis.
      *
      * Un article deja existant en base avec ce meme prefixe+numero garde la
      * largeur qu'il a deja, meme s'il est resauvegarde apres un changement
      * du reglage global (ex. PER passe de 3 a 4 chiffres) : "PER373" reste
      * "PER373" et n'est jamais force en "PER0373". Objectif : ne jamais
      * changer silencieusement le slug/URL d'un article deja publie et
-     * indexe. Seul un numero veritablement nouveau pour ce post (nouvel
-     * article, ou numero explicitement change) adopte le reglage
-     * actuellement configure pour le prefixe.
+     * indexe.
+     *
+     * Pour un numero veritablement nouveau pour ce post (nouvel article, ou
+     * numero explicitement change), le reglage actuellement configure pour
+     * le prefixe s'applique — mais s'il existe deja des articles "hérités"
+     * sur ce meme prefixe avec moins de chiffres (cas d'une augmentation du
+     * reglage, ex. PER 3 -> 4), on evite le zero de tete qui preterait a
+     * confusion avec ces anciens numeros (ex. "PER0402") : le numero est
+     * decale dans le bloc de dizaine superieur correspondant a la nouvelle
+     * largeur ("PER1402" plutot que "PER0402"), meme principe que la
+     * convention +100 deja utilisee pour distinguer PAR001/PAR101.
+     *
+     * @return array{0:int,1:int} [numero final, nombre de chiffres]
      */
-    private function digitsForExistingOrNew($prefix, $number, $currentPostId)
+    private function resolveNumberAndDigits($prefix, $number, $currentPostId)
     {
+        $number = (int) $number;
+
         if ($currentPostId > 0) {
             $currentTitle = get_the_title($currentPostId);
             $currentTitle = html_entity_decode((string) $currentTitle, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
             if (preg_match('/^' . preg_quote($prefix, '/') . '(\d+)/i', $currentTitle, $matches)) {
-                if ((int) $matches[1] === (int) $number) {
-                    return strlen($matches[1]);
+                if ((int) $matches[1] === $number) {
+                    return array($number, strlen($matches[1]));
                 }
             }
         }
 
-        return $this->digitsForPrefix($prefix);
+        $digits = $this->digitsForPrefix($prefix);
+
+        if ($this->hasLegacyShorterWidth($prefix, $digits, $currentPostId)) {
+            $threshold = (int) pow(10, $digits - 1);
+
+            if ($number < $threshold) {
+                $number += $threshold;
+            }
+        }
+
+        return array($number, $digits);
     }
 
-    private function getNextAvailableNumberForPrefix($prefix, $currentPostId)
+    /**
+     * Vrai s'il existe, pour ce prefixe, au moins un autre article dont le
+     * numero est ecrit sur moins de chiffres que $digits (numerotation
+     * "heritee" d'avant une augmentation du reglage).
+     */
+    private function hasLegacyShorterWidth($prefix, $digits, $currentPostId)
+    {
+        global $wpdb;
+
+        $like = $wpdb->esc_like($prefix) . '%';
+
+        $titles = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT post_title
+                 FROM {$wpdb->posts}
+                 WHERE post_type = 'post'
+                 AND ID != %d
+                 AND post_status NOT IN ('trash', 'auto-draft')
+                 AND post_title LIKE %s",
+                (int) $currentPostId,
+                $like
+            )
+        );
+
+        foreach ($titles as $existingTitle) {
+            $existingTitle = html_entity_decode((string) $existingTitle, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+            if (preg_match('/^' . preg_quote($prefix, '/') . '(\d+)/i', $existingTitle, $matches)) {
+                if (strlen($matches[1]) < $digits) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Prochain numero disponible pour un nouvel article de ce prefixe.
+     *
+     * S'il existe une numerotation heritee sur moins de chiffres que
+     * $digits (cas d'une augmentation du reglage), le prochain numero est
+     * pris dans le bloc de dizaine correspondant a la nouvelle largeur
+     * (ex. a partir de 1000 pour 4 chiffres) plutot que de continuer la
+     * sequence heritee avec un zero de tete — voir resolveNumberAndDigits().
+     */
+    private function getNextAvailableNumberForPrefix($prefix, $currentPostId, $digits)
     {
         $usedNumbers = $this->getUsedNumbersForPrefix($prefix, $currentPostId);
+
+        if ($this->hasLegacyShorterWidth($prefix, $digits, $currentPostId)) {
+            $threshold = (int) pow(10, $digits - 1);
+            $usedInBlock = array_filter($usedNumbers, function ($n) use ($threshold) {
+                return $n >= $threshold;
+            });
+
+            return empty($usedInBlock) ? $threshold : max($usedInBlock) + 1;
+        }
 
         if (empty($usedNumbers)) {
             return 1;
