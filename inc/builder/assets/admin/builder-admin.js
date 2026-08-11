@@ -1395,6 +1395,102 @@
         }
     });
 
+    /* ── Articles secondaires (annexes) — meme principe d'ajout que les
+       versions liees (recherche live + tableau), mais lien simple a sens
+       unique, sans notion de "type"/groupe : 2 colonnes seulement (article,
+       retirer). Reutilise l'action AJAX et le nonce de la recherche des
+       versions (meme requete : n'importe quel article publie, sans
+       limitation de prefixe). ────────────────────────────────────── */
+    $(document).on('change', '#schilo_secondary_enabled', function () {
+        $('#schilo-secondary-fields').toggle($(this).is(':checked'));
+    });
+
+    let secondarySearchTimer = null;
+    let secondarySearchXhr = null;
+
+    function searchSecondaryArticles(input) {
+        const combobox = input.closest('.schilo-secondary-combobox');
+        const list = combobox.find('.schilo-combobox-list');
+        const query = input.val().trim();
+        const cfg = window.SchiloBuilderAdmin || {};
+
+        if (secondarySearchXhr) {
+            secondarySearchXhr.abort();
+        }
+
+        secondarySearchXhr = $.get(cfg.ajaxUrl, {
+            action: 'schilo_search_version_articles',
+            nonce: cfg.versionSearchNonce,
+            term: query,
+            exclude: cfg.currentPostId || 0
+        }).done(function (response) {
+            const results = (response && response.success && Array.isArray(response.data)) ? response.data : [];
+            list.empty();
+
+            if (!results.length) {
+                list.hide();
+                return;
+            }
+
+            results.forEach(function (article) {
+                list.append(
+                    $('<li></li>').attr({ 'data-id': article.id, 'data-title': article.title }).text(article.title)
+                );
+            });
+            list.show();
+        });
+    }
+
+    $(document).on('focus input', '.schilo-secondary-article-search', function () {
+        const input = $(this);
+        clearTimeout(secondarySearchTimer);
+        secondarySearchTimer = setTimeout(function () { searchSecondaryArticles(input); }, 250);
+    });
+
+    function addSecondaryLinkedRow(id, title) {
+        const tbody = $('#schilo-secondary-linked-list');
+        const table = $('#schilo-secondary-linked-table');
+
+        tbody.append(
+            $('<tr></tr>').attr('data-id', id).append(
+                $('<td></td>').append(
+                    $('<span></span>').text(title),
+                    $('<input>').attr({ type: 'hidden', name: 'schilo_secondary_linked_ids[]', value: id })
+                ),
+                $('<td></td>').append(
+                    $('<button></button>').attr({ type: 'button', class: 'schilo-secondary-remove-link', 'aria-label': 'Retirer' }).html('&times;')
+                )
+            )
+        );
+        table.show();
+    }
+
+    $(document).on('click', '.schilo-secondary-combobox .schilo-combobox-list li', function () {
+        const item = $(this);
+        const combobox = item.closest('.schilo-secondary-combobox');
+        const id = item.data('id');
+        const title = item.data('title');
+        const tbody = $('#schilo-secondary-linked-list');
+
+        combobox.find('.schilo-secondary-article-search').val('');
+        combobox.find('.schilo-combobox-list').empty().hide();
+
+        if (tbody.find('tr[data-id="' + id + '"]').length) {
+            return; // déjà lié
+        }
+
+        addSecondaryLinkedRow(id, title);
+    });
+
+    $(document).on('click', '.schilo-secondary-remove-link', function () {
+        const row = $(this).closest('tr');
+        const tbody = row.closest('tbody');
+        row.remove();
+        if (!tbody.find('tr').length) {
+            $('#schilo-secondary-linked-table').hide();
+        }
+    });
+
     $(document).on('click', '.schilo-add-link', function () {
         const button = $(this);
         const field = button.closest('.schilo-links-field');

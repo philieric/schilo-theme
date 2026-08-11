@@ -164,6 +164,49 @@ echo wp_json_encode( $schiloArticlesPayload );
         </div>
     </div>
 
+    <div class="schilo-version-card">
+        <div class="schilo-version-card__header">
+            <span class="stc-label">Articles secondaires (annexes)</span>
+            <label class="stc-checkbox">
+                <input type="checkbox" name="schilo_secondary_enabled" id="schilo_secondary_enabled" value="1" <?php checked( $secondaryEnabled ); ?>>
+                Activer les articles secondaires liés à cet article
+            </label>
+        </div>
+
+        <div id="schilo-secondary-fields" class="schilo-version-card__body" style="<?php echo $secondaryEnabled ? '' : 'display:none'; ?>">
+            <div class="schilo-version-row">
+                <span class="schilo-version-row__label">Articles liés (annexes)</span>
+                <div class="schilo-version-row__control">
+                    <div class="schilo-combobox schilo-secondary-combobox">
+                        <input type="text" class="schilo-secondary-article-search" placeholder="Rechercher un article à lier…" autocomplete="off">
+                        <ul class="schilo-combobox-list" style="display:none"></ul>
+                    </div>
+                    <table id="schilo-secondary-linked-table" class="schilo-version-linked-table" style="<?php echo empty( $secondaryLinkedPosts ) ? 'display:none' : ''; ?>">
+                        <thead>
+                            <tr>
+                                <th>Article</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="schilo-secondary-linked-list">
+                            <?php foreach ( $secondaryLinkedPosts as $linked ) : ?>
+                                <tr data-id="<?php echo esc_attr( $linked['id'] ); ?>">
+                                    <td>
+                                        <span><?php echo esc_html( $linked['title'] ); ?></span>
+                                        <input type="hidden" name="schilo_secondary_linked_ids[]" value="<?php echo esc_attr( $linked['id'] ); ?>">
+                                    </td>
+                                    <td>
+                                        <button type="button" class="schilo-secondary-remove-link" aria-label="Retirer">&times;</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="schilo-builder-layout">
         <aside class="schilo-builder-sidebar" id="schilo-nav-sidebar">
             <div id="schilo-nav-buttons"></div>
