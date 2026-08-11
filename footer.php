@@ -44,7 +44,7 @@ $schilo_footer_themes     = schilo_footer_rotated_terms( 'schilo_theme', $schilo
           <div class="schilo-footer__brand-name"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></div>
         </a>
         <p class="schilo-footer__desc">
-          <?php esc_html_e( "Un site d'étude biblique consacré à la découverte de Jésus — à travers les quatre Évangiles, leurs contextes historiques et leurs messages intemporels.", 'schilo' ); ?>
+          <?php esc_html_e( "Un site d'études bibliques, consacré à la découverte de Jésus — à travers les quatre Évangiles, leurs contextes historiques et leurs messages intemporels.", 'schilo' ); ?>
         </p>
       </div>
 
