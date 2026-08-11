@@ -42,6 +42,7 @@ $template_defs = [
     'INF' => ['label' => 'Note d\'info',      'sections' => ['intro', 'paragraphe', 'liens-articles']],
     'MIR' => ['label' => 'Miracle',           'sections' => ['intro', 'liens-articles']],
     'PRB' => ['label' => 'Parabole (synopt)', 'sections' => ['intro', 'liens-articles']],
+    'ANX' => ['label' => 'ANX',               'sections' => ['intro', 'paragraphe', 'conclusion']],
 ];
 
 foreach ($template_defs as $key => $def) {
