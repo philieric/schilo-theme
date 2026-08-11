@@ -93,6 +93,11 @@ class TemplateService
                 'description' => isset($template['description']) ? sanitize_text_field($template['description']) : '',
                 'active' => !empty($template['active']) ? 1 : 0,
                 'sections' => $sections,
+                // Nombre de chiffres de la numerotation (PER001 = 3, ANX0001 = 4...).
+                // 3 par defaut pour rester compatible avec tous les prefixes existants.
+                'digits' => isset($template['digits']) && (int) $template['digits'] > 0
+                    ? max(1, min(6, (int) $template['digits']))
+                    : 3,
             );
         }
 
@@ -126,6 +131,13 @@ class TemplateService
         }
 
         return reset($templates);
+    }
+
+    /** Nombre de chiffres de numerotation configure pour un prefixe (3 par defaut). */
+    public function getDigitsForPrefix($prefix)
+    {
+        $template = $this->getTemplateForPrefix($prefix);
+        return isset($template['digits']) && (int) $template['digits'] > 0 ? (int) $template['digits'] : 3;
     }
 
     /**
@@ -243,6 +255,9 @@ class TemplateService
                 'description' => $description,
                 'active' => !empty($row['active']) ? 1 : 0,
                 'sections' => array_values(array_unique($sections)),
+                'digits' => isset($row['digits']) && (int) $row['digits'] > 0
+                    ? max(1, min(6, (int) $row['digits']))
+                    : 3,
             );
         }
 

@@ -110,7 +110,7 @@ class ArticleTitleNumberer
                 return null;
             }
 
-            $normalizedTitle = sprintf('%s%03d - %s', $prefix, $number, $cleanTitle);
+            $normalizedTitle = sprintf('%s%0' . $this->digitsForPrefix($prefix) . 'd - %s', $prefix, $number, $cleanTitle);
 
             return $normalizedTitle !== $originalTitle ? $normalizedTitle : null;
         }
@@ -128,7 +128,7 @@ class ArticleTitleNumberer
 
             $number = $this->getNextAvailableNumberForPrefix($prefix, (int) $currentPostId);
 
-            return sprintf('%s%03d - %s', $prefix, $number, $cleanTitle);
+            return sprintf('%s%0' . $this->digitsForPrefix($prefix) . 'd - %s', $prefix, $number, $cleanTitle);
         }
 
         return null;
@@ -254,7 +254,7 @@ class ArticleTitleNumberer
         delete_transient($key);
 
         $conflictTitle = !empty($data['conflict_id']) ? get_the_title((int) $data['conflict_id']) : '';
-        $numberFormatted = sprintf('%s%03d', $data['prefix'], (int) $data['number']);
+        $numberFormatted = sprintf('%s%0' . $this->digitsForPrefix($data['prefix']) . 'd', $data['prefix'], (int) $data['number']);
 
         printf(
             '<div class="schilo-keep" style="margin:0 0 18px;padding:12px 16px;border:1px solid #f5c6cb;border-radius:8px;background:#fdecea;color:#7a1f22;font-size:13px;line-height:1.6;">' .
@@ -267,6 +267,17 @@ class ArticleTitleNumberer
             $conflictTitle ? ' (« ' . esc_html($conflictTitle) . ' »).' : '.',
             esc_html__('Le titre n’a pas été renuméroté automatiquement : choisissez un autre numéro.', 'schilo')
         );
+    }
+
+    /**
+     * Nombre de chiffres de numerotation configure pour ce prefixe (3 par
+     * defaut, personnalisable par prefixe sur Schilo Builder > Types &
+     * templates — ex. ANX0001 sur 4 chiffres si le volume d'annexes le
+     * justifie un jour).
+     */
+    private function digitsForPrefix($prefix)
+    {
+        return (new TemplateService())->getDigitsForPrefix($prefix);
     }
 
     private function getNextAvailableNumberForPrefix($prefix, $currentPostId)

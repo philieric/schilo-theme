@@ -20,7 +20,7 @@
         <form method="post" action="">
             <?php wp_nonce_field('schilo_builder_save_templates', 'schilo_builder_templates_nonce'); ?>
             <table class="widefat striped schilo-template-table schilo-sections-grid-mode" id="schilo-templates-table">
-                <thead><tr><th>Actif</th><th>Type</th><th>Libellé</th><th>Description</th><th>Action</th></tr></thead>
+                <thead><tr><th>Actif</th><th>Type</th><th>Libellé</th><th>Description</th><th>Chiffres</th><th>Action</th></tr></thead>
                 <tbody id="schilo-template-rows">
                     <?php $index = 0; foreach ($templates as $templateKey => $templateConfig) : ?>
                         <tr class="schilo-template-row-main">
@@ -29,12 +29,17 @@
                             <td><input type="text" name="<?php echo esc_attr(\Schilo\Builder\Service\TemplateService::OPTION_TEMPLATES); ?>[<?php echo esc_attr($index); ?>][label]" value="<?php echo esc_attr($templateConfig['label']); ?>" class="regular-text"></td>
                             <td><input type="text" name="<?php echo esc_attr(\Schilo\Builder\Service\TemplateService::OPTION_TEMPLATES); ?>[<?php echo esc_attr($index); ?>][description]" value="<?php echo esc_attr($templateConfig['description']); ?>" class="large-text"></td>
                             <td>
+                                <input type="number" min="3" max="6" step="1" class="small-text" title="Nombre de chiffres de la numérotation (ex : 3 → PER001, 4 → ANX0001)"
+                                       name="<?php echo esc_attr(\Schilo\Builder\Service\TemplateService::OPTION_TEMPLATES); ?>[<?php echo esc_attr($index); ?>][digits]"
+                                       value="<?php echo esc_attr(isset($templateConfig['digits']) ? $templateConfig['digits'] : 3); ?>">
+                            </td>
+                            <td>
                                 <button type="button" class="button schilo-toggle-template-sections">Déplier</button>
                                 <button type="button" class="button schilo-remove-template-row">Supprimer</button>
                             </td>
                         </tr>
                         <tr class="schilo-template-row-sections" style="display:none;">
-                            <td colspan="5">
+                            <td colspan="6">
                                 <strong>Sections utilisées</strong>
                                 <div class="schilo-section-checkbox-list">
                                     <?php
@@ -82,12 +87,16 @@
             <td><input type="text" name="<?php echo esc_attr(\Schilo\Builder\Service\TemplateService::OPTION_TEMPLATES); ?>[__INDEX__][label]" value="" class="regular-text"></td>
             <td><input type="text" name="<?php echo esc_attr(\Schilo\Builder\Service\TemplateService::OPTION_TEMPLATES); ?>[__INDEX__][description]" value="" class="large-text"></td>
             <td>
+                <input type="number" min="3" max="6" step="1" class="small-text" title="Nombre de chiffres de la numérotation"
+                       name="<?php echo esc_attr(\Schilo\Builder\Service\TemplateService::OPTION_TEMPLATES); ?>[__INDEX__][digits]" value="3">
+            </td>
+            <td>
                 <button type="button" class="button schilo-toggle-template-sections">Déplier</button>
                 <button type="button" class="button schilo-remove-template-row">Supprimer</button>
             </td>
         </tr>
         <tr class="schilo-template-row-sections" style="display:none;">
-            <td colspan="5">
+            <td colspan="6">
                 <strong>Sections utilisées</strong>
                 <div class="schilo-section-checkbox-list"><?php foreach ($sectionTypes as $sectionKey => $sectionConfig) : ?><label><input type="checkbox" name="<?php echo esc_attr(\Schilo\Builder\Service\TemplateService::OPTION_TEMPLATES); ?>[__INDEX__][sections][]" value="<?php echo esc_attr($sectionKey); ?>"> <input type="number" min="1" step="1" class="small-text schilo-section-order" placeholder="Ordre" title="Ordre d'affichage" name="<?php echo esc_attr(\Schilo\Builder\Service\TemplateService::OPTION_TEMPLATES); ?>[__INDEX__][sections_order][<?php echo esc_attr($sectionKey); ?>]" value=""> <?php echo esc_html($sectionConfig['label']); ?> <small class="schilo-section-view-info">Front: <?php echo esc_html(isset($sectionConfig['view']) ? $sectionConfig['view'] : ''); ?> / Admin: <?php echo esc_html(isset($sectionConfig['admin_view']) ? $sectionConfig['admin_view'] : 'default.php'); ?></small></label><?php endforeach; ?></div>
             </td>
