@@ -1255,3 +1255,66 @@ body.schilo-definition-open { overflow: hidden; }
 
   .schilo-bootnav-link { max-width: none; width: 100%; }
 }
+
+/* ── Annexes (ANX) liées, en fin d'article ──────────────────────────── */
+.schilo-annexe-block {
+  margin: 2rem 0;
+  padding: 1.25rem 1.4rem;
+  background: var(--schilo-bg-card);
+  border: 1px solid var(--schilo-border);
+  border-radius: var(--schilo-radius-lg);
+  box-shadow: var(--schilo-shadow-sm);
+}
+.schilo-annexe-block__title {
+  margin: 0 0 .9rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.schilo-annexe-block__intro {
+  margin: -.4rem 0 .9rem;
+  color: var(--schilo-text-muted, #6b7280);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+.schilo-annexe-list {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.schilo-annexe-item {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  width: 100%;
+  padding: .65rem .9rem;
+  background: transparent;
+  border: 1px solid var(--schilo-border);
+  border-radius: 10px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.schilo-annexe-item:hover,
+.schilo-annexe-item:focus-visible {
+  background: var(--schilo-bg-hover, rgba(40, 114, 212, .06));
+  border-color: var(--schilo-accent, #2872d4);
+}
+.schilo-annexe-item__code {
+  flex-shrink: 0;
+  padding: .15rem .5rem;
+  background: var(--schilo-accent, #2872d4);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+.schilo-annexe-item__title {
+  flex: 1;
+  font-size: .92rem;
+  font-weight: 600;
+}
+.schilo-annexe-item i {
+  flex-shrink: 0;
+  opacity: .6;
+}
