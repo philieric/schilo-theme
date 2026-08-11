@@ -295,6 +295,7 @@ foreach ( $sections_raw as $sec ) {
             }
             $tabs[ $direct_anchor ] = [
                 'label'         => $short_label,
+                'full_title'    => $title,
                 'icon'          => $tab_map[ $type ]['icon'],
                 'direct_anchor' => true,
             ];
@@ -310,6 +311,9 @@ foreach ( $sections_raw as $sec ) {
         if ( $title !== '' && in_array( $type, $title_as_label_types, true ) ) {
             $tab['label'] = $title;
         }
+        // Infobulle : le titre complet de la section quand il differe du libelle
+        // court affiche dans l'onglet (sinon inutile de repeter le meme texte).
+        $tab['full_title'] = $title !== '' ? $title : $tab['label'];
         $tabs[ $a ] = $tab;
     }
 }
@@ -442,7 +446,8 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
           <li>
             <a class="schilo-tabnav-link"
                href="#<?php echo esc_attr( $tab_href ); ?>"
-               data-anchor="<?php echo esc_attr( $tab_href ); ?>">
+               data-anchor="<?php echo esc_attr( $tab_href ); ?>"
+               title="<?php echo esc_attr( $tab['full_title'] ?? $tab['label'] ); ?>">
               <i class="ti <?php echo esc_attr( $tab['icon'] ); ?>" aria-hidden="true"></i>
               <?php echo esc_html( $tab['label'] ); ?>
             </a>

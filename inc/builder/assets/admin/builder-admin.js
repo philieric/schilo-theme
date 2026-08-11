@@ -701,7 +701,9 @@
        Une section dont le TITRE est exactement "Introduction" est creee
        avec le vrai type "intro" du template (pas "paragraphe" generique),
        pour beneficier du meme traitement que la section Introduction
-       existante (ordre du template, styles dedies).
+       existante (ordre du template, styles dedies). Meme logique pour un
+       titre contenant le mot "conclusion" (ex. "Conclusion" ou "Conclusion
+       generale", equivalents) -> type "conclusion".
 
        Une section XML de type "textes-bibliques" (bloc de references en
        tete de document, ex. <MT>Matthieu 13.1-23</MT><MC>Marc 4.1-20</MC>)
@@ -710,7 +712,7 @@
        CSS dediee, toute autre balise (ex. <BI>) -> classe "citation-bible"
        generique (label derive du debut de la reference, avant le premier
        chiffre). ────────────────────────────────────────────────────── */
-    var IMPORT_TYPE_LABELS = { intro: 'Introduction', paragraphe: 'Paragraphe', evangiles: 'Évangiles' };
+    var IMPORT_TYPE_LABELS = { intro: 'Introduction', paragraphe: 'Paragraphe', evangiles: 'Évangiles', conclusion: 'Conclusion' };
 
     var IMPORT_BIBLE_TAG_MAP = {
         MT: { label: 'Matthieu', class: 'citation-matthieu' },
@@ -720,7 +722,11 @@
     };
 
     function importTargetType(title) {
-        return (title || '').trim().toLowerCase() === 'introduction' ? 'intro' : 'paragraphe';
+        var t = (title || '').trim().toLowerCase();
+        if (t === 'introduction') return 'intro';
+        // "Conclusion" ou "Conclusion generale" (accent optionnel) -> meme type "conclusion".
+        if (/\bconclusion\b/.test(t)) return 'conclusion';
+        return 'paragraphe';
     }
 
     // Parse le contenu d'une section "textes-bibliques" (balises <MT>/<MC>/<LU>/<JE>/<BI>,
@@ -828,11 +834,22 @@
 
         $('.schilo-empty-message').remove();
 
-        var marker = null;
-        if (existing.length > 0) {
-            marker = $('<div class="schilo-import-marker" style="display:none"></div>');
-            existing.first().before(marker);
-        }
+        // Un marqueur par type remplace : les nouvelles sections d'un type donne
+        // reprennent la position d'origine de ce type (pas celle du premier type
+        // remplace toutes confondues), pour ne pas casser l'ordre du template en
+        // regroupant par exemple "paragraphe" (normalement en fin d'article) a la
+        // place d'"intro" (normalement en tete).
+        var markers = {};
+        Object.keys(targetTypesUsed).forEach(function (type) {
+            var firstOfType = existing.filter(function () {
+                return $(this).find('.schilo-section-type-input').val() === type;
+            }).first();
+            if (firstOfType.length) {
+                var marker = $('<div class="schilo-import-marker" data-type="' + type + '" style="display:none"></div>');
+                firstOfType.before(marker);
+                markers[type] = marker;
+            }
+        });
 
         existing.each(function () {
             var item = $(this);
@@ -858,6 +875,7 @@
                 item.find('textarea.schilo-dynamic-editor').val(m.content);
             }
 
+            var marker = markers[m.type];
             if (marker) {
                 marker.before(item);
             } else {
@@ -867,9 +885,9 @@
             initEditorsIn(item);
         });
 
-        if (marker) {
-            marker.remove();
-        }
+        Object.keys(markers).forEach(function (type) {
+            markers[type].remove();
+        });
 
         refreshIndexes();
 
