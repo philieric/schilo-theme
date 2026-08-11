@@ -834,11 +834,22 @@
 
         $('.schilo-empty-message').remove();
 
-        var marker = null;
-        if (existing.length > 0) {
-            marker = $('<div class="schilo-import-marker" style="display:none"></div>');
-            existing.first().before(marker);
-        }
+        // Un marqueur par type remplace : les nouvelles sections d'un type donne
+        // reprennent la position d'origine de ce type (pas celle du premier type
+        // remplace toutes confondues), pour ne pas casser l'ordre du template en
+        // regroupant par exemple "paragraphe" (normalement en fin d'article) a la
+        // place d'"intro" (normalement en tete).
+        var markers = {};
+        Object.keys(targetTypesUsed).forEach(function (type) {
+            var firstOfType = existing.filter(function () {
+                return $(this).find('.schilo-section-type-input').val() === type;
+            }).first();
+            if (firstOfType.length) {
+                var marker = $('<div class="schilo-import-marker" data-type="' + type + '" style="display:none"></div>');
+                firstOfType.before(marker);
+                markers[type] = marker;
+            }
+        });
 
         existing.each(function () {
             var item = $(this);
@@ -864,6 +875,7 @@
                 item.find('textarea.schilo-dynamic-editor').val(m.content);
             }
 
+            var marker = markers[m.type];
             if (marker) {
                 marker.before(item);
             } else {
@@ -873,9 +885,9 @@
             initEditorsIn(item);
         });
 
-        if (marker) {
-            marker.remove();
-        }
+        Object.keys(markers).forEach(function (type) {
+            markers[type].remove();
+        });
 
         refreshIndexes();
 
