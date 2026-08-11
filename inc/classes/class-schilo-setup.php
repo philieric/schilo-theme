@@ -17,6 +17,7 @@ class Schilo_Setup {
         add_action( 'admin_init',        [ __CLASS__, 'check_builder_plugin' ] );
         add_filter( 'template_include',  [ __CLASS__, 'force_archive_template' ], 100 );
         add_action( 'pre_get_posts',     [ __CLASS__, 'apply_archive_sort' ] );
+        add_filter( 'posts_orderby',     [ __CLASS__, 'order_synopse_by_number' ], 20, 2 );
 
         // ── Filtres admin liste articles ──────────────────────────────────
         add_filter( 'views_edit-post',              [ __CLASS__, 'add_prefix_views' ] );
@@ -141,6 +142,30 @@ class Schilo_Setup {
         $pp = isset( $_GET['schilo_pp'] ) ? (int) $_GET['schilo_pp'] : 10;
         if ( ! in_array( $pp, $allowed_pp, true ) ) $pp = 10;
         $query->set( 'posts_per_page', $pp );
+    }
+
+    /**
+     * Les catégories affichent leurs articles dans l'ordre PRÉFIXE puis NUMÉRO
+     * du titre (ANN005, ANN006… puis PER315, PER316, PER317…), et non par date
+     * de publication : les articles créés/dupliqués hors séquence ont des dates
+     * qui ne suivent pas l'ordre narratif (ex. la synopse PER). On groupe donc
+     * par préfixe (3 lettres) puis on trie par le numéro. Un tri explicite
+     * choisi par l'utilisateur (schilo_sort) reste prioritaire.
+     */
+    public static function order_synopse_by_number( string $orderby, WP_Query $query ): string {
+        if ( is_admin() || ! $query->is_main_query() || ! $query->is_category() ) {
+            return $orderby;
+        }
+        if ( isset( $_GET['schilo_sort'] ) ) {
+            return $orderby;
+        }
+        global $wpdb;
+        // SUBSTRING(1,3) = préfixe (PER/ANN/INF… tous sur 3 lettres) ;
+        // CAST(SUBSTRING(4) … UNSIGNED) = numéro en tête (« 316 - … » → 316).
+        // Titre en dernier critère pour départager suffixes (PER143-B) / non-préfixés.
+        return "SUBSTRING({$wpdb->posts}.post_title, 1, 3) ASC, "
+             . "CAST(SUBSTRING({$wpdb->posts}.post_title, 4) AS UNSIGNED) ASC, "
+             . "{$wpdb->posts}.post_title ASC";
     }
 
     // ── Filtres par préfixe ───────────────────────────────────────────────
