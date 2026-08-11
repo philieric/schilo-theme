@@ -54,6 +54,35 @@ final class Schilo_Usx_Shortcodes {
 		return $default;
 	}
 
+	/**
+	 * Construit les marqueurs de notes (exposant + infobulle CSS) pour un
+	 * verset donné. $notes est le tableau de notes de CE verset uniquement
+	 * (voir Schilo_Usx_Bible_Lookup::get_notes_for_verse_ids()).
+	 */
+	private static function render_note_markers( array $notes ): string {
+		if ( empty( $notes ) ) {
+			return '';
+		}
+
+		$html  = '';
+		$index = 0;
+		foreach ( $notes as $note ) {
+			++$index;
+			$is_cross_ref = ( ( $note->note_type ?? '' ) === 'x' );
+			$type_label   = $is_cross_ref ? __( 'Référence croisée', 'schilo' ) : __( 'Note', 'schilo' );
+
+			$html .= '<sup class="usx-note-marker usx-note-marker--' . ( $is_cross_ref ? 'x' : 'f' ) . '" tabindex="0">'
+				. '<span class="usx-note-marker-index">' . (int) $index . '</span>'
+				. '<span class="usx-note-tooltip" role="tooltip">'
+				. '<span class="usx-note-tooltip-type">' . esc_html( $type_label ) . '</span>'
+				. esc_html( (string) $note->content )
+				. '</span>'
+				. '</sup>';
+		}
+
+		return $html;
+	}
+
 	private static function parse_reference( string $content ) {
 		$content = trim( $content );
 
@@ -142,9 +171,14 @@ final class Schilo_Usx_Shortcodes {
 
 		$copyright_text = Schilo_Usx_Bible_Lookup::get_version_copyright( (int) $version->id );
 
+		$notes_by_verse = Schilo_Usx_Bible_Lookup::get_notes_for_verse_ids(
+			array_map( static fn ( $v ) => (int) $v->id, $verses )
+		);
+
 		$verses_html = '';
 		foreach ( $verses as $v ) {
-			$verses_html .= '<div class="popup-verse"><strong>' . intval( $v->verse ) . '.</strong> ' . esc_html( $v->verse_text ) . '</div>';
+			$notes_html   = self::render_note_markers( $notes_by_verse[ (int) $v->id ] ?? [] );
+			$verses_html .= '<div class="popup-verse"><strong>' . intval( $v->verse ) . '.</strong> ' . esc_html( $v->verse_text ) . $notes_html . '</div>';
 		}
 
 		$toolbar_html = Schilo_Usx_Version_Switcher_Buttons::instance()->render_toolbar(
@@ -199,9 +233,15 @@ final class Schilo_Usx_Shortcodes {
 		$html .= '<span class="usx-bvc-version"> (' . esc_html( $ref['version_code'] ) . ')</span>';
 		$html .= '</div>';
 
+		$notes_by_verse = Schilo_Usx_Bible_Lookup::get_notes_for_verse_ids(
+			array_map( static fn ( $v ) => (int) ( is_array( $v ) ? ( $v['id'] ?? 0 ) : ( $v->id ?? 0 ) ), $verses )
+		);
+
 		$html .= '<div class="usx-bvc-body">';
 		foreach ( $verses as $v ) {
-			$html .= '<p class="usx-bvc-line">' . esc_html( is_array( $v ) ? ( $v['verse_text'] ?? $v['text'] ?? '' ) : ( $v->verse_text ?? $v->text ?? '' ) ) . '</p>';
+			$vid        = (int) ( is_array( $v ) ? ( $v['id'] ?? 0 ) : ( $v->id ?? 0 ) );
+			$notes_html = self::render_note_markers( $notes_by_verse[ $vid ] ?? [] );
+			$html      .= '<p class="usx-bvc-line">' . esc_html( is_array( $v ) ? ( $v['verse_text'] ?? $v['text'] ?? '' ) : ( $v->verse_text ?? $v->text ?? '' ) ) . $notes_html . '</p>';
 		}
 		$html .= '</div>';
 		$html .= '<div class="usx-bvc-copyright">' . esc_html( Schilo_Usx_Bible_Lookup::get_version_copyright( (int) $ref['version_id'] ) ) . '</div>';
@@ -239,9 +279,15 @@ final class Schilo_Usx_Shortcodes {
 		$html .= '<span class="usx-brc-ref">' . $reference . '</span>';
 		$html .= '<span class="usx-brc-version"> (' . esc_html( $ref['version_code'] ) . ')</span>';
 		$html .= '<span class="usx-brc-ref">' . ' : ' . '</span>';
+		$notes_by_verse = Schilo_Usx_Bible_Lookup::get_notes_for_verse_ids(
+			array_map( static fn ( $v ) => (int) ( is_array( $v ) ? ( $v['id'] ?? 0 ) : ( $v->id ?? 0 ) ), $verses )
+		);
+
 		$html .= '<div class="usx-brc-quote">';
 		foreach ( $verses as $v ) {
-			$html .= '<span class="usx-brc-text">' . esc_html( is_array( $v ) ? ( $v['verse_text'] ?? $v['text'] ?? '' ) : ( $v->verse_text ?? $v->text ?? '' ) ) . '</span>';
+			$vid        = (int) ( is_array( $v ) ? ( $v['id'] ?? 0 ) : ( $v->id ?? 0 ) );
+			$notes_html = self::render_note_markers( $notes_by_verse[ $vid ] ?? [] );
+			$html      .= '<span class="usx-brc-text">' . esc_html( is_array( $v ) ? ( $v['verse_text'] ?? $v['text'] ?? '' ) : ( $v->verse_text ?? $v->text ?? '' ) ) . $notes_html . '</span>';
 		}
 		$html .= '</div>';
 		$html .= '<div class="usx-brc-copyright">' . esc_html( Schilo_Usx_Bible_Lookup::get_version_copyright( (int) $ref['version_id'] ) ) . '</div>';
