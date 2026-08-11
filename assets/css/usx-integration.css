@@ -563,10 +563,93 @@
 }
 
 /* ============================================================
+   Notes de traduction / références croisées (wp_usx_notes) —
+   marqueur en exposant + infobulle en CSS pur (:hover/:focus),
+   sans JS dédié : tabindex="0" fait fonctionner :focus au tap
+   sur mobile comme au clavier.
+   ============================================================ */
+.usx-note-marker {
+  position: relative;
+  display: inline-block;
+  margin-left: 2px;
+  padding: 0 3px;
+  font-size: .68em;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--usx-accent);
+  cursor: help;
+  border-radius: 4px;
+}
+
+.usx-note-marker:hover,
+.usx-note-marker:focus {
+  outline: none;
+  background: rgba(40, 114, 212, .12);
+}
+
+.usx-note-marker--x {
+  color: var(--usx-muted);
+}
+
+.usx-note-tooltip {
+  position: absolute;
+  z-index: 40;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%) translateY(4px);
+  width: max-content;
+  max-width: 280px;
+  padding: 8px 10px;
+  border-radius: var(--usx-radius);
+  background: var(--usx-text);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+  white-space: normal;
+  box-shadow: var(--usx-shadow);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+.usx-note-marker:hover .usx-note-tooltip,
+.usx-note-marker:focus .usx-note-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.usx-note-tooltip-type {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--usx-accent);
+  opacity: .85;
+}
+
+/* ============================================================
    Responsive
    ============================================================ */
 @media (max-width: 600px) {
   .bvc-container,
   .brc-container,
   .bnv-container { padding: 10px 12px; }
+
+  .usx-note-tooltip {
+    max-width: 220px;
+    left: auto;
+    right: -8px;
+    transform: translateY(4px);
+  }
+
+  .usx-note-marker:hover .usx-note-tooltip,
+  .usx-note-marker:focus .usx-note-tooltip {
+    transform: translateY(0);
+  }
 }

@@ -72,19 +72,52 @@ final class Schilo_Usx_Bible_Lookup {
 		);
 	}
 
-	/** Récupère la liste des versets (objets -> verse, verse_text) pour un intervalle */
+	/** Récupère la liste des versets (objets -> id, verse, verse_text) pour un intervalle */
 	public static function get_verses( int $chapter_id, int $vStart, int $vEnd ) {
 		global $wpdb;
 		$t = $wpdb->prefix . 'usx_verses';
 
 		return $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT verse, verse_text FROM $t WHERE chapter_id = %d AND verse BETWEEN %d AND %d ORDER BY verse ASC",
+				"SELECT id, verse, verse_text FROM $t WHERE chapter_id = %d AND verse BETWEEN %d AND %d ORDER BY verse ASC",
 				$chapter_id,
 				$vStart,
 				$vEnd
 			)
 		);
+	}
+
+	/**
+	 * Récupère, en une seule requête groupée, les notes (wp_usx_notes) liées
+	 * à un ensemble de versets — appelé après get_verses() avec les `id` de
+	 * versets obtenus, pour éviter une requête par verset.
+	 *
+	 * @param int[] $verse_ids
+	 * @return array<int, object[]> Notes indexées par verse_id, dans l'ordre d'import.
+	 */
+	public static function get_notes_for_verse_ids( array $verse_ids ): array {
+		$verse_ids = array_values( array_unique( array_map( 'intval', $verse_ids ) ) );
+		if ( empty( $verse_ids ) ) {
+			return [];
+		}
+
+		global $wpdb;
+		$t            = $wpdb->prefix . 'usx_notes';
+		$placeholders = implode( ',', array_fill( 0, count( $verse_ids ), '%d' ) );
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, verse_id, note_type, caller, content FROM $t WHERE verse_id IN ($placeholders) ORDER BY verse_id ASC, id ASC",
+				$verse_ids
+			)
+		);
+
+		$by_verse = [];
+		foreach ( $rows as $row ) {
+			$by_verse[ (int) $row->verse_id ][] = $row;
+		}
+
+		return $by_verse;
 	}
 
 	public static function get_version_copyright( int $version_id ): string {
