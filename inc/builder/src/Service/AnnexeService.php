@@ -16,6 +16,9 @@ class AnnexeService
 {
     const META_ENABLED = '_schilo_secondary_enabled';
     const META_LINKED  = '_schilo_secondary_ids';
+    const OPTION_SETTINGS = 'schilo_builder_annexe_settings';
+
+    const DEFAULT_LABEL = 'Note complémentaire';
 
     public function isEnabled($postId)
     {
@@ -45,6 +48,29 @@ class AnnexeService
 
         update_post_meta($postId, self::META_ENABLED, '1');
         update_post_meta($postId, self::META_LINKED, $ids);
+    }
+
+    /** Libelle affiche cote front (titre du bloc + eyebrow de la popup), personnalisable. */
+    public function getLabel()
+    {
+        $settings = get_option(self::OPTION_SETTINGS, array());
+        $label = is_array($settings) && !empty($settings['label']) ? trim((string) $settings['label']) : '';
+        return $label !== '' ? $label : self::DEFAULT_LABEL;
+    }
+
+    /** Texte d'introduction affiche au-dessus de la liste des annexes (facultatif). */
+    public function getIntroText()
+    {
+        $settings = get_option(self::OPTION_SETTINGS, array());
+        return is_array($settings) && !empty($settings['text']) ? (string) $settings['text'] : '';
+    }
+
+    public function saveSettings($label, $text)
+    {
+        update_option(self::OPTION_SETTINGS, array(
+            'label' => sanitize_text_field((string) $label),
+            'text'  => sanitize_textarea_field((string) $text),
+        ));
     }
 
     /** IDs de tous les articles publies dont le titre commence par ANX. */

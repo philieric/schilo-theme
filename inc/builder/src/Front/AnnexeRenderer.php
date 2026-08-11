@@ -54,9 +54,15 @@ class AnnexeRenderer
         if (empty($linked)) {
             return;
         }
+
+        $label = $service->getLabel();
+        $introText = $service->getIntroText();
         ?>
         <section class="schilo-annexe-block" aria-labelledby="schilo-annexe-block-title">
-            <h2 class="schilo-annexe-block__title" id="schilo-annexe-block-title">Annexes</h2>
+            <h2 class="schilo-annexe-block__title" id="schilo-annexe-block-title"><?php echo esc_html($label); ?></h2>
+            <?php if ($introText !== '') : ?>
+                <p class="schilo-annexe-block__intro"><?php echo esc_html($introText); ?></p>
+            <?php endif; ?>
             <div class="schilo-annexe-list">
                 <?php foreach ($linked as $annexe) :
                     $modalId = 'schilo-annexe-modal-' . $annexe->ID;
@@ -87,6 +93,7 @@ class AnnexeRenderer
         $code = $this->extractCode($annexe->post_title);
         $title = $this->titleWithoutPrefix($annexe->post_title);
         $body = $this->getBody($annexe);
+        $label = (new AnnexeService())->getLabel();
         ?>
         <div class="schilo-definition-modal" id="<?php echo esc_attr($modalId); ?>" aria-hidden="true">
             <div class="schilo-definition-modal__overlay" data-schilo-definition-close></div>
@@ -96,14 +103,14 @@ class AnnexeRenderer
                         <span class="schilo-definition-modal__code"><?php echo esc_html($code); ?></span>
                     <?php endif; ?>
                     <div>
-                        <span class="schilo-definition-modal__eyebrow">Annexe</span>
+                        <span class="schilo-definition-modal__eyebrow"><?php echo esc_html($label); ?></span>
                         <h2 id="<?php echo esc_attr($modalId); ?>-title"><?php echo esc_html($title); ?></h2>
                     </div>
                     <button type="button" class="schilo-definition-modal__close" data-schilo-definition-close aria-label="<?php esc_attr_e('Fermer', 'schilo'); ?>">&times;</button>
                 </header>
                 <div class="schilo-definition-modal__body"><?php echo $body; // phpcs:ignore ?></div>
                 <footer class="schilo-definition-modal__footer">
-                    <span>Annexe liee a cet article</span>
+                    <span><?php echo esc_html($label); ?> liée à cet article</span>
                     <a href="<?php echo esc_url(get_permalink($annexe)); ?>">Approfondir <i class="ti ti-arrow-right" aria-hidden="true"></i></a>
                 </footer>
             </section>

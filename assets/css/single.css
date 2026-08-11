@@ -1270,6 +1270,12 @@ body.schilo-definition-open { overflow: hidden; }
   font-size: 1.05rem;
   font-weight: 700;
 }
+.schilo-annexe-block__intro {
+  margin: -.4rem 0 .9rem;
+  color: var(--schilo-text-muted, #6b7280);
+  font-size: .88rem;
+  line-height: 1.5;
+}
 .schilo-annexe-list {
   display: flex;
   flex-direction: column;
