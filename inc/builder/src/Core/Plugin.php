@@ -8,6 +8,7 @@ use Schilo\Builder\Admin\SettingsPage;
 use Schilo\Builder\Front\ContentRenderer;
 use Schilo\Builder\Front\RelatedArticlesShortcode;
 use Schilo\Builder\Front\ContextualDefinitionRenderer;
+use Schilo\Builder\Front\AnnexeRenderer;
 use Schilo\Builder\Admin\ContextualDefinitionsPage;
 use Schilo\Builder\Service\ArticleTitleNumberer;
 use Schilo\Builder\Service\CategoryAssigner;
@@ -312,6 +313,8 @@ class Plugin
         $front->register();
 
         (new ContextualDefinitionRenderer())->register();
+
+        (new AnnexeRenderer())->register();
 
         (new \Schilo\Builder\Front\ArticleVersionRenderer())->register();
 

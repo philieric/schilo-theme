@@ -10,6 +10,7 @@ use Schilo\Builder\Service\SectionTypeService;
 use Schilo\Builder\Service\SectionStructureService;
 use Schilo\Builder\Service\TemplateApplicationService;
 use Schilo\Builder\Service\ArticleVersionService;
+use Schilo\Builder\Service\AnnexeService;
 
 class BuilderMetabox
 {
@@ -252,6 +253,19 @@ class BuilderMetabox
             }
         }
 
+        $secondaryService = new AnnexeService();
+        $secondaryEnabled = $secondaryService->isEnabled($postId);
+        $secondaryLinkedPosts = array();
+        foreach ($secondaryService->getLinkedIds($postId) as $linkedId) {
+            $linkedPost = get_post($linkedId);
+            if ($linkedPost) {
+                $secondaryLinkedPosts[] = array(
+                    'id' => $linkedId,
+                    'title' => html_entity_decode(get_the_title($linkedPost), ENT_QUOTES, 'UTF-8'),
+                );
+            }
+        }
+
         include SCHILO_BUILDER_PATH . 'views/admin/metabox-builder.php';
     }
 
@@ -303,6 +317,13 @@ class BuilderMetabox
         }
 
         (new ArticleVersionService())->saveVersion($postId, $versionEnabled, $versionLinkedIds, $versionLabel, $versionIsPrimary, $versionLinkedLabels);
+
+        $secondaryEnabled = !empty($_POST['schilo_secondary_enabled']);
+        $secondaryLinkedIds = isset($_POST['schilo_secondary_linked_ids']) && is_array($_POST['schilo_secondary_linked_ids'])
+            ? array_map('intval', wp_unslash($_POST['schilo_secondary_linked_ids']))
+            : array();
+
+        (new AnnexeService())->saveSecondaryLinks($postId, $secondaryEnabled, $secondaryLinkedIds);
 
         $rawSections = (isset($_POST['schilo_sections']) && is_array($_POST['schilo_sections']))
             ? wp_unslash($_POST['schilo_sections'])
