@@ -110,7 +110,8 @@ class ArticleTitleNumberer
                 return null;
             }
 
-            $normalizedTitle = sprintf('%s%0' . $this->digitsForPrefix($prefix) . 'd - %s', $prefix, $number, $cleanTitle);
+            $digits = $this->digitsForExistingOrNew($prefix, $number, (int) $currentPostId);
+            $normalizedTitle = sprintf('%s%0' . $digits . 'd - %s', $prefix, $number, $cleanTitle);
 
             return $normalizedTitle !== $originalTitle ? $normalizedTitle : null;
         }
@@ -278,6 +279,34 @@ class ArticleTitleNumberer
     private function digitsForPrefix($prefix)
     {
         return (new TemplateService())->getDigitsForPrefix($prefix);
+    }
+
+    /**
+     * Largeur (nombre de chiffres) a utiliser pour CE prefixe+numero precis.
+     *
+     * Un article deja existant en base avec ce meme prefixe+numero garde la
+     * largeur qu'il a deja, meme s'il est resauvegarde apres un changement
+     * du reglage global (ex. PER passe de 3 a 4 chiffres) : "PER373" reste
+     * "PER373" et n'est jamais force en "PER0373". Objectif : ne jamais
+     * changer silencieusement le slug/URL d'un article deja publie et
+     * indexe. Seul un numero veritablement nouveau pour ce post (nouvel
+     * article, ou numero explicitement change) adopte le reglage
+     * actuellement configure pour le prefixe.
+     */
+    private function digitsForExistingOrNew($prefix, $number, $currentPostId)
+    {
+        if ($currentPostId > 0) {
+            $currentTitle = get_the_title($currentPostId);
+            $currentTitle = html_entity_decode((string) $currentTitle, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+            if (preg_match('/^' . preg_quote($prefix, '/') . '(\d+)/i', $currentTitle, $matches)) {
+                if ((int) $matches[1] === (int) $number) {
+                    return strlen($matches[1]);
+                }
+            }
+        }
+
+        return $this->digitsForPrefix($prefix);
     }
 
     private function getNextAvailableNumberForPrefix($prefix, $currentPostId)
