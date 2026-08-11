@@ -636,6 +636,13 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
     </aside>
   </div><!-- /layout -->
 
+  <!-- ══ ANNEXES (ANX) LIÉES ═══════════════════════════════════════════ -->
+  <?php if ( class_exists( '\Schilo\Builder\Front\AnnexeRenderer' ) ) : ?>
+    <div class="schilo-container">
+      <?php ( new \Schilo\Builder\Front\AnnexeRenderer() )->renderAnnexeBlock( $post_id ); ?>
+    </div>
+  <?php endif; ?>
+
   <!-- ══ NAVIGATION BAS DE PAGE ════════════════════════════════════════ -->
   <?php if ( $prev_post || $next_post ) : ?>
   <nav class="schilo-single-bootnav" aria-label="<?php esc_attr_e( 'Navigation entre fiches', 'schilo' ); ?>">
