@@ -20,7 +20,7 @@ class Schilo_Prefixes {
     private const LIST = array(
         'PER', 'CTD', 'ANN', 'APO', 'BIB', 'DAN', 'DOC', 'FDS', 'LGH', 'PAR',
         'PDA', 'INF', 'MIR', 'PRB', 'ADA', 'CHR', 'PLA', 'REP', 'CHA', 'PRO',
-        'VER',
+        'VER', 'ANX',
     );
 
     /** Liste canonique des préfixes (ordre d'affichage). */
