@@ -207,6 +207,27 @@ echo wp_json_encode( $schiloArticlesPayload );
         </div>
     </div>
 
+    <?php if ( ! empty( $secondaryOwnerPosts ) ) : ?>
+    <div class="schilo-version-card">
+        <div class="schilo-version-card__header">
+            <span class="stc-label">Cet article est lié comme annexe à</span>
+        </div>
+        <div class="schilo-version-card__body">
+            <p class="description">Article principal (un seul par annexe — cocher ici décoche les autres) :</p>
+            <label class="stc-checkbox schilo-secondary-owner-row">
+                <input type="radio" name="schilo_secondary_primary_owner" value="0" <?php checked( empty( $secondaryPrimaryOwnerId ) ); ?>>
+                Aucun
+            </label>
+            <?php foreach ( $secondaryOwnerPosts as $owner ) : ?>
+                <label class="stc-checkbox schilo-secondary-owner-row">
+                    <input type="radio" name="schilo_secondary_primary_owner" value="<?php echo esc_attr( $owner['id'] ); ?>" <?php checked( (int) $secondaryPrimaryOwnerId, (int) $owner['id'] ); ?>>
+                    <a href="<?php echo esc_url( get_edit_post_link( $owner['id'] ) ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $owner['title'] ); ?></a>
+                </label>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <div class="schilo-builder-layout">
         <aside class="schilo-builder-sidebar" id="schilo-nav-sidebar">
             <div id="schilo-nav-buttons"></div>

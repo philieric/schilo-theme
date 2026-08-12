@@ -266,6 +266,18 @@ class BuilderMetabox
             }
         }
 
+        $secondaryOwnerPosts = array();
+        foreach ($secondaryService->getOwnerIds($postId) as $ownerId) {
+            $ownerPost = get_post($ownerId);
+            if ($ownerPost) {
+                $secondaryOwnerPosts[] = array(
+                    'id' => $ownerId,
+                    'title' => html_entity_decode(get_the_title($ownerPost), ENT_QUOTES, 'UTF-8'),
+                );
+            }
+        }
+        $secondaryPrimaryOwnerId = $secondaryService->getPrimaryOwnerId($postId);
+
         include SCHILO_BUILDER_PATH . 'views/admin/metabox-builder.php';
     }
 
@@ -323,7 +335,13 @@ class BuilderMetabox
             ? array_map('intval', wp_unslash($_POST['schilo_secondary_linked_ids']))
             : array();
 
-        (new AnnexeService())->saveSecondaryLinks($postId, $secondaryEnabled, $secondaryLinkedIds);
+        $annexeService = new AnnexeService();
+        $annexeService->saveSecondaryLinks($postId, $secondaryEnabled, $secondaryLinkedIds);
+
+        if (isset($_POST['schilo_secondary_primary_owner'])) {
+            $primaryOwnerId = (int) wp_unslash($_POST['schilo_secondary_primary_owner']);
+            $annexeService->setPrimaryOwner($postId, $primaryOwnerId);
+        }
 
         $rawSections = (isset($_POST['schilo_sections']) && is_array($_POST['schilo_sections']))
             ? wp_unslash($_POST['schilo_sections'])
