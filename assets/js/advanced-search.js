@@ -17,6 +17,8 @@
     var resultsEl   = document.getElementById('schilo-adv-results');
     var countEl     = document.getElementById('schilo-adv-count');
     var emptyEl     = document.getElementById('schilo-adv-empty');
+    var startEl     = document.getElementById('schilo-adv-start');
+    var activeEl    = document.getElementById('schilo-adv-active');
     var loadMoreBtn = document.getElementById('schilo-adv-loadmore');
     var spinnerEl   = document.getElementById('schilo-adv-spinner');
     var resetBtn    = document.getElementById('schilo-adv-reset');
@@ -34,6 +36,13 @@
             criteria[field] = Array.prototype.map.call(checked, function (el) { return el.value; });
         });
         return criteria;
+    }
+
+    /* Aucun texte ET aucune case cochée -> pas de recherche a lancer (ne
+       jamais afficher "tous les articles" par defaut, demande explicite). */
+    function hasActiveCriteria(criteria) {
+        if (criteria.q) return true;
+        return FIELDS.some(function (field) { return (criteria[field] || []).length > 0; });
     }
 
     function buildParams(criteria, currentOffset) {
@@ -168,17 +177,102 @@
             : shownCount + ' articles';
     }
 
+    function labelForCheckbox(input) {
+        var label = input.closest('label');
+        if (!label) return input.value;
+        var span = label.querySelector('span');
+        return (span ? span.textContent : label.textContent).trim();
+    }
+
+    /* Retire UN critère (clic sur sa puce) puis relance la recherche. */
+    function removeCriterion(kind, value) {
+        if (kind === 'q') {
+            qInput.value = '';
+        } else {
+            var input = root.querySelector('input[name="' + kind + '[]"][value="' + CSS.escape(value) + '"]');
+            if (input) input.checked = false;
+        }
+        runSearch(true);
+    }
+
+    function buildChip(kind, value, label) {
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'schilo-adv-chip';
+        chip.setAttribute('aria-label', 'Retirer : ' + label);
+
+        var text = document.createElement('span');
+        text.textContent = label;
+        chip.appendChild(text);
+
+        var icon = document.createElement('i');
+        icon.className = 'ti ti-x';
+        icon.setAttribute('aria-hidden', 'true');
+        chip.appendChild(icon);
+
+        chip.addEventListener('click', function () { removeCriterion(kind, value); });
+
+        return chip;
+    }
+
+    /* Affiche, sous la barre de filtres, une puce retirable par critère
+       actif (texte libre + chaque case cochée) — permet de corriger une
+       erreur sans rouvrir le menu déroulant correspondant. */
+    function renderActiveChips(criteria) {
+        if (!activeEl) return;
+        activeEl.textContent = '';
+
+        var count = 0;
+
+        if (criteria.q) {
+            activeEl.appendChild(buildChip('q', '', criteria.q));
+            count++;
+        }
+
+        FIELDS.forEach(function (field) {
+            (criteria[field] || []).forEach(function (value) {
+                var input = root.querySelector('input[name="' + field + '[]"][value="' + CSS.escape(value) + '"]');
+                var label = input ? labelForCheckbox(input) : value;
+                activeEl.appendChild(buildChip(field, value, label));
+                count++;
+            });
+        });
+
+        activeEl.hidden = count === 0;
+    }
+
+    function showStartState() {
+        resultsEl.textContent = '';
+        shownCount = 0;
+        offset     = 0;
+        updateCount();
+        if (startEl) startEl.hidden = false;
+        emptyEl.hidden = true;
+        if (loadMoreBtn) loadMoreBtn.hidden = true;
+        setLoading(false);
+    }
+
     function runSearch(reset) {
         var criteria = collectCriteria();
         var token = ++requestToken;
 
         if (reset) {
+            renderActiveChips(criteria);
+            syncUrl(criteria);
+
+            if (!hasActiveCriteria(criteria)) {
+                if (currentAbort) currentAbort.abort();
+                showStartState();
+                return;
+            }
+
             offset     = 0;
             shownCount = 0;
             resultsEl.textContent = '';
             emptyEl.hidden = true;
-            syncUrl(criteria);
         }
+
+        if (startEl) startEl.hidden = true;
 
         if (currentAbort) currentAbort.abort();
         currentAbort = ('AbortController' in window) ? new AbortController() : null;
@@ -246,6 +340,24 @@
             runSearch(true);
         });
     }
+
+    /* Menus déroulants des groupes de filtres : un seul ouvert à la fois,
+       fermeture au clic en dehors (disposition horizontale en pilules). */
+    var groupEls = root.querySelectorAll('.schilo-adv-search__group');
+    groupEls.forEach(function (details) {
+        details.addEventListener('toggle', function () {
+            if (!details.open) return;
+            groupEls.forEach(function (other) {
+                if (other !== details) other.open = false;
+            });
+        });
+    });
+
+    document.addEventListener('click', function (e) {
+        groupEls.forEach(function (details) {
+            if (details.open && !details.contains(e.target)) details.open = false;
+        });
+    });
 
     restoreFromUrl();
     runSearch(true);

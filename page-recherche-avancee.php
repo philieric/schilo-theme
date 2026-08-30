@@ -24,10 +24,9 @@ get_header();
 <main id="schilo-main" role="main">
 <div class="schilo-container schilo-adv-search" id="schilo-adv-search" data-nonce="<?php echo esc_attr( wp_create_nonce( 'schilo_nonce' ) ); ?>">
 
-    <aside class="schilo-adv-search__filters" aria-label="<?php esc_attr_e( 'Filtres de recherche', 'schilo' ); ?>">
+    <div class="schilo-adv-search__filters" aria-label="<?php esc_attr_e( 'Filtres de recherche', 'schilo' ); ?>">
 
         <div class="schilo-adv-search__field">
-            <label for="schilo-adv-q" class="schilo-adv-search__label"><?php esc_html_e( 'Texte libre', 'schilo' ); ?></label>
             <div class="schilo-adv-search__input-wrap">
                 <i class="ti ti-search" aria-hidden="true"></i>
                 <input type="search" id="schilo-adv-q" placeholder="<?php esc_attr_e( 'Titre, mot-clé, résumé…', 'schilo' ); ?>" autocomplete="off">
@@ -35,7 +34,7 @@ get_header();
         </div>
 
         <?php if ( ! empty( $schilo_filters['themes'] ) ) : ?>
-        <details class="schilo-adv-search__group" open>
+        <details class="schilo-adv-search__group">
             <summary><i class="ti ti-category" aria-hidden="true"></i> <?php esc_html_e( 'Thème', 'schilo' ); ?></summary>
             <div class="schilo-adv-search__group-body">
                 <?php Schilo_Advanced_Search::render_term_checkboxes( $schilo_filters['themes'], 'theme' ); ?>
@@ -107,14 +106,21 @@ get_header();
         <?php endif; ?>
 
         <button type="button" class="schilo-adv-search__reset" id="schilo-adv-reset">
-            <i class="ti ti-x" aria-hidden="true"></i> <?php esc_html_e( 'Réinitialiser les filtres', 'schilo' ); ?>
+            <i class="ti ti-x" aria-hidden="true"></i> <?php esc_html_e( 'Réinitialiser', 'schilo' ); ?>
         </button>
-    </aside>
+    </div>
+
+    <div class="schilo-adv-search__active" id="schilo-adv-active" aria-label="<?php esc_attr_e( 'Critères actifs', 'schilo' ); ?>" hidden></div>
 
     <section class="schilo-adv-search__results" aria-live="polite">
         <div class="schilo-adv-search__results-header">
             <p class="schilo-adv-search__count" id="schilo-adv-count"></p>
         </div>
+
+        <p class="schilo-adv-search__start" id="schilo-adv-start">
+            <i class="ti ti-filter" aria-hidden="true"></i>
+            <?php esc_html_e( 'Saisissez un texte ou cochez au moins un critère pour lancer la recherche.', 'schilo' ); ?>
+        </p>
 
         <div class="schilo-archive-posts schilo-archive-posts--grid" id="schilo-adv-results"></div>
 
