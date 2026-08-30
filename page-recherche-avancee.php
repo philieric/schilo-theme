@@ -24,6 +24,8 @@ get_header();
 <main id="schilo-main" role="main">
 <div class="schilo-container schilo-adv-search" id="schilo-adv-search" data-nonce="<?php echo esc_attr( wp_create_nonce( 'schilo_nonce' ) ); ?>">
 
+    <div class="schilo-adv-search__sticky-bar">
+
     <div class="schilo-adv-search__filters" aria-label="<?php esc_attr_e( 'Filtres de recherche', 'schilo' ); ?>">
 
         <div class="schilo-adv-search__field">
@@ -111,6 +113,8 @@ get_header();
     </div>
 
     <div class="schilo-adv-search__active" id="schilo-adv-active" aria-label="<?php esc_attr_e( 'Critères actifs', 'schilo' ); ?>" hidden></div>
+
+    </div><!-- /.schilo-adv-search__sticky-bar -->
 
     <section class="schilo-adv-search__results" aria-live="polite">
         <div class="schilo-adv-search__results-header">
