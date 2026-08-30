@@ -190,6 +190,31 @@ class Schilo_Assets {
             );
         }
 
+        if ( is_page_template( 'page-recherche-avancee.php' ) ) {
+            // Réutilise les cartes/grille des archives (schilo-archive-card)
+            // pour que les résultats soient visuellement identiques au reste
+            // du site — seul le panneau de filtres est spécifique ici.
+            wp_enqueue_style(
+                'schilo-archive',
+                SCHILO_ASSETS . '/css/archive.css',
+                [ 'schilo-main' ],
+                self::ver( $dir . '/assets/css/archive.css' )
+            );
+            wp_enqueue_style(
+                'schilo-advanced-search',
+                SCHILO_ASSETS . '/css/advanced-search.css',
+                [ 'schilo-archive' ],
+                self::ver( $dir . '/assets/css/advanced-search.css' )
+            );
+            wp_enqueue_script(
+                'schilo-advanced-search',
+                SCHILO_ASSETS . '/js/advanced-search.js',
+                [ 'schilo-main' ],
+                self::ver( $dir . '/assets/js/advanced-search.js' ),
+                true
+            );
+        }
+
         if ( is_page_template( 'page-avancements.php' ) ) {
             wp_enqueue_style(
                 'schilo-avancements',
