@@ -40,6 +40,32 @@
         <?php esc_html_e( 'Rechercher…', 'schilo' ); ?>
       </button>
 
+      <!-- Bouton Recherche avancée -->
+      <?php
+      $adv_search_url    = home_url( '/recherche-avancee/' );
+      $adv_search_active = false;
+      $by_tpl_as = get_pages( [ 'meta_key' => '_wp_page_template', 'meta_value' => 'page-recherche-avancee.php' ] );
+      if ( ! empty( $by_tpl_as ) ) {
+          $adv_search_url    = get_permalink( $by_tpl_as[0]->ID );
+          $adv_search_active = is_page( $by_tpl_as[0]->ID );
+      } else {
+          foreach ( [ 'recherche-avancee', 'recherche', 'advanced-search' ] as $slug ) {
+              $p = get_page_by_path( $slug );
+              if ( $p ) {
+                  $adv_search_url    = get_permalink( $p->ID );
+                  $adv_search_active = is_page( $p->ID );
+                  break;
+              }
+          }
+      }
+      ?>
+      <a href="<?php echo esc_url( $adv_search_url ); ?>"
+         class="schilo-btn-contact<?php echo $adv_search_active ? ' active' : ''; ?>"
+         <?php echo $adv_search_active ? 'aria-current="page"' : ''; ?>
+         aria-label="<?php esc_attr_e( 'Recherche avancée', 'schilo' ); ?>">
+        <i class="ti ti-filter" aria-hidden="true"></i>
+      </a>
+
       <!-- Bouton À propos -->
       <?php
       $apropos_url    = home_url( '/a-propos/' );

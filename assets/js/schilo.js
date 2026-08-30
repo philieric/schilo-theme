@@ -219,7 +219,13 @@ Schilo.ArchiveView = (function () {
     var STORAGE_KEY = 'schilo_archive_view';
 
     function _applyView(view, posts, buttons) {
-        posts.classList.remove('schilo-archive-posts--grid', 'schilo-archive-posts--list');
+        // Retire TOUTE classe de mode existante (pas seulement grid/list en
+        // dur) : generique pour accueillir d'autres modes (ex. "compact" sur
+        // la recherche avancee) sans laisser deux classes de mode coexister
+        // apres un aller-retour compact -> grid.
+        Array.prototype.slice.call(posts.classList).forEach(function (cls) {
+            if (cls.indexOf('schilo-archive-posts--') === 0) posts.classList.remove(cls);
+        });
         posts.classList.add('schilo-archive-posts--' + view);
         buttons.forEach(function (btn) {
             var active = btn.dataset.view === view;
