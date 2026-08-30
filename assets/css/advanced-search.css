@@ -236,6 +236,10 @@
 /* ── Résultats ── */
 
 .schilo-adv-search__results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   min-height: 24px;
   margin-bottom: 12px;
 }
@@ -288,6 +292,43 @@
 
 @keyframes schilo-adv-spin {
   to { transform: rotate(360deg); }
+}
+
+/* ── Mode "liste réduite" (titres seuls, sans résumé) ──
+   Spécifique à cette page (le 3e bouton n'existe que dans son
+   .schilo-archive-view-toggle) : Schilo.ArchiveView (schilo.js) applique
+   déjà génériquement la classe schilo-archive-posts--compact, reste à en
+   définir l'apparence + masquer ce qui n'est pas le titre. */
+
+.schilo-archive-posts--compact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.schilo-archive-posts--compact .schilo-archive-card {
+  display: block;
+  border: 0;
+  border-radius: 0;
+  border-bottom: 1px solid var(--schilo-border, #dde2ea);
+  box-shadow: none;
+  background: transparent;
+}
+
+.schilo-archive-posts--compact .schilo-archive-card__thumb-link,
+.schilo-archive-posts--compact .schilo-archive-card__cat,
+.schilo-archive-posts--compact .schilo-archive-card__excerpt,
+.schilo-archive-posts--compact .schilo-archive-card__footer {
+  display: none;
+}
+
+.schilo-archive-posts--compact .schilo-archive-card__body {
+  padding: 10px 4px;
+}
+
+.schilo-archive-posts--compact .schilo-archive-card__title {
+  margin: 0;
+  font-size: 15px;
 }
 
 /* ── Responsive ── */

@@ -14,7 +14,7 @@
     var FIELDS = ['theme', 'parcours', 'serie', 'type', 'livre'];
 
     var qInput      = document.getElementById('schilo-adv-q');
-    var resultsEl   = document.getElementById('schilo-adv-results');
+    var resultsEl   = document.getElementById('schilo-archive-posts');
     var countEl     = document.getElementById('schilo-adv-count');
     var emptyEl     = document.getElementById('schilo-adv-empty');
     var startEl     = document.getElementById('schilo-adv-start');

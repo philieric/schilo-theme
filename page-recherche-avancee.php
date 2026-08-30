@@ -115,6 +115,30 @@ get_header();
     <section class="schilo-adv-search__results" aria-live="polite">
         <div class="schilo-adv-search__results-header">
             <p class="schilo-adv-search__count" id="schilo-adv-count"></p>
+
+            <!-- Mode d'affichage — même bouton/même logique que les archives
+                 (Schilo.ArchiveView dans schilo.js, préférence en localStorage
+                 partagée avec le reste du site). -->
+            <div class="schilo-archive-view-toggle" role="group" aria-label="<?php esc_attr_e( 'Mode d\'affichage', 'schilo' ); ?>">
+                <button class="schilo-archive-view-btn schilo-archive-view-btn--grid is-active"
+                        data-view="grid"
+                        aria-pressed="true"
+                        title="<?php esc_attr_e( 'Vue grille', 'schilo' ); ?>">
+                    <i class="ti ti-layout-grid" aria-hidden="true"></i>
+                </button>
+                <button class="schilo-archive-view-btn schilo-archive-view-btn--list"
+                        data-view="list"
+                        aria-pressed="false"
+                        title="<?php esc_attr_e( 'Vue liste', 'schilo' ); ?>">
+                    <i class="ti ti-list" aria-hidden="true"></i>
+                </button>
+                <button class="schilo-archive-view-btn schilo-archive-view-btn--compact"
+                        data-view="compact"
+                        aria-pressed="false"
+                        title="<?php esc_attr_e( 'Liste réduite (titres uniquement)', 'schilo' ); ?>">
+                    <i class="ti ti-list-details" aria-hidden="true"></i>
+                </button>
+            </div>
         </div>
 
         <p class="schilo-adv-search__start" id="schilo-adv-start">
@@ -122,7 +146,7 @@ get_header();
             <?php esc_html_e( 'Saisissez un texte ou cochez au moins un critère pour lancer la recherche.', 'schilo' ); ?>
         </p>
 
-        <div class="schilo-archive-posts schilo-archive-posts--grid" id="schilo-adv-results"></div>
+        <div class="schilo-archive-posts schilo-archive-posts--grid" id="schilo-archive-posts"></div>
 
         <p class="schilo-adv-search__empty" id="schilo-adv-empty" hidden>
             <i class="ti ti-mood-sad" aria-hidden="true"></i>
