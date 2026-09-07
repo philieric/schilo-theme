@@ -5,7 +5,7 @@
 /* ── Hero ── */
 .schilo-archive-hero {
     background: var(--schilo-bg-dark);
-    padding: 2.5rem 0 2rem;
+    padding: 2rem 0 1.5rem;
 }
 
 .schilo-archive-breadcrumb {
@@ -59,8 +59,18 @@
     line-height: 1.2;
 }
 
+/* Limitée à 2 lignes à TOUTES les largeurs (pas seulement mobile) : sur une
+   description longue, le hero (fond bleu foncé) pouvait occuper jusqu'à ~38%
+   du premier écran avant tout contenu, même en plein desktop — la contrainte
+   max-width:680px fait déjà passer le texte sur plusieurs lignes à n'importe
+   quelle largeur de fenêtre. Le texte complet reste consultable via la
+   catégorie elle-même (page d'admin / description native WordPress). */
 .schilo-archive-hero__desc,
 .schilo-archive-hero__desc p {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
     margin: .5rem 0 0;
     color: rgba(255,255,255,.85);
     font-size: 15px;
@@ -740,24 +750,13 @@
         gap: .75rem;
     }
 
-    /* Dès que la grille passe en 1 colonne (≤768px), le hero (fond bleu
-       foncé) + la barre d'outils occupent une part disproportionnée du
-       premier écran avant tout contenu (description complète sur 5-6
-       lignes) — impression de « trop de bleu » en haut de page. On réduit
-       le hero sur toute cette plage : padding resserré, description
-       limitée à 2 lignes (le texte complet reste disponible en desktop). */
+    /* Padding resserré en plus (la description est déjà limitée à 2 lignes
+       à toutes les largeurs, voir la règle de base .schilo-archive-hero__desc). */
     .schilo-archive-hero {
         padding: 1.75rem 0 1.5rem;
     }
     .schilo-archive-breadcrumb {
         margin-bottom: 1rem;
-    }
-    .schilo-archive-hero__desc,
-    .schilo-archive-hero__desc p {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
     }
 }
 
