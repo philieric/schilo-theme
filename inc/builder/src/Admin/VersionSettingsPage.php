@@ -122,30 +122,77 @@ class VersionSettingsPage
     {
         $service = new ArticleVersionService();
         $saved = false;
+        $renamedCount = 0;
         $blockedLabels = array();
+        $collisionLabels = array();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[self::NONCE_NAME])) {
             $nonce = sanitize_text_field(wp_unslash($_POST[self::NONCE_NAME]));
 
             if (wp_verify_nonce($nonce, self::NONCE_ACTION) && current_user_can('manage_options')) {
-                $rawLabels = isset($_POST['schilo_version_types']) && is_array($_POST['schilo_version_types'])
+                // Chaque ligne porte deux champs parallèles : le libellé saisi
+                // (schilo_version_types[]) et son libellé d'origine
+                // (schilo_version_types_orig[], vide pour une ligne ajoutée).
+                // On ne filtre PAS avant d'avoir apparié les deux, sinon on
+                // perd l'alignement entre nouveau et ancien.
+                $rawNews = isset($_POST['schilo_version_types']) && is_array($_POST['schilo_version_types'])
                     ? wp_unslash($_POST['schilo_version_types'])
                     : array();
-                $rawLabels = array_values(array_filter(array_map(function ($l) {
-                    return trim(sanitize_text_field((string) $l));
-                }, $rawLabels)));
+                $rawOrigs = isset($_POST['schilo_version_types_orig']) && is_array($_POST['schilo_version_types_orig'])
+                    ? wp_unslash($_POST['schilo_version_types_orig'])
+                    : array();
 
-                // Filet de sécurité serveur (le JS bloque déjà le retrait d'un
-                // type utilisé au clic sur "Retirer") : un type actuellement
-                // affecté à au moins un article ne doit jamais disparaître de
-                // la liste, sinon la metabox de cet article n'aurait plus son
-                // type dans le sélecteur.
                 $before = $service->getAvailableLabels();
-                $removed = array_diff($before, $rawLabels);
-                $blockedLabels = array_values(array_intersect($removed, $service->getUsedLabels()));
+                $used = $service->getUsedLabels();
 
-                if (empty($blockedLabels)) {
-                    $service->saveAvailableLabels($rawLabels);
+                // Appariement ligne à ligne : liste finale (ordre, dédup) +
+                // table des renommages (ancien => nouveau).
+                $finalLabels = array();
+                $renames = array();
+                $newCounts = array();
+                $count = count($rawNews);
+                for ($i = 0; $i < $count; $i++) {
+                    $new = trim(sanitize_text_field((string) $rawNews[$i]));
+                    $orig = isset($rawOrigs[$i]) ? trim(sanitize_text_field((string) $rawOrigs[$i])) : '';
+                    if ($new === '') {
+                        continue;
+                    }
+                    $newCounts[$new] = isset($newCounts[$new]) ? $newCounts[$new] + 1 : 1;
+                    if ($orig !== '' && $orig !== $new) {
+                        $renames[$orig] = $new;
+                    }
+                    if (!in_array($new, $finalLabels, true)) {
+                        $finalLabels[] = $new;
+                    }
+                }
+
+                // Garde-fou anti-doublon : deux lignes avec le même libellé, ou
+                // un renommage vers un type qui existe déjà par ailleurs
+                // (fusionnerait deux types, cassant l'unicité au sein d'un groupe).
+                foreach ($newCounts as $label => $c) {
+                    if ($c > 1) {
+                        $collisionLabels[] = $label;
+                    }
+                }
+                foreach ($renames as $old => $new) {
+                    if (in_array($new, $before, true)) {
+                        $collisionLabels[] = $new;
+                    }
+                }
+                $collisionLabels = array_values(array_unique($collisionLabels));
+
+                // Filet de sécurité serveur : un type encore utilisé ne doit pas
+                // DISPARAÎTRE (suppression réelle). Un renommage ne compte pas
+                // comme une disparition (l'ancien libellé est migré, pas perdu).
+                $removed = array_diff($before, $finalLabels);
+                $trueRemovals = array_diff($removed, array_keys($renames));
+                $blockedLabels = array_values(array_intersect($trueRemovals, $used));
+
+                if (empty($collisionLabels) && empty($blockedLabels)) {
+                    foreach ($renames as $old => $new) {
+                        $renamedCount += $service->renameLabel($old, $new);
+                    }
+                    $service->saveAvailableLabels($finalLabels);
                     $saved = true;
                 }
             }
@@ -181,7 +228,26 @@ class VersionSettingsPage
             </p>
 
             <?php if ($saved) : ?>
-                <div class="notice notice-success is-dismissible"><p>Types de version enregistrés.</p></div>
+                <div class="notice notice-success is-dismissible">
+                    <p>
+                        Types de version enregistrés.
+                        <?php if ($renamedCount > 0) : ?>
+                            <?php echo esc_html($renamedCount > 1
+                                ? sprintf('%d articles mis à jour suite au renommage.', $renamedCount)
+                                : '1 article mis à jour suite au renommage.'); ?>
+                        <?php endif; ?>
+                    </p>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!empty($collisionLabels)) : ?>
+                <div class="notice notice-error is-dismissible">
+                    <p>
+                        <?php echo count($collisionLabels) > 1 ? 'Les libellés suivants existent déjà' : 'Le libellé suivant existe déjà'; ?>
+                        ou sont en double : <strong><?php echo esc_html(implode(', ', $collisionLabels)); ?></strong>.
+                        Chaque type doit porter un nom unique ; choisissez un autre intitulé.
+                    </p>
+                </div>
             <?php endif; ?>
 
             <?php if (!empty($blockedLabels)) : ?>
@@ -203,6 +269,7 @@ class VersionSettingsPage
                         <?php foreach ($labels as $index => $label) : ?>
                             <tr>
                                 <td>
+                                    <input type="hidden" name="schilo_version_types_orig[]" value="<?php echo esc_attr($label); ?>">
                                     <input type="text" class="regular-text" name="schilo_version_types[]" value="<?php echo esc_attr($label); ?>">
                                 </td>
                                 <td>
@@ -270,7 +337,8 @@ class VersionSettingsPage
 
             addBtn.addEventListener('click', function () {
                 var tr = document.createElement('tr');
-                tr.innerHTML = '<td><input type="text" class="regular-text" name="schilo_version_types[]" value=""></td>'
+                tr.innerHTML = '<td><input type="hidden" name="schilo_version_types_orig[]" value="">'
+                    + '<input type="text" class="regular-text" name="schilo_version_types[]" value=""></td>'
                     + '<td><button type="button" class="button schilo-version-type-remove">Retirer</button></td>';
                 rows.appendChild(tr);
             });

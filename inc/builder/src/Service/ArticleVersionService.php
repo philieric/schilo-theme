@@ -281,6 +281,41 @@ class ArticleVersionService
     }
 
     /**
+     * Renomme un type de version partout où il est affecté à un article :
+     * migre la meta META_LABEL de l'ancien libellé vers le nouveau sur tous
+     * les posts concernés. Permet de personnaliser un type déjà utilisé sans
+     * casser le lien avec les articles (voir VersionSettingsPage).
+     *
+     * Passe par update_post_meta() plutôt qu'un UPDATE SQL direct pour garder
+     * le cache de métas cohérent.
+     *
+     * @return int Nombre d'articles mis à jour.
+     */
+    public function renameLabel($oldLabel, $newLabel)
+    {
+        $old = trim((string) $oldLabel);
+        $new = trim(sanitize_text_field((string) $newLabel));
+        if ($old === '' || $new === '' || $old === $new) {
+            return 0;
+        }
+
+        global $wpdb;
+        $ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %s",
+            self::META_LABEL,
+            $old
+        ));
+
+        $n = 0;
+        foreach ($ids as $id) {
+            update_post_meta((int) $id, self::META_LABEL, $new);
+            $n++;
+        }
+
+        return $n;
+    }
+
+    /**
      * Ajoute un nouveau type de version à la liste disponible (si absent) et
      * retourne la liste à jour — utilisé par la popup "type déjà pris" de la
      * metabox pour créer un type à la volée sans quitter l'écran d'édition.
