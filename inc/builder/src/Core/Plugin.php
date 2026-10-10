@@ -321,6 +321,17 @@ class Plugin
         $relatedArticlesShortcode = new RelatedArticlesShortcode();
         $relatedArticlesShortcode->register();
 
+        // Signalement d'articles (repérage des articles mal migrés) : bouton
+        // front réservé aux admins + liste dans Schilo Builder > Signalements.
+        global $wpdb;
+        $reportRepository = new \Schilo\Builder\Repository\ArticleReportRepository($wpdb);
+        $reportService    = new \Schilo\Builder\Service\ArticleReportService($reportRepository);
+        add_action('init', array($reportRepository, 'maybeCreateTable'));
+        (new \Schilo\Builder\Front\ArticleReportButton($reportService))->register();
+        if (is_admin()) {
+            (new \Schilo\Builder\Admin\ArticleReportsPage($reportService))->register();
+        }
+
         // Lecteur à haute voix — intégré au thème
         add_action( 'wp_enqueue_scripts', function () {
             if ( is_singular( 'post' ) ) {

@@ -430,6 +430,11 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
             <i class="ti ti-bible" aria-hidden="true"></i> <?php echo esc_html( count( $evangile_items ) ); ?> livre<?php echo count( $evangile_items ) > 1 ? 's' : ''; ?>
           </span>
         <?php endif; ?>
+        <?php
+        // Point d'extension : bouton de signalement (admins uniquement),
+        // voir Schilo\Builder\Front\ArticleReportButton.
+        do_action( 'schilo_single_hero_badges', $post_id );
+        ?>
       </div>
 
     </div>
