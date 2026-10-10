@@ -384,6 +384,56 @@ body.schilo-definition-open { overflow: hidden; }
   color: rgba(255,255,255,.82);
 }
 
+/* Notes facultatives des signalements actifs : sur leur propre ligne, sous
+   les badges (le conteneur des badges est un flex qui passe à la ligne). */
+.schilo-report-notes {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+/* [hidden] doit l'emporter sur le display:flex ci-dessous (le JS pilote
+   l'affichage via la propriété hidden). */
+.schilo-report-note[hidden] { display: none; }
+
+.schilo-report-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  font-family: var(--schilo-font-sans);
+  font-size: 12px;
+  color: rgba(255,255,255,.82);
+}
+
+.schilo-report-note label { flex: 0 0 auto; }
+
+.schilo-report-note input {
+  flex: 1 1 16rem;
+  min-width: 0;
+  max-width: 32rem;
+  padding: .3rem .6rem;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 6px;
+  background: rgba(255,255,255,.95);
+  color: #1a2230;
+  font: inherit;
+}
+
+.schilo-report-note__save {
+  padding: .3rem .7rem;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 6px;
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.schilo-report-note__save:hover { background: rgba(255,255,255,.22); }
+.schilo-report-note__save[aria-busy="true"] { opacity: .6; cursor: progress; }
+
 /* ── Barre d'onglets ──────────────────────────────────────────────── */
 .schilo-single-tabnav {
   /* Sticky PERMANENT (et non active par JS une fois le hero sorti) : sur

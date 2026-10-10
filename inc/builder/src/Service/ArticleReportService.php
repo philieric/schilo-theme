@@ -10,7 +10,8 @@ use Schilo\Builder\Repository\ArticleReportRepository;
  * Signalement d'articles par les administrateurs. Deux types de problème,
  * indépendants l'un de l'autre (un même article peut porter les deux) :
  * versets (références/citations bibliques) et migration (contenu mal repris).
- * Chaque type est soit signalé, soit non — pas de motif libre.
+ * Chaque type est soit signalé, soit non, avec une note facultative qui
+ * précise le problème.
  */
 class ArticleReportService
 {
@@ -19,6 +20,9 @@ class ArticleReportService
 
     /** Ordre d'affichage des boutons et des filtres. */
     public const TYPES = array(self::TYPE_VERSES, self::TYPE_MIGRATION);
+
+    /** Longueur maximale d'une note (taille de la colonne en base). */
+    public const NOTE_MAX_LENGTH = 500;
 
     private ArticleReportRepository $repository;
 
@@ -44,22 +48,25 @@ class ArticleReportService
     }
 
     /**
-     * @return string[] Types actuellement signalés sur cet article.
+     * @return array<string, string> Signalements actifs de cet article :
+     *                               type => note ('' si aucune note).
      */
-    public function getReportedTypes(int $postId): array
+    public function getReports(int $postId): array
     {
         if ($postId <= 0) {
             return array();
         }
 
-        return array_values(array_filter(
-            $this->repository->findTypesForPost($postId),
-            array($this, 'isValidType')
-        ));
+        return array_filter(
+            $this->repository->findNotesForPost($postId),
+            array($this, 'isValidType'),
+            ARRAY_FILTER_USE_KEY
+        );
     }
 
     /**
-     * Bascule le signalement d'un type de problème sur un article.
+     * Bascule le signalement d'un type de problème sur un article. Retirer un
+     * signalement supprime aussi sa note.
      *
      * @return bool|null Nouvel état (true = signalé, false = signalement
      *                   retiré), ou null si l'article ou le type est invalide.
@@ -87,6 +94,25 @@ class ArticleReportService
         return true;
     }
 
+    /**
+     * Enregistre (ou vide) la note d'un signalement existant.
+     *
+     * @return string|null Note réellement enregistrée (nettoyée, tronquée à
+     *                     NOTE_MAX_LENGTH), ou null s'il n'y a pas de
+     *                     signalement de ce type sur cet article.
+     */
+    public function saveNote(int $postId, string $type, string $note): ?string
+    {
+        if ($postId <= 0 || !$this->isValidType($type) || !$this->repository->exists($postId, $type)) {
+            return null;
+        }
+
+        $note = mb_substr(trim($note), 0, self::NOTE_MAX_LENGTH, 'UTF-8');
+        $this->repository->updateNote($postId, $type, $note);
+
+        return $note;
+    }
+
     public function remove(int $postId, string $type): void
     {
         if ($postId > 0 && $this->isValidType($type)) {
@@ -95,7 +121,7 @@ class ArticleReportService
     }
 
     /**
-     * @return array<int, array{post_id:int, type:string, user_id:int, created_at:string}>
+     * @return array<int, array{post_id:int, type:string, note:string, user_id:int, created_at:string}>
      */
     public function getAll(): array
     {
