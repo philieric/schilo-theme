@@ -159,7 +159,20 @@ final class Schilo_Usx_Shortcodes {
 			'verse'         => $v_start,
 			'endVerse'      => $v_end,
 			'whole_chapter' => ! empty( $data['wholeChapter'] ),
+			'multi_chapter' => ! empty( $data['multiChapter'] ),
+			'ref_spec'      => (string) ( $data['refSpec'] ?? '' ),
+			// Versets déjà résolus (listes « 7,12 », plusieurs chapitres…) : les
+			// rendus les utilisent tels quels au lieu de re-interroger un intervalle.
+			'verses'        => is_array( $data['verses'] ?? null ) ? $data['verses'] : [],
 		];
+	}
+
+	/** Lit un champ d'un verset, qu'il soit un objet (wpdb) ou un tableau (normalisé). */
+	private static function verse_field( $verse, string $field, $default = '' ) {
+		if ( is_array( $verse ) ) {
+			return $verse[ $field ] ?? $default;
+		}
+		return $verse->$field ?? $default;
 	}
 
 	public static function render_bib_shortcode( $atts = [], $content = '', $tag = 'bib' ) {
@@ -176,8 +189,16 @@ final class Schilo_Usx_Shortcodes {
 			array_map( static fn ( $v ) => (int) $v->id, $verses )
 		);
 
-		$verses_html = '';
+		$verses_html  = '';
+		$last_chapter = null;
 		foreach ( $verses as $v ) {
+			// Référence sur plusieurs chapitres (« Matthieu 21-23 ») : intertitre
+			// à chaque changement de chapitre, sinon les numéros de versets
+			// repartent à 1 sans repère.
+			if ( ! empty( $multiChapter ) && (int) $v->chapter !== $last_chapter ) {
+				$last_chapter = (int) $v->chapter;
+				$verses_html .= '<div class="popup-chapter"><strong>' . esc_html( sprintf( __( 'Chapitre %d', 'schilo' ), $last_chapter ) ) . '</strong></div>';
+			}
 			$notes_html   = self::render_note_markers( $notes_by_verse[ (int) $v->id ] ?? [] );
 			$verses_html .= '<div class="popup-verse"><strong>' . intval( $v->verse ) . '.</strong> ' . esc_html( $v->verse_text ) . $notes_html . '</div>';
 		}
@@ -202,9 +223,7 @@ final class Schilo_Usx_Shortcodes {
 		$popup_content .= '</div>';
 		$popup_content .= '</div>';
 
-		$ref_text = ! empty( $wholeChapter )
-			? $bookTitle . ' ' . $chapter
-			: $bookTitle . ' ' . $chapter . '.' . $verseStart . ( $verseEnd > $verseStart ? '-' . $verseEnd : '' );
+		$ref_text = $bookTitle . ' ' . $refSpec;
 
 		$output  = '<span class="bible-ref" data-content="' . esc_attr( $popup_content ) . '" data-ref="' . esc_attr( $ref_text ) . '" data-version-code="' . esc_attr( $version->code ) . '" data-copyright="' . esc_attr( $copyright_text ) . '">';
 		$output .= esc_html( $ref_text );
@@ -221,16 +240,12 @@ final class Schilo_Usx_Shortcodes {
 			return $ref;
 		}
 
-		$verses = Schilo_Usx_Bible_Lookup::get_verses( (int) $ref['chapter_id'], (int) $ref['vStart'], (int) $ref['vEnd'] );
+		$verses = $ref['verses'];
 		if ( empty( $verses ) ) {
 			return '<div class="usx-bible-card usx-error">Aucun verset trouvé.</div>';
 		}
 
-		$start     = (int) ( $ref['vStart'] ?? $ref['verse'] ?? 0 );
-		$end       = (int) ( $ref['vEnd'] ?? $ref['endVerse'] ?? $start );
-		$reference = ! empty( $ref['whole_chapter'] )
-			? esc_html( $ref['book_name'] . ' ' . $ref['chapter'] )
-			: esc_html( $ref['book_name'] . ' ' . $ref['chapter'] . '.' . $start . ( $end && $end !== $start ? '-' . $end : '' ) );
+		$reference = esc_html( $ref['book_name'] . ' ' . $ref['ref_spec'] );
 
 		$html  = '<div class="usx-bvc">';
 		$html .= '<div class="usx-bvc-header">';
@@ -242,8 +257,13 @@ final class Schilo_Usx_Shortcodes {
 			array_map( static fn ( $v ) => (int) ( is_array( $v ) ? ( $v['id'] ?? 0 ) : ( $v->id ?? 0 ) ), $verses )
 		);
 
-		$html .= '<div class="usx-bvc-body">';
+		$html        .= '<div class="usx-bvc-body">';
+		$last_chapter = null;
 		foreach ( $verses as $v ) {
+			if ( ! empty( $ref['multi_chapter'] ) && (int) self::verse_field( $v, 'chapter', 0 ) !== $last_chapter ) {
+				$last_chapter = (int) self::verse_field( $v, 'chapter', 0 );
+				$html        .= '<p class="usx-bvc-chapter"><strong>' . esc_html( sprintf( __( 'Chapitre %d', 'schilo' ), $last_chapter ) ) . '</strong></p>';
+			}
 			$vid        = (int) ( is_array( $v ) ? ( $v['id'] ?? 0 ) : ( $v->id ?? 0 ) );
 			$notes_html = self::render_note_markers( $notes_by_verse[ $vid ] ?? [] );
 			$html      .= '<p class="usx-bvc-line">' . esc_html( is_array( $v ) ? ( $v['verse_text'] ?? $v['text'] ?? '' ) : ( $v->verse_text ?? $v->text ?? '' ) ) . $notes_html . '</p>';
@@ -267,16 +287,12 @@ final class Schilo_Usx_Shortcodes {
 			return $ref;
 		}
 
-		$verses = Schilo_Usx_Bible_Lookup::get_verses( (int) $ref['chapter_id'], (int) $ref['vStart'], (int) $ref['vEnd'] );
+		$verses = $ref['verses'];
 		if ( empty( $verses ) ) {
 			return '<div class="usx-bible-card usx-error">Aucun verset trouvé.</div>';
 		}
 
-		$start     = (int) ( $ref['vStart'] ?? $ref['verse'] ?? 0 );
-		$end       = (int) ( $ref['vEnd'] ?? $ref['endVerse'] ?? $start );
-		$reference = ! empty( $ref['whole_chapter'] )
-			? esc_html( $ref['book_name'] . ' ' . $ref['chapter'] )
-			: esc_html( $ref['book_name'] . ' ' . $ref['chapter'] . '.' . $start . ( $end && $end !== $start ? '-' . $end : '' ) );
+		$reference = esc_html( $ref['book_name'] . ' ' . $ref['ref_spec'] );
 
 		// Classe couleur RVBJM selon le livre
 		$gospel_map = [ 'MAT' => 'matthieu', 'MRK' => 'marc', 'LUK' => 'luc', 'JHN' => 'jean' ];

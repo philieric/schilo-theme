@@ -12,17 +12,32 @@ defined( 'ABSPATH' ) || exit;
 final class Schilo_Usx_Bible_Lookup {
 
 	/**
-	 * Parse "Livre Chapitre.Verset1[-Verset2]" -> [bookToken, chapter, v1, v2].
+	 * Séparateur d'intervalle : le trait d'union « - » ET les tirets/traits
+	 * typographiques fréquents dans le contenu issu de la migration — U+2010
+	 * (trait d'union), U+2011 (insécable, « Luc 2.21‑24 »), U+2012 (figure),
+	 * U+2013 (en-dash, « Marc 13.1–4 »), U+2014 (em-dash), U+2015 (barre),
+	 * U+2212 (signe moins).
+	 */
+	const DASH_CLASS = '[-\x{2010}-\x{2015}\x{2212}]';
+
+	/** Nombre maximal de chapitres entiers affichables d'un coup (« Livre 6-19 »). */
+	const MAX_CHAPTER_RANGE = 25;
+
+	/**
+	 * Parse une référence biblique -> [bookToken, chapter, verseStart, verseEnd, …].
 	 * Le verset est facultatif : "Livre Chapitre" (ex. « Daniel 1 ») cible le
 	 * chapitre entier et renvoie verseStart/verseEnd = null (le chapitre complet
 	 * est alors résolu par resolve_reference_data()).
 	 *
-	 * Le séparateur d'intervalle accepte le trait d'union « - » ET tous les
-	 * tirets/traits typographiques fréquents dans le contenu issu de la
-	 * migration : U+2010 (trait d'union), U+2011 (insécable, « Luc 2.21‑24 »),
-	 * U+2012 (figure), U+2013 (en-dash, « Marc 13.1–4 »), U+2014 (em-dash),
-	 * U+2015 (barre), U+2212 (signe moins) — sinon la référence tombait en
-	 * « Format attendu ».
+	 * Formes acceptées (clés supplémentaires du retour entre parenthèses) :
+	 *  - « Luc 1.5 », « Luc 1.1-4 »                     (segments = [[1,4]])
+	 *  - « Joël 1.7,12 », « Marc 11.12-14,20-25 »       (segments = plusieurs
+	 *    versets ou intervalles du MÊME chapitre, séparés par des virgules)
+	 *  - « Daniel 1 »                                   (chapitre entier)
+	 *  - « Matthieu 21-23 »                             (chapterEnd = 23 :
+	 *    intervalle de chapitres entiers)
+	 * verseStart/verseEnd restent renseignés (début du premier segment / fin
+	 * du dernier) pour les appelants qui ne connaissent qu'un intervalle.
 	 */
 	public static function parse_reference( string $content ): ?array {
 		$content = trim( strip_tags( $content ?? '' ) );
@@ -30,18 +45,45 @@ final class Schilo_Usx_Bible_Lookup {
 			return null;
 		}
 
-		if ( ! preg_match( '#^\s*(.+?)\s+(\d+)(?:\s*[:\.]\s*(\d+)(?:\s*[-\x{2010}-\x{2015}\x{2212}]\s*(\d+))?)?\s*$#u', $content, $m ) ) {
-			return null;
+		$dash    = self::DASH_CLASS;
+		$segment = '\d+(?:\s*' . $dash . '\s*\d+)?';
+
+		// 1) Livre Chapitre.Versets — un ou plusieurs segments séparés par des virgules.
+		if ( preg_match( '#^\s*(.+?)\s+(\d+)\s*[:\.]\s*(' . $segment . '(?:\s*,\s*' . $segment . ')*)\s*$#u', $content, $m ) ) {
+			$segments = [];
+			foreach ( preg_split( '#\s*,\s*#u', trim( $m[3] ) ) as $part ) {
+				$bounds = preg_split( '#\s*' . $dash . '\s*#u', $part );
+				$start  = (int) $bounds[0];
+				$end    = ( isset( $bounds[1] ) && $bounds[1] !== '' ) ? (int) $bounds[1] : $start;
+				$segments[] = [ $start, max( $start, $end ) ];
+			}
+
+			return [
+				'bookToken'  => trim( $m[1] ),
+				'chapter'    => (int) $m[2],
+				'chapterEnd' => null,
+				'verseStart' => $segments[0][0],
+				'verseEnd'   => $segments[ count( $segments ) - 1 ][1],
+				'segments'   => $segments,
+			];
 		}
 
-		$has_verse = isset( $m[3] ) && $m[3] !== '';
+		// 2) Livre Chapitre[-ChapitreFin] — chapitre(s) entier(s).
+		if ( preg_match( '#^\s*(.+?)\s+(\d+)(?:\s*' . $dash . '\s*(\d+))?\s*$#u', $content, $m ) ) {
+			$chapter     = (int) $m[2];
+			$chapter_end = ( isset( $m[3] ) && $m[3] !== '' ) ? (int) $m[3] : null;
 
-		return [
-			'bookToken'  => trim( $m[1] ),
-			'chapter'    => (int) $m[2],
-			'verseStart' => $has_verse ? (int) $m[3] : null,
-			'verseEnd'   => $has_verse ? ( ( isset( $m[4] ) && $m[4] !== '' ) ? (int) $m[4] : (int) $m[3] ) : null,
-		];
+			return [
+				'bookToken'  => trim( $m[1] ),
+				'chapter'    => $chapter,
+				'chapterEnd' => ( $chapter_end !== null && $chapter_end > $chapter ) ? $chapter_end : null,
+				'verseStart' => null,
+				'verseEnd'   => null,
+				'segments'   => [],
+			];
+		}
+
+		return null;
 	}
 
 	/** Version par défaut (fallback : plus ancien id) */
@@ -292,20 +334,24 @@ final class Schilo_Usx_Bible_Lookup {
 	/**
 	 * Récupère toutes les données bibliques à partir d'un contenu comme
 	 * "Luc 1.1-4". Retourne un tableau associatif avec : 'version', 'book',
-	 * 'chapterRow', 'verses', 'reference', 'copyright', 'bookTitle',
-	 * 'chapter', 'verseStart', 'verseEnd'.
+	 * 'chapterRow' (premier chapitre), 'verses' (chaque verset porte ->chapter),
+	 * 'reference', 'copyright', 'bookTitle', 'chapter', 'verseStart',
+	 * 'verseEnd', 'wholeChapter', 'chapterEnd', 'multiChapter', 'segments' et
+	 * 'refSpec' (la partie « 1.7,12 » / « 21-23 » normalisée, pour les libellés).
 	 * En cas d'erreur : ['error' => '<div class="usx-error">...</div>']
 	 */
 	public static function resolve_reference_data( string $content ): array {
 		$content = trim( strip_tags( $content ?? '' ) );
 		$parsed  = self::parse_reference( $content ?? '' );
 		if ( ! $parsed ) {
-			return [ 'error' => '<div class="usx-error">Format attendu : Livre Chapitre.Verset ou Livre Chapitre.Verset1-Verset2 (ex. « Ge 4.1-10 »).</div>' ];
+			return [ 'error' => '<div class="usx-error">Format attendu : Livre Chapitre, Livre Chapitre.Verset, Livre Chapitre.Verset1-Verset2 ou une liste « 7,12 » (ex. « Ge 4.1-10 »).</div>' ];
 		}
 
 		$book_token    = $parsed['bookToken'];
 		$chapter       = (int) $parsed['chapter'];
-		$whole_chapter = ( $parsed['verseStart'] === null );
+		$chapter_end   = $parsed['chapterEnd'] !== null ? (int) $parsed['chapterEnd'] : null;
+		$segments      = $parsed['segments'];
+		$whole_chapter = empty( $segments );
 		$verse_start   = (int) $parsed['verseStart'];
 		$verse_end     = (int) $parsed['verseEnd'];
 
@@ -328,32 +374,55 @@ final class Schilo_Usx_Bible_Lookup {
 			return [ 'error' => '<div class="usx-error">Chapitre introuvable : ' . intval( $chapter ) . '</div>' ];
 		}
 
+		// Chaque verset porte son numéro de chapitre ($v->chapter) : nécessaire à
+		// l'affichage dès que la référence couvre plusieurs chapitres.
+		$verses = [];
+
 		if ( $whole_chapter ) {
-			$verses = self::get_chapter_verses( (int) $chapter_row->id );
+			$last_chapter = $chapter_end ?? $chapter;
+			if ( $last_chapter - $chapter + 1 > self::MAX_CHAPTER_RANGE ) {
+				return [ 'error' => '<div class="usx-error">Intervalle de chapitres trop large : ' . intval( $chapter ) . '-' . intval( $last_chapter ) . ' (maximum ' . self::MAX_CHAPTER_RANGE . ' chapitres).</div>' ];
+			}
+
+			for ( $c = $chapter; $c <= $last_chapter; $c++ ) {
+				$row = ( $c === $chapter ) ? $chapter_row : self::get_chapter_row( (int) $book->id, $c );
+				if ( ! $row ) {
+					return [ 'error' => '<div class="usx-error">Chapitre introuvable : ' . intval( $c ) . '</div>' ];
+				}
+				foreach ( (array) self::get_chapter_verses( (int) $row->id ) as $v ) {
+					$v->chapter = $c;
+					$verses[]   = $v;
+				}
+			}
 			if ( ! $verses ) {
 				return [ 'error' => '<div class="usx-error">Chapitre vide : ' . intval( $chapter ) . '</div>' ];
 			}
-			// Bornes réelles du chapitre (premier / dernier verset présents).
+			// Bornes réelles (premier verset du premier chapitre / dernier du dernier).
 			$verse_start = (int) $verses[0]->verse;
 			$verse_end   = (int) $verses[ count( $verses ) - 1 ]->verse;
+			$ref_spec    = $chapter_end !== null ? $chapter . '-' . $chapter_end : (string) $chapter;
 		} else {
-			$verses = self::get_verses( (int) $chapter_row->id, $verse_start, $verse_end );
+			$seen  = [];
+			$parts = [];
+			foreach ( $segments as $seg ) {
+				$parts[] = $seg[1] > $seg[0] ? $seg[0] . '-' . $seg[1] : (string) $seg[0];
+				foreach ( (array) self::get_verses( (int) $chapter_row->id, (int) $seg[0], (int) $seg[1] ) as $v ) {
+					if ( isset( $seen[ (int) $v->id ] ) ) {
+						continue; // segments qui se chevauchent : pas de doublon
+					}
+					$seen[ (int) $v->id ] = true;
+					$v->chapter           = $chapter;
+					$verses[]             = $v;
+				}
+			}
+			$ref_spec = $chapter . '.' . implode( ',', $parts );
 			if ( ! $verses ) {
-				return [ 'error' => '<div class="usx-error">Verset(s) introuvable(s) : ' . intval( $verse_start ) . ( $verse_end > $verse_start ? '-' . intval( $verse_end ) : '' ) . '</div>' ];
+				return [ 'error' => '<div class="usx-error">Verset(s) introuvable(s) : ' . esc_html( implode( ',', $parts ) ) . '</div>' ];
 			}
 		}
 
-		$book_title = self::deaccent_uppercase_only( $book->title ?: $book->code );
-		$reference  = $whole_chapter
-			? sprintf( '%s %d – %s', $book_title, $chapter, $version->name )
-			: sprintf(
-				'%s %d.%d%s – %s',
-				$book_title,
-				$chapter,
-				$verse_start,
-				( $verse_end > $verse_start ? '-' . $verse_end : '' ),
-				$version->name
-			);
+		$book_title     = self::deaccent_uppercase_only( $book->title ?: $book->code );
+		$reference      = sprintf( '%s %s – %s', $book_title, $ref_spec, $version->name );
 		$copyright_text = self::get_version_copyright( (int) $version->id );
 
 		return [
@@ -368,6 +437,10 @@ final class Schilo_Usx_Bible_Lookup {
 			'verseStart'   => $verse_start,
 			'verseEnd'     => $verse_end,
 			'wholeChapter' => $whole_chapter,
+			'chapterEnd'   => $chapter_end,
+			'multiChapter' => $chapter_end !== null,
+			'segments'     => $segments,
+			'refSpec'      => $ref_spec,
 		];
 	}
 }
