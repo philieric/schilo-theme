@@ -7,13 +7,13 @@ namespace Schilo\Builder\Repository;
 /**
  * Accès à la table des signalements d'articles ({prefix}schilo_signalements) :
  * une ligne par couple article + type de problème (unique), avec l'auteur, la
- * date du signalement et une note facultative — voir
+ * date du signalement, une note facultative et un statut de suivi — voir
  * Schilo\Builder\Service\ArticleReportService pour les règles métier et la
  * liste des types.
  */
 class ArticleReportRepository
 {
-    public const DB_VERSION        = '1.2.0';
+    public const DB_VERSION        = '1.3.0';
     public const DB_VERSION_OPTION = 'schilo_signalements_db_version';
 
     /** @var \wpdb */
@@ -59,12 +59,14 @@ class ArticleReportRepository
 
         $charset = $this->wpdb->get_charset_collate();
 
-        // 1.2.0 : colonne note (ajoutée par dbDelta aux tables existantes).
+        // 1.2.0 : colonne note ; 1.3.0 : colonne status (ajoutées par dbDelta
+        // aux tables existantes — les signalements déjà posés restent 'ouvert').
         dbDelta("CREATE TABLE {$this->table} (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             post_id BIGINT UNSIGNED NOT NULL,
             report_type VARCHAR(20) NOT NULL DEFAULT 'migration',
             note VARCHAR(500) NOT NULL DEFAULT '',
+            status VARCHAR(20) NOT NULL DEFAULT 'ouvert',
             user_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
             created_at DATETIME NOT NULL,
             PRIMARY KEY  (id),
@@ -88,26 +90,29 @@ class ArticleReportRepository
     }
 
     /**
-     * @return array<string, string> Signalements de cet article : type => note ('' si aucune).
+     * @return array<string, array{note:string, status:string}> Signalements de cet article, par type.
      */
-    public function findNotesForPost(int $postId): array
+    public function findForPost(int $postId): array
     {
         $rows = $this->wpdb->get_results(
-            $this->wpdb->prepare("SELECT report_type, note FROM {$this->table} WHERE post_id = %d", $postId),
+            $this->wpdb->prepare("SELECT report_type, note, status FROM {$this->table} WHERE post_id = %d", $postId),
             ARRAY_A
         );
 
-        $notes = array();
+        $reports = array();
         foreach ((array) $rows as $row) {
-            $notes[(string) $row['report_type']] = (string) $row['note'];
+            $reports[(string) $row['report_type']] = array(
+                'note'   => (string) $row['note'],
+                'status' => (string) $row['status'],
+            );
         }
 
-        return $notes;
+        return $reports;
     }
 
     /**
-     * Idempotent : un signalement déjà présent garde son auteur, sa date et
-     * sa note d'origine (le couple post_id + report_type est unique).
+     * Idempotent : un signalement déjà présent garde son auteur, sa date, sa
+     * note et son statut d'origine (le couple post_id + report_type est unique).
      */
     public function save(int $postId, string $type, int $userId, string $createdAt): bool
     {
@@ -138,6 +143,19 @@ class ArticleReportRepository
         return $result !== false;
     }
 
+    public function updateStatus(int $postId, string $type, string $status): bool
+    {
+        $result = $this->wpdb->update(
+            $this->table,
+            array('status' => $status),
+            array('post_id' => $postId, 'report_type' => $type),
+            array('%s'),
+            array('%d', '%s')
+        );
+
+        return $result !== false;
+    }
+
     public function delete(int $postId, string $type): bool
     {
         $result = $this->wpdb->delete(
@@ -150,12 +168,12 @@ class ArticleReportRepository
     }
 
     /**
-     * @return array<int, array{post_id:int, type:string, note:string, user_id:int, created_at:string}> Du plus récent au plus ancien.
+     * @return array<int, array{post_id:int, type:string, note:string, status:string, user_id:int, created_at:string}> Du plus récent au plus ancien.
      */
     public function findAll(): array
     {
         $rows = $this->wpdb->get_results(
-            "SELECT post_id, report_type, note, user_id, created_at FROM {$this->table} ORDER BY created_at DESC, id DESC",
+            "SELECT post_id, report_type, note, status, user_id, created_at FROM {$this->table} ORDER BY created_at DESC, id DESC",
             ARRAY_A
         );
 
@@ -164,6 +182,7 @@ class ArticleReportRepository
                 'post_id'    => (int) $row['post_id'],
                 'type'       => (string) $row['report_type'],
                 'note'       => (string) $row['note'],
+                'status'     => (string) $row['status'],
                 'user_id'    => (int) $row['user_id'],
                 'created_at' => (string) $row['created_at'],
             );

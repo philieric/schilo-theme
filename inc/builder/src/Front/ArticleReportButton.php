@@ -9,7 +9,8 @@ use Schilo\Builder\Service\ArticleReportService;
 /**
  * Boutons de signalement affichés dans le hero d'un article (un par type de
  * problème : versets, migration) et champ de note facultative pour chaque
- * signalement actif, uniquement pour les administrateurs connectés — les
+ * signalement actif (le bouton rappelle quand la correction attend d'être
+ * vérifiée), uniquement pour les administrateurs connectés — les
  * autres visiteurs ne reçoivent ni les boutons, ni le script, ni les
  * endpoints AJAX.
  */
@@ -63,9 +64,10 @@ class ArticleReportButton
     }
 
     /**
-     * Libellés d'un type : bouton à signaler, bouton déjà signalé, champ note.
+     * Libellés d'un type : bouton à signaler, bouton déjà signalé, champ
+     * note, bouton d'un signalement corrigé en attente de vérification.
      *
-     * @return array{0:string, 1:string, 2:string}
+     * @return array{0:string, 1:string, 2:string, 3:string}
      */
     private function labels(string $type): array
     {
@@ -74,6 +76,7 @@ class ArticleReportButton
                 __('Signaler : versets', 'schilo'),
                 __('Versets signalés — retirer', 'schilo'),
                 __('Note versets (facultative)', 'schilo'),
+                __('Versets corrigés, à vérifier — retirer', 'schilo'),
             );
         }
 
@@ -81,6 +84,7 @@ class ArticleReportButton
             __('Signaler : migration', 'schilo'),
             __('Migration signalée — retirer', 'schilo'),
             __('Note migration (facultative)', 'schilo'),
+            __('Migration corrigée, à vérifier — retirer', 'schilo'),
         );
     }
 
@@ -98,8 +102,10 @@ class ArticleReportButton
         $reports = $this->service->getReports($postId);
 
         foreach (ArticleReportService::TYPES as $type) {
-            list($labelReport, $labelReported) = $this->labels($type);
+            list($labelReport, $labelReported, , $labelFixed) = $this->labels($type);
             $reported = array_key_exists($type, $reports);
+            $fixed    = $reported && $reports[$type]['status'] === ArticleReportService::STATUS_FIXED;
+            $label    = $fixed ? $labelFixed : ($reported ? $labelReported : $labelReport);
             ?>
             <button type="button"
                     class="schilo-hero-badge schilo-report-btn<?php echo $reported ? ' is-reported' : ''; ?>"
@@ -109,7 +115,7 @@ class ArticleReportButton
                     data-label-report="<?php echo esc_attr($labelReport); ?>"
                     data-label-reported="<?php echo esc_attr($labelReported); ?>">
                 <i class="ti ti-flag" aria-hidden="true"></i>
-                <span data-schilo-report-label><?php echo esc_html($reported ? $labelReported : $labelReport); ?></span>
+                <span data-schilo-report-label><?php echo esc_html($label); ?></span>
             </button>
             <?php
         }
@@ -129,7 +135,7 @@ class ArticleReportButton
                     <input type="text"
                            id="<?php echo esc_attr($inputId); ?>"
                            maxlength="<?php echo esc_attr((string) ArticleReportService::NOTE_MAX_LENGTH); ?>"
-                           value="<?php echo esc_attr($reported ? $reports[$type] : ''); ?>"
+                           value="<?php echo esc_attr($reported ? $reports[$type]['note'] : ''); ?>"
                            autocomplete="off">
                     <button type="button" class="schilo-report-note__save" data-schilo-report-note-save>
                         <?php esc_html_e('Enregistrer la note', 'schilo'); ?>
