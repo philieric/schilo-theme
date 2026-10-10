@@ -148,16 +148,17 @@ final class Schilo_Usx_Shortcodes {
 		}
 
 		return [
-			'version_id'   => $version_id,
-			'version_code' => $version_code,
-			'book_code'    => $book_code,
-			'book_name'    => $book_name,
-			'chapter_id'   => $chapter_id,
-			'chapter'      => $chapter,
-			'vStart'       => $v_start,
-			'vEnd'         => $v_end,
-			'verse'        => $v_start,
-			'endVerse'     => $v_end,
+			'version_id'    => $version_id,
+			'version_code'  => $version_code,
+			'book_code'     => $book_code,
+			'book_name'     => $book_name,
+			'chapter_id'    => $chapter_id,
+			'chapter'       => $chapter,
+			'vStart'        => $v_start,
+			'vEnd'          => $v_end,
+			'verse'         => $v_start,
+			'endVerse'      => $v_end,
+			'whole_chapter' => ! empty( $data['wholeChapter'] ),
 		];
 	}
 
@@ -201,7 +202,9 @@ final class Schilo_Usx_Shortcodes {
 		$popup_content .= '</div>';
 		$popup_content .= '</div>';
 
-		$ref_text = $bookTitle . ' ' . $chapter . '.' . $verseStart . ( $verseEnd > $verseStart ? '-' . $verseEnd : '' );
+		$ref_text = ! empty( $wholeChapter )
+			? $bookTitle . ' ' . $chapter
+			: $bookTitle . ' ' . $chapter . '.' . $verseStart . ( $verseEnd > $verseStart ? '-' . $verseEnd : '' );
 
 		$output  = '<span class="bible-ref" data-content="' . esc_attr( $popup_content ) . '" data-ref="' . esc_attr( $ref_text ) . '" data-version-code="' . esc_attr( $version->code ) . '" data-copyright="' . esc_attr( $copyright_text ) . '">';
 		$output .= esc_html( $ref_text );
@@ -225,7 +228,9 @@ final class Schilo_Usx_Shortcodes {
 
 		$start     = (int) ( $ref['vStart'] ?? $ref['verse'] ?? 0 );
 		$end       = (int) ( $ref['vEnd'] ?? $ref['endVerse'] ?? $start );
-		$reference = esc_html( $ref['book_name'] . ' ' . $ref['chapter'] . '.' . $start . ( $end && $end !== $start ? '-' . $end : '' ) );
+		$reference = ! empty( $ref['whole_chapter'] )
+			? esc_html( $ref['book_name'] . ' ' . $ref['chapter'] )
+			: esc_html( $ref['book_name'] . ' ' . $ref['chapter'] . '.' . $start . ( $end && $end !== $start ? '-' . $end : '' ) );
 
 		$html  = '<div class="usx-bvc">';
 		$html .= '<div class="usx-bvc-header">';
@@ -269,7 +274,9 @@ final class Schilo_Usx_Shortcodes {
 
 		$start     = (int) ( $ref['vStart'] ?? $ref['verse'] ?? 0 );
 		$end       = (int) ( $ref['vEnd'] ?? $ref['endVerse'] ?? $start );
-		$reference = esc_html( $ref['book_name'] . ' ' . $ref['chapter'] . '.' . $start . ( $end && $end !== $start ? '-' . $end : '' ) );
+		$reference = ! empty( $ref['whole_chapter'] )
+			? esc_html( $ref['book_name'] . ' ' . $ref['chapter'] )
+			: esc_html( $ref['book_name'] . ' ' . $ref['chapter'] . '.' . $start . ( $end && $end !== $start ? '-' . $end : '' ) );
 
 		// Classe couleur RVBJM selon le livre
 		$gospel_map = [ 'MAT' => 'matthieu', 'MRK' => 'marc', 'LUK' => 'luc', 'JHN' => 'jean' ];

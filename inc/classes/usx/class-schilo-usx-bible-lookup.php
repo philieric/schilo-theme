@@ -11,22 +11,29 @@ defined( 'ABSPATH' ) || exit;
 
 final class Schilo_Usx_Bible_Lookup {
 
-	/** Parse "Livre Chapitre.Verset1[-Verset2]" -> [bookToken, chapter, v1, v2] */
+	/**
+	 * Parse "Livre Chapitre.Verset1[-Verset2]" -> [bookToken, chapter, v1, v2].
+	 * Le verset est facultatif : "Livre Chapitre" (ex. « Daniel 1 ») cible le
+	 * chapitre entier et renvoie verseStart/verseEnd = null (le chapitre complet
+	 * est alors résolu par resolve_reference_data()).
+	 */
 	public static function parse_reference( string $content ): ?array {
 		$content = trim( strip_tags( $content ?? '' ) );
 		if ( $content === '' ) {
 			return null;
 		}
 
-		if ( ! preg_match( '#^\s*(.+?)\s+(\d+)\s*[:\.]\s*(\d+)(?:\s*-\s*(\d+))?\s*$#u', $content, $m ) ) {
+		if ( ! preg_match( '#^\s*(.+?)\s+(\d+)(?:\s*[:\.]\s*(\d+)(?:\s*-\s*(\d+))?)?\s*$#u', $content, $m ) ) {
 			return null;
 		}
+
+		$has_verse = isset( $m[3] ) && $m[3] !== '';
 
 		return [
 			'bookToken'  => trim( $m[1] ),
 			'chapter'    => (int) $m[2],
-			'verseStart' => (int) $m[3],
-			'verseEnd'   => isset( $m[4] ) ? (int) $m[4] : (int) $m[3],
+			'verseStart' => $has_verse ? (int) $m[3] : null,
+			'verseEnd'   => $has_verse ? ( ( isset( $m[4] ) && $m[4] !== '' ) ? (int) $m[4] : (int) $m[3] ) : null,
 		];
 	}
 
@@ -68,6 +75,19 @@ final class Schilo_Usx_Bible_Lookup {
 				"SELECT * FROM $t WHERE book_id = %d AND number = %d LIMIT 1",
 				$book_id,
 				$chapter
+			)
+		);
+	}
+
+	/** Récupère tous les versets d'un chapitre (objets -> id, verse, verse_text) */
+	public static function get_chapter_verses( int $chapter_id ) {
+		global $wpdb;
+		$t = $wpdb->prefix . 'usx_verses';
+
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, verse, verse_text FROM $t WHERE chapter_id = %d ORDER BY verse ASC",
+				$chapter_id
 			)
 		);
 	}
@@ -276,10 +296,11 @@ final class Schilo_Usx_Bible_Lookup {
 			return [ 'error' => '<div class="usx-error">Format attendu : Livre Chapitre.Verset ou Livre Chapitre.Verset1-Verset2 (ex. « Ge 4.1-10 »).</div>' ];
 		}
 
-		$book_token  = $parsed['bookToken'];
-		$chapter     = (int) $parsed['chapter'];
-		$verse_start = (int) $parsed['verseStart'];
-		$verse_end   = (int) $parsed['verseEnd'];
+		$book_token    = $parsed['bookToken'];
+		$chapter       = (int) $parsed['chapter'];
+		$whole_chapter = ( $parsed['verseStart'] === null );
+		$verse_start   = (int) $parsed['verseStart'];
+		$verse_end     = (int) $parsed['verseEnd'];
 
 		$forced_code = isset( $_GET['usx_version'] ) ? (string) $_GET['usx_version'] : '';
 		$version     = self::get_version_by_code( $forced_code );
@@ -300,33 +321,46 @@ final class Schilo_Usx_Bible_Lookup {
 			return [ 'error' => '<div class="usx-error">Chapitre introuvable : ' . intval( $chapter ) . '</div>' ];
 		}
 
-		$verses = self::get_verses( (int) $chapter_row->id, $verse_start, $verse_end );
-		if ( ! $verses ) {
-			return [ 'error' => '<div class="usx-error">Verset(s) introuvable(s) : ' . intval( $verse_start ) . ( $verse_end > $verse_start ? '-' . intval( $verse_end ) : '' ) . '</div>' ];
+		if ( $whole_chapter ) {
+			$verses = self::get_chapter_verses( (int) $chapter_row->id );
+			if ( ! $verses ) {
+				return [ 'error' => '<div class="usx-error">Chapitre vide : ' . intval( $chapter ) . '</div>' ];
+			}
+			// Bornes réelles du chapitre (premier / dernier verset présents).
+			$verse_start = (int) $verses[0]->verse;
+			$verse_end   = (int) $verses[ count( $verses ) - 1 ]->verse;
+		} else {
+			$verses = self::get_verses( (int) $chapter_row->id, $verse_start, $verse_end );
+			if ( ! $verses ) {
+				return [ 'error' => '<div class="usx-error">Verset(s) introuvable(s) : ' . intval( $verse_start ) . ( $verse_end > $verse_start ? '-' . intval( $verse_end ) : '' ) . '</div>' ];
+			}
 		}
 
 		$book_title = self::deaccent_uppercase_only( $book->title ?: $book->code );
-		$reference  = sprintf(
-			'%s %d.%d%s – %s',
-			$book_title,
-			$chapter,
-			$verse_start,
-			( $verse_end > $verse_start ? '-' . $verse_end : '' ),
-			$version->name
-		);
+		$reference  = $whole_chapter
+			? sprintf( '%s %d – %s', $book_title, $chapter, $version->name )
+			: sprintf(
+				'%s %d.%d%s – %s',
+				$book_title,
+				$chapter,
+				$verse_start,
+				( $verse_end > $verse_start ? '-' . $verse_end : '' ),
+				$version->name
+			);
 		$copyright_text = self::get_version_copyright( (int) $version->id );
 
 		return [
-			'version'    => $version,
-			'book'       => $book,
-			'chapterRow' => $chapter_row,
-			'verses'     => $verses,
-			'reference'  => $reference,
-			'copyright'  => $copyright_text,
-			'bookTitle'  => $book_title,
-			'chapter'    => $chapter,
-			'verseStart' => $verse_start,
-			'verseEnd'   => $verse_end,
+			'version'      => $version,
+			'book'         => $book,
+			'chapterRow'   => $chapter_row,
+			'verses'       => $verses,
+			'reference'    => $reference,
+			'copyright'    => $copyright_text,
+			'bookTitle'    => $book_title,
+			'chapter'      => $chapter,
+			'verseStart'   => $verse_start,
+			'verseEnd'     => $verse_end,
+			'wholeChapter' => $whole_chapter,
 		];
 	}
 }
