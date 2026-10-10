@@ -31,6 +31,21 @@ final class ArticleReportServiceTest extends TestCase
         });
     }
 
+    /**
+     * @return array{post_id:int, type:string, note:string, status:string, user_id:int, created_at:string}
+     */
+    private function row(int $postId, string $type, string $note, string $status = 'ouvert'): array
+    {
+        return array(
+            'post_id'    => $postId,
+            'type'       => $type,
+            'note'       => $note,
+            'status'     => $status,
+            'user_id'    => 7,
+            'created_at' => '2026-10-10 12:00:00',
+        );
+    }
+
     public function testToggleReportsAProblemThatWasNotReported(): void
     {
         $this->givenPost('post');
@@ -89,18 +104,36 @@ final class ArticleReportServiceTest extends TestCase
 
     public function testGetReportsIgnoresTypesThatNoLongerExist(): void
     {
-        $this->repository->shouldReceive('findNotesForPost')->with(42)->andReturn(
-            array('migration' => 'tableau cassé', 'ancien-type' => 'x')
-        );
+        $this->repository->shouldReceive('findForPost')->with(42)->andReturn(array(
+            'migration'   => array('note' => 'tableau cassé', 'status' => 'corrige'),
+            'ancien-type' => array('note' => 'x', 'status' => 'ouvert'),
+        ));
 
         $service = new ArticleReportService($this->repository);
 
-        self::assertSame(array('migration' => 'tableau cassé'), $service->getReports(42));
+        self::assertSame(
+            array('migration' => array('note' => 'tableau cassé', 'status' => 'corrige')),
+            $service->getReports(42)
+        );
+    }
+
+    public function testGetReportsTreatsAnUnknownStatusAsOpen(): void
+    {
+        $this->repository->shouldReceive('findForPost')->with(42)->andReturn(array(
+            'versets' => array('note' => '', 'status' => 'statut-inconnu'),
+        ));
+
+        $service = new ArticleReportService($this->repository);
+
+        self::assertSame(
+            array('versets' => array('note' => '', 'status' => ArticleReportService::STATUS_OPEN)),
+            $service->getReports(42)
+        );
     }
 
     public function testGetReportsNeverQueriesForAnInvalidId(): void
     {
-        $this->repository->shouldNotReceive('findNotesForPost');
+        $this->repository->shouldNotReceive('findForPost');
 
         $service = new ArticleReportService($this->repository);
 
@@ -109,26 +142,101 @@ final class ArticleReportServiceTest extends TestCase
 
     public function testGetAllByPostGroupsReportsAndKeepsTheTypeOrder(): void
     {
-        $row = static function (int $postId, string $type, string $note): array {
-            return array('post_id' => $postId, 'type' => $type, 'note' => $note, 'user_id' => 7, 'created_at' => '2026-10-10 12:00:00');
-        };
-
         $this->repository->shouldReceive('findAll')->once()->andReturn(array(
-            $row(42, 'migration', 'tableau cassé'),
-            $row(42, 'versets', ''),
-            $row(43, 'ancien-type', 'ignoré'),
-            $row(44, 'versets', 'Luc 1.5'),
+            $this->row(42, 'migration', 'tableau cassé', 'corrige'),
+            $this->row(42, 'versets', ''),
+            $this->row(43, 'ancien-type', 'ignoré'),
+            $this->row(44, 'versets', 'Luc 1.5', 'statut-inconnu'),
         ));
 
         $service = new ArticleReportService($this->repository);
 
         self::assertSame(
             array(
-                42 => array('versets' => '', 'migration' => 'tableau cassé'),
-                44 => array('versets' => 'Luc 1.5'),
+                42 => array(
+                    'versets'   => array('note' => '', 'status' => 'ouvert'),
+                    'migration' => array('note' => 'tableau cassé', 'status' => 'corrige'),
+                ),
+                44 => array('versets' => array('note' => 'Luc 1.5', 'status' => 'ouvert')),
             ),
             $service->getAllByPost()
         );
+    }
+
+    public function testGetAllKeepsEveryRowAndNormalizesItsStatus(): void
+    {
+        $this->repository->shouldReceive('findAll')->once()->andReturn(array(
+            $this->row(42, 'migration', '', 'corrige'),
+            $this->row(44, 'versets', '', 'statut-inconnu'),
+        ));
+
+        $service = new ArticleReportService($this->repository);
+
+        self::assertSame(array('corrige', 'ouvert'), array_column($service->getAll(), 'status'));
+    }
+
+    public function testSetStatusMarksAnExistingReportAsFixedWithoutRemovingIt(): void
+    {
+        $this->repository->shouldReceive('exists')->with(42, 'migration')->andReturn(true);
+        $this->repository->shouldReceive('updateStatus')->once()->with(42, 'migration', 'corrige')->andReturn(true);
+        $this->repository->shouldNotReceive('delete');
+
+        $service = new ArticleReportService($this->repository);
+
+        self::assertTrue($service->setStatus(42, ArticleReportService::TYPE_MIGRATION, ArticleReportService::STATUS_FIXED));
+    }
+
+    public function testSetStatusCanReopenAFixedReport(): void
+    {
+        $this->repository->shouldReceive('exists')->with(42, 'versets')->andReturn(true);
+        $this->repository->shouldReceive('updateStatus')->once()->with(42, 'versets', 'ouvert')->andReturn(true);
+
+        $service = new ArticleReportService($this->repository);
+
+        self::assertTrue($service->setStatus(42, ArticleReportService::TYPE_VERSES, ArticleReportService::STATUS_OPEN));
+    }
+
+    public function testSetStatusRefusesAnUnknownStatusOrType(): void
+    {
+        $this->repository->shouldNotReceive('exists');
+        $this->repository->shouldNotReceive('updateStatus');
+
+        $service = new ArticleReportService($this->repository);
+
+        self::assertFalse($service->setStatus(42, 'versets', 'verifie'));
+        self::assertFalse($service->setStatus(42, 'autre', 'corrige'));
+        self::assertFalse($service->setStatus(0, 'versets', 'corrige'));
+    }
+
+    public function testSetStatusRefusesWhenThereIsNoReportOfThatType(): void
+    {
+        $this->repository->shouldReceive('exists')->with(42, 'versets')->andReturn(false);
+        $this->repository->shouldNotReceive('updateStatus');
+
+        $service = new ArticleReportService($this->repository);
+
+        self::assertFalse($service->setStatus(42, 'versets', 'corrige'));
+    }
+
+    public function testSetStatusReportsADatabaseFailure(): void
+    {
+        $this->repository->shouldReceive('exists')->andReturn(true);
+        $this->repository->shouldReceive('updateStatus')->once()->andReturn(false);
+
+        $service = new ArticleReportService($this->repository);
+
+        self::assertFalse($service->setStatus(42, 'versets', 'corrige'));
+    }
+
+    public function testEveryStatusHasALabel(): void
+    {
+        Functions\when('__')->returnArg();
+
+        $service = new ArticleReportService($this->repository);
+
+        self::assertSame(ArticleReportService::STATUSES, array_keys($service->getStatusLabels()));
+        self::assertTrue($service->isValidStatus('corrige'));
+        self::assertFalse($service->isValidStatus('verifie'));
     }
 
     public function testSaveNoteTrimsAndStoresTheNoteOfAnExistingReport(): void
