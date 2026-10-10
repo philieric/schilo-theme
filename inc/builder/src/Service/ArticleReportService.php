@@ -113,6 +113,34 @@ class ArticleReportService
         return $note;
     }
 
+    /**
+     * Tous les signalements actifs, regroupés par article — pour afficher
+     * une liste d'articles sans faire une requête par ligne.
+     *
+     * @return array<int, array<string, string>> post_id => [type => note],
+     *                                           types dans l'ordre de TYPES.
+     */
+    public function getAllByPost(): array
+    {
+        $byPost = array();
+
+        foreach ($this->repository->findAll() as $row) {
+            if ($this->isValidType($row['type'])) {
+                $byPost[$row['post_id']][$row['type']] = $row['note'];
+            }
+        }
+
+        $order = array_flip(self::TYPES);
+        foreach ($byPost as $postId => $reports) {
+            uksort($reports, static function (string $a, string $b) use ($order): int {
+                return $order[$a] <=> $order[$b];
+            });
+            $byPost[$postId] = $reports;
+        }
+
+        return $byPost;
+    }
+
     public function remove(int $postId, string $type): void
     {
         if ($postId > 0 && $this->isValidType($type)) {

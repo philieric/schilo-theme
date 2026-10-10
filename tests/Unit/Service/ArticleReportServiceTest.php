@@ -107,6 +107,30 @@ final class ArticleReportServiceTest extends TestCase
         self::assertSame(array(), $service->getReports(0));
     }
 
+    public function testGetAllByPostGroupsReportsAndKeepsTheTypeOrder(): void
+    {
+        $row = static function (int $postId, string $type, string $note): array {
+            return array('post_id' => $postId, 'type' => $type, 'note' => $note, 'user_id' => 7, 'created_at' => '2026-10-10 12:00:00');
+        };
+
+        $this->repository->shouldReceive('findAll')->once()->andReturn(array(
+            $row(42, 'migration', 'tableau cassé'),
+            $row(42, 'versets', ''),
+            $row(43, 'ancien-type', 'ignoré'),
+            $row(44, 'versets', 'Luc 1.5'),
+        ));
+
+        $service = new ArticleReportService($this->repository);
+
+        self::assertSame(
+            array(
+                42 => array('versets' => '', 'migration' => 'tableau cassé'),
+                44 => array('versets' => 'Luc 1.5'),
+            ),
+            $service->getAllByPost()
+        );
+    }
+
     public function testSaveNoteTrimsAndStoresTheNoteOfAnExistingReport(): void
     {
         $this->repository->shouldReceive('exists')->with(42, 'versets')->andReturn(true);
