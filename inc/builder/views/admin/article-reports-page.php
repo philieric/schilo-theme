@@ -1,5 +1,5 @@
 <?php
-/** @var array<int, array{post_id:int,type:string,type_label:string,title:string,exists:bool,edit_url:string,view_url:string,user:string,created_at:string}> $reports */
+/** @var array<int, array{post_id:int,type:string,type_label:string,note:string,title:string,exists:bool,edit_url:string,view_url:string,user:string,created_at:string}> $reports */
 /** @var array<string, string> $typeLabels */
 /** @var array<string, int> $typeCounts */
 /** @var string $typeFilter */
@@ -19,7 +19,7 @@ use Schilo\Builder\Admin\ArticleReportsPage;
 
     <div class="schilo-settings-card">
         <h2><?php echo esc_html(sprintf(_n('%d signalement', '%d signalements', count($reports), 'schilo'), count($reports))); ?></h2>
-        <p class="description">Problèmes marqués depuis le site par un administrateur (boutons « Signaler » dans l’en-tête de l’article) : versets à revoir, ou migration à reprendre. Un même article peut porter les deux. Retirez le signalement une fois le problème corrigé.</p>
+        <p class="description">Problèmes marqués depuis le site par un administrateur (boutons « Signaler » dans l’en-tête de l’article) : versets à revoir, ou migration à reprendre. Un même article peut porter les deux, chacun avec une note facultative. Retirez le signalement une fois le problème corrigé.</p>
 
         <ul class="subsubsub" style="float:none;margin:12px 0;">
             <li>
@@ -42,6 +42,7 @@ use Schilo\Builder\Admin\ArticleReportsPage;
                         <th scope="col">ID</th>
                         <th scope="col">Article</th>
                         <th scope="col">Type</th>
+                        <th scope="col">Note</th>
                         <th scope="col">Signalé par</th>
                         <th scope="col">Date</th>
                         <th scope="col">Actions</th>
@@ -59,6 +60,7 @@ use Schilo\Builder\Admin\ArticleReportsPage;
                                 <?php endif; ?>
                             </td>
                             <td><?php echo esc_html($report['type_label']); ?></td>
+                            <td><?php echo esc_html($report['note'] !== '' ? $report['note'] : '—'); ?></td>
                             <td><?php echo esc_html($report['user'] !== '' ? $report['user'] : '—'); ?></td>
                             <td><?php echo esc_html(mysql2date('d/m/Y H:i', $report['created_at'])); ?></td>
                             <td>

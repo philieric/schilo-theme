@@ -101,6 +101,7 @@ class ArticleReportsPage
                 'post_id'    => $row['post_id'],
                 'type'       => $row['type'],
                 'type_label' => $typeLabels[$row['type']] ?? $row['type'],
+                'note'       => $row['note'],
                 'title'      => $post ? html_entity_decode(get_the_title($post), ENT_QUOTES, 'UTF-8') : '',
                 'exists'     => (bool) $post,
                 'edit_url'   => $post ? (string) get_edit_post_link($post->ID, 'raw') : '',

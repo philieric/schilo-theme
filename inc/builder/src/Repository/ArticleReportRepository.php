@@ -6,13 +6,14 @@ namespace Schilo\Builder\Repository;
 
 /**
  * Accès à la table des signalements d'articles ({prefix}schilo_signalements) :
- * une ligne par couple article + type de problème (unique), avec l'auteur et
- * la date du signalement — voir Schilo\Builder\Service\ArticleReportService
- * pour les règles métier et la liste des types.
+ * une ligne par couple article + type de problème (unique), avec l'auteur, la
+ * date du signalement et une note facultative — voir
+ * Schilo\Builder\Service\ArticleReportService pour les règles métier et la
+ * liste des types.
  */
 class ArticleReportRepository
 {
-    public const DB_VERSION        = '1.1.0';
+    public const DB_VERSION        = '1.2.0';
     public const DB_VERSION_OPTION = 'schilo_signalements_db_version';
 
     /** @var \wpdb */
@@ -58,10 +59,12 @@ class ArticleReportRepository
 
         $charset = $this->wpdb->get_charset_collate();
 
+        // 1.2.0 : colonne note (ajoutée par dbDelta aux tables existantes).
         dbDelta("CREATE TABLE {$this->table} (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             post_id BIGINT UNSIGNED NOT NULL,
             report_type VARCHAR(20) NOT NULL DEFAULT 'migration',
+            note VARCHAR(500) NOT NULL DEFAULT '',
             user_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
             created_at DATETIME NOT NULL,
             PRIMARY KEY  (id),
@@ -85,20 +88,26 @@ class ArticleReportRepository
     }
 
     /**
-     * @return string[] Types de problème actuellement signalés sur cet article.
+     * @return array<string, string> Signalements de cet article : type => note ('' si aucune).
      */
-    public function findTypesForPost(int $postId): array
+    public function findNotesForPost(int $postId): array
     {
-        $types = $this->wpdb->get_col(
-            $this->wpdb->prepare("SELECT report_type FROM {$this->table} WHERE post_id = %d", $postId)
+        $rows = $this->wpdb->get_results(
+            $this->wpdb->prepare("SELECT report_type, note FROM {$this->table} WHERE post_id = %d", $postId),
+            ARRAY_A
         );
 
-        return array_map('strval', (array) $types);
+        $notes = array();
+        foreach ((array) $rows as $row) {
+            $notes[(string) $row['report_type']] = (string) $row['note'];
+        }
+
+        return $notes;
     }
 
     /**
-     * Idempotent : un signalement déjà présent garde son auteur et sa date
-     * d'origine (le couple post_id + report_type est unique).
+     * Idempotent : un signalement déjà présent garde son auteur, sa date et
+     * sa note d'origine (le couple post_id + report_type est unique).
      */
     public function save(int $postId, string $type, int $userId, string $createdAt): bool
     {
@@ -116,6 +125,19 @@ class ArticleReportRepository
         return $result !== false;
     }
 
+    public function updateNote(int $postId, string $type, string $note): bool
+    {
+        $result = $this->wpdb->update(
+            $this->table,
+            array('note' => $note),
+            array('post_id' => $postId, 'report_type' => $type),
+            array('%s'),
+            array('%d', '%s')
+        );
+
+        return $result !== false;
+    }
+
     public function delete(int $postId, string $type): bool
     {
         $result = $this->wpdb->delete(
@@ -128,12 +150,12 @@ class ArticleReportRepository
     }
 
     /**
-     * @return array<int, array{post_id:int, type:string, user_id:int, created_at:string}> Du plus récent au plus ancien.
+     * @return array<int, array{post_id:int, type:string, note:string, user_id:int, created_at:string}> Du plus récent au plus ancien.
      */
     public function findAll(): array
     {
         $rows = $this->wpdb->get_results(
-            "SELECT post_id, report_type, user_id, created_at FROM {$this->table} ORDER BY created_at DESC, id DESC",
+            "SELECT post_id, report_type, note, user_id, created_at FROM {$this->table} ORDER BY created_at DESC, id DESC",
             ARRAY_A
         );
 
@@ -141,6 +163,7 @@ class ArticleReportRepository
             return array(
                 'post_id'    => (int) $row['post_id'],
                 'type'       => (string) $row['report_type'],
+                'note'       => (string) $row['note'],
                 'user_id'    => (int) $row['user_id'],
                 'created_at' => (string) $row['created_at'],
             );
