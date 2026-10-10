@@ -16,6 +16,13 @@ final class Schilo_Usx_Bible_Lookup {
 	 * Le verset est facultatif : "Livre Chapitre" (ex. « Daniel 1 ») cible le
 	 * chapitre entier et renvoie verseStart/verseEnd = null (le chapitre complet
 	 * est alors résolu par resolve_reference_data()).
+	 *
+	 * Le séparateur d'intervalle accepte le trait d'union « - » ET tous les
+	 * tirets/traits typographiques fréquents dans le contenu issu de la
+	 * migration : U+2010 (trait d'union), U+2011 (insécable, « Luc 2.21‑24 »),
+	 * U+2012 (figure), U+2013 (en-dash, « Marc 13.1–4 »), U+2014 (em-dash),
+	 * U+2015 (barre), U+2212 (signe moins) — sinon la référence tombait en
+	 * « Format attendu ».
 	 */
 	public static function parse_reference( string $content ): ?array {
 		$content = trim( strip_tags( $content ?? '' ) );
@@ -23,7 +30,7 @@ final class Schilo_Usx_Bible_Lookup {
 			return null;
 		}
 
-		if ( ! preg_match( '#^\s*(.+?)\s+(\d+)(?:\s*[:\.]\s*(\d+)(?:\s*-\s*(\d+))?)?\s*$#u', $content, $m ) ) {
+		if ( ! preg_match( '#^\s*(.+?)\s+(\d+)(?:\s*[:\.]\s*(\d+)(?:\s*[-\x{2010}-\x{2015}\x{2212}]\s*(\d+))?)?\s*$#u', $content, $m ) ) {
 			return null;
 		}
 
