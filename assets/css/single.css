@@ -766,6 +766,12 @@ body.schilo-definition-open { overflow: hidden; }
   min-width: 1.2em;
 }
 
+/* Titres déjà numérotés par l'auteur (« I. … ») : pas de compteur automatique,
+   sinon double numérotation (« 1 I. … »). */
+.schilo-article-sommaire__list--own-numbering a::before {
+  content: none;
+}
+
 .schilo-article-sommaire__list a:hover {
   background: var(--schilo-bg-muted);
   color: var(--schilo-accent);
