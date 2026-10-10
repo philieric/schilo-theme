@@ -87,22 +87,66 @@ final class ArticleReportServiceTest extends TestCase
         self::assertNull($service->toggle(0, ArticleReportService::TYPE_VERSES, 7));
     }
 
-    public function testGetReportedTypesIgnoresTypesThatNoLongerExist(): void
+    public function testGetReportsIgnoresTypesThatNoLongerExist(): void
     {
-        $this->repository->shouldReceive('findTypesForPost')->with(42)->andReturn(array('migration', 'ancien-type'));
+        $this->repository->shouldReceive('findNotesForPost')->with(42)->andReturn(
+            array('migration' => 'tableau cassé', 'ancien-type' => 'x')
+        );
 
         $service = new ArticleReportService($this->repository);
 
-        self::assertSame(array('migration'), $service->getReportedTypes(42));
+        self::assertSame(array('migration' => 'tableau cassé'), $service->getReports(42));
     }
 
-    public function testGetReportedTypesNeverQueriesForAnInvalidId(): void
+    public function testGetReportsNeverQueriesForAnInvalidId(): void
     {
-        $this->repository->shouldNotReceive('findTypesForPost');
+        $this->repository->shouldNotReceive('findNotesForPost');
 
         $service = new ArticleReportService($this->repository);
 
-        self::assertSame(array(), $service->getReportedTypes(0));
+        self::assertSame(array(), $service->getReports(0));
+    }
+
+    public function testSaveNoteTrimsAndStoresTheNoteOfAnExistingReport(): void
+    {
+        $this->repository->shouldReceive('exists')->with(42, 'versets')->andReturn(true);
+        $this->repository->shouldReceive('updateNote')->once()->with(42, 'versets', 'Luc 1.5 manquant')->andReturn(true);
+
+        $service = new ArticleReportService($this->repository);
+
+        self::assertSame('Luc 1.5 manquant', $service->saveNote(42, 'versets', "  Luc 1.5 manquant \n"));
+    }
+
+    public function testSaveNoteAcceptsAnEmptyNoteToClearIt(): void
+    {
+        $this->repository->shouldReceive('exists')->with(42, 'versets')->andReturn(true);
+        $this->repository->shouldReceive('updateNote')->once()->with(42, 'versets', '')->andReturn(true);
+
+        $service = new ArticleReportService($this->repository);
+
+        self::assertSame('', $service->saveNote(42, 'versets', '   '));
+    }
+
+    public function testSaveNoteTruncatesToTheColumnLength(): void
+    {
+        $this->repository->shouldReceive('exists')->andReturn(true);
+        $this->repository->shouldReceive('updateNote')->once()->andReturn(true);
+
+        $service = new ArticleReportService($this->repository);
+        $saved   = $service->saveNote(42, 'migration', str_repeat('é', 600));
+
+        self::assertSame(ArticleReportService::NOTE_MAX_LENGTH, mb_strlen((string) $saved, 'UTF-8'));
+    }
+
+    public function testSaveNoteRefusesWhenThereIsNoReportOfThatType(): void
+    {
+        $this->repository->shouldReceive('exists')->with(42, 'versets')->andReturn(false);
+        $this->repository->shouldNotReceive('updateNote');
+
+        $service = new ArticleReportService($this->repository);
+
+        self::assertNull($service->saveNote(42, 'versets', 'note orpheline'));
+        self::assertNull($service->saveNote(42, 'autre', 'type inconnu'));
     }
 
     public function testRemoveIgnoresAnUnknownType(): void
