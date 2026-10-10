@@ -330,6 +330,7 @@ class Plugin
         (new \Schilo\Builder\Front\ArticleReportButton($reportService))->register();
         if (is_admin()) {
             (new \Schilo\Builder\Admin\ArticleReportsPage($reportService))->register();
+            (new \Schilo\Builder\Admin\ArticleReportColumn($reportService))->register();
         }
 
         // Lecteur à haute voix — intégré au thème
