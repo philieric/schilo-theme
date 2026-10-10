@@ -90,8 +90,12 @@ if ( ! empty( $sections_raw ) && class_exists( '\Schilo\Builder\Service\Template
 // Une entrée par section "titre-partie" ; le sommaire n'apparaît qu'à
 // partir de 2 parties déclarées (voir ArticlePartsService).
 $article_parts = [];
+// Titres déjà numérotés par l'auteur (« I. … ») : le sommaire n'ajoute pas son compteur.
+$article_parts_own_numbering = false;
 if ( class_exists( '\Schilo\Builder\Service\ArticlePartsService' ) ) {
-    $article_parts = ( new \Schilo\Builder\Service\ArticlePartsService() )->getParts( $sections_raw );
+    $article_parts_service       = new \Schilo\Builder\Service\ArticlePartsService();
+    $article_parts               = $article_parts_service->getParts( $sections_raw );
+    $article_parts_own_numbering = $article_parts_service->usesOwnNumbering( $article_parts );
 }
 
 // ── Helpers : livre → classe CSS et label lisible ────────────────────
@@ -500,7 +504,7 @@ $lhv_text = implode( "\n\n", array_filter( array_map( 'trim', $lhv_parts ) ) );
           </div>
         </div>
         <div class="schilo-card__body">
-          <ol class="schilo-article-sommaire__list">
+          <ol class="schilo-article-sommaire__list<?php echo $article_parts_own_numbering ? ' schilo-article-sommaire__list--own-numbering' : ''; ?>">
             <?php foreach ( $article_parts as $part ) : ?>
               <li>
                 <a href="#<?php echo esc_attr( $part['anchor'] ); ?>"><?php echo esc_html( $part['label'] ); ?></a>
