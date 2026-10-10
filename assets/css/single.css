@@ -359,6 +359,31 @@ body.schilo-definition-open { overflow: hidden; }
   border-color: rgba(40,114,212,.4);
 }
 
+/* Bouton de signalement — rendu uniquement pour les administrateurs
+   connectés (Schilo\Builder\Front\ArticleReportButton). */
+.schilo-report-btn {
+  cursor: pointer;
+  line-height: inherit;
+  background: rgba(217,119,6,.28);
+  border-color: rgba(251,191,36,.55);
+  color: #fff;
+}
+
+.schilo-report-btn:hover { background: rgba(217,119,6,.5); }
+
+.schilo-report-btn.is-reported {
+  background: #b45309;
+  border-color: #b45309;
+}
+
+.schilo-report-btn[aria-busy="true"] { opacity: .6; cursor: progress; }
+
+.schilo-report-status {
+  align-self: center;
+  font-size: 12px;
+  color: rgba(255,255,255,.82);
+}
+
 /* ── Barre d'onglets ──────────────────────────────────────────────── */
 .schilo-single-tabnav {
   /* Sticky PERMANENT (et non active par JS une fois le hero sorti) : sur
