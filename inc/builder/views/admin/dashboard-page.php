@@ -3,6 +3,7 @@
 /** @var int $activeSectionCount */
 /** @var int $sectionCount */
 /** @var int $bibleVersionCount */
+/** @var int $reportCount */
 ?>
 
 <div class="wrap schilo-builder-settings schilo-dashboard">
@@ -59,6 +60,13 @@
             <h2>Parcours &amp; Thèmes</h2>
             <p>Gérer le classement des articles, les parcours de lecture, les thèmes et leurs règles.</p>
             <strong>Disponible</strong>
+        </a>
+
+        <a class="schilo-dashboard-card" href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-signalements')); ?>">
+            <span class="dashicons dashicons-flag"></span>
+            <h2>Signalements</h2>
+            <p>Articles signalés depuis le site par un administrateur&nbsp;: versets à revoir ou migration à reprendre, avec leur note.</p>
+            <strong><?php echo esc_html($reportCount); ?> signalement(s)</strong>
         </a>
 
         <a class="schilo-dashboard-card" href="<?php echo esc_url(admin_url('admin.php?page=schilo-builder-outils')); ?>">
