@@ -395,6 +395,11 @@ class SettingsPage
         $activeSectionCount = count($sectionService->getActiveTypes());
         $bibleVersionCount = $this->getBibleVersionCount();
 
+        global $wpdb;
+        $reportCount = count((new \Schilo\Builder\Service\ArticleReportService(
+            new \Schilo\Builder\Repository\ArticleReportRepository($wpdb)
+        ))->getAll());
+
         include SCHILO_BUILDER_PATH . 'views/admin/dashboard-page.php';
     }
 
