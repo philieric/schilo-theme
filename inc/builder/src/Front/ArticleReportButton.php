@@ -7,9 +7,10 @@ namespace Schilo\Builder\Front;
 use Schilo\Builder\Service\ArticleReportService;
 
 /**
- * Bouton « Signaler » affiché dans le hero d'un article, uniquement pour les
- * administrateurs connectés (les autres visiteurs ne reçoivent ni le bouton,
- * ni le script, ni l'endpoint AJAX).
+ * Boutons de signalement affichés dans le hero d'un article (un par type de
+ * problème : versets, migration), uniquement pour les administrateurs
+ * connectés — les autres visiteurs ne reçoivent ni les boutons, ni le script,
+ * ni l'endpoint AJAX.
  */
 class ArticleReportButton
 {
@@ -50,12 +51,30 @@ class ArticleReportButton
             'ajaxUrl'        => admin_url('admin-ajax.php'),
             'action'         => self::AJAX_ACTION,
             'nonce'          => wp_create_nonce(self::NONCE_ACTION),
-            'labelReport'    => __('Signaler l’article', 'schilo'),
-            'labelReported'  => __('Signalé — retirer', 'schilo'),
             'statusReported' => __('Signalement enregistré.', 'schilo'),
             'statusRemoved'  => __('Signalement retiré.', 'schilo'),
             'statusError'    => __('Échec de l’enregistrement, réessayez.', 'schilo'),
         ));
+    }
+
+    /**
+     * Libellés du bouton d'un type : [à signaler, déjà signalé].
+     *
+     * @return array{0:string, 1:string}
+     */
+    private function buttonLabels(string $type): array
+    {
+        if ($type === ArticleReportService::TYPE_VERSES) {
+            return array(
+                __('Signaler : versets', 'schilo'),
+                __('Versets signalés — retirer', 'schilo'),
+            );
+        }
+
+        return array(
+            __('Signaler : migration', 'schilo'),
+            __('Migration signalée — retirer', 'schilo'),
+        );
     }
 
     /**
@@ -69,17 +88,25 @@ class ArticleReportButton
             return;
         }
 
-        $reported = $this->service->isReported($postId);
+        $reportedTypes = $this->service->getReportedTypes($postId);
+
+        foreach (ArticleReportService::TYPES as $type) {
+            list($labelReport, $labelReported) = $this->buttonLabels($type);
+            $reported = in_array($type, $reportedTypes, true);
+            ?>
+            <button type="button"
+                    class="schilo-hero-badge schilo-report-btn<?php echo $reported ? ' is-reported' : ''; ?>"
+                    data-schilo-report
+                    data-post-id="<?php echo esc_attr((string) $postId); ?>"
+                    data-type="<?php echo esc_attr($type); ?>"
+                    data-label-report="<?php echo esc_attr($labelReport); ?>"
+                    data-label-reported="<?php echo esc_attr($labelReported); ?>">
+                <i class="ti ti-flag" aria-hidden="true"></i>
+                <span data-schilo-report-label><?php echo esc_html($reported ? $labelReported : $labelReport); ?></span>
+            </button>
+            <?php
+        }
         ?>
-        <button type="button"
-                class="schilo-hero-badge schilo-report-btn<?php echo $reported ? ' is-reported' : ''; ?>"
-                data-schilo-report
-                data-post-id="<?php echo esc_attr((string) $postId); ?>">
-            <i class="ti ti-flag" aria-hidden="true"></i>
-            <span data-schilo-report-label><?php
-                echo esc_html($reported ? __('Signalé — retirer', 'schilo') : __('Signaler l’article', 'schilo'));
-            ?></span>
-        </button>
         <span class="schilo-report-status" role="status" aria-live="polite" data-schilo-report-status></span>
         <?php
     }
@@ -93,12 +120,13 @@ class ArticleReportButton
         }
 
         $postId   = isset($_POST['post_id']) ? absint(wp_unslash($_POST['post_id'])) : 0;
-        $reported = $this->service->toggle($postId, get_current_user_id());
+        $type     = isset($_POST['type']) ? sanitize_key(wp_unslash($_POST['type'])) : '';
+        $reported = $this->service->toggle($postId, $type, get_current_user_id());
 
         if ($reported === null) {
-            wp_send_json_error(array('message' => __('Article introuvable.', 'schilo')), 400);
+            wp_send_json_error(array('message' => __('Article ou type de signalement invalide.', 'schilo')), 400);
         }
 
-        wp_send_json_success(array('reported' => $reported));
+        wp_send_json_success(array('reported' => $reported, 'type' => $type));
     }
 }
